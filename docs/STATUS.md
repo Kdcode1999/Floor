@@ -19,15 +19,20 @@ Working today:
 - **The mentor's tools** in the app: the approval queue with each proof, price and how to pay,
   the broker offer, the join link, invite codes, the members list with who is about to run out,
   giving and ending VIP by hand, admins, removing someone, and the space's logo.
+- **The Feed**: the mentor and admins write posts (with a picture, and in free posts a video or
+  social post from YouTube, X, Instagram or Facebook), trade setups and pinned offers. VIP members
+  read everything. Free members see that a VIP post exists and nothing inside it. A setup's prices
+  cannot be changed after posting: the mentor adds an update or closes it. The join page previews
+  the newest posts.
 
 With `mobile/.env` empty the app still opens on the sample space, with no sign-in, so the screens can be
 looked at without any setup.
 
-Checked: 67 database tests, 93 logic tests (76 phone, 17 web), and four walk-throughs in Chrome at
-phone size. The newest walk-through runs the app against a real Postgres with Floor's migrations, so
-what it proves is true of the real rules. The phone app builds for Android and iPhone and the web app
-builds for production. Nothing has run against the real Supabase project yet: that needs
-`docs/SETUP.md`.
+Checked: 85 database tests, 123 logic tests (93 phone, 30 web), and five walk-throughs in Chrome at
+phone size. Two of them run the app against a real Postgres with Floor's migrations, with the mentor,
+a VIP member and a free member each on their own phone, so what they prove is true of the real rules.
+The phone app builds for Android and iPhone and the web app builds for production. Nothing has run
+against the real Supabase project yet: that needs `docs/SETUP.md`.
 
 ## Needed from Kingsley
 
@@ -67,7 +72,7 @@ processors, a Telegram bot token, the Apple and Google developer accounts.
 - [x] Mobile: the rest of mentor setup: logo, price, how to pay, links
 - [x] Mobile: approval queue, invite codes and Members
 - [x] Walk-throughs run against a real Postgres with the real rules
-- [ ] Database and mobile: Feed (posts, setups, embeds, Offers)
+- [x] Database and mobile: Feed (posts, setups, embeds, Offers), and a preview on the join page
 - [ ] Database and mobile: Learn (modules, lessons, hosted video)
 - [ ] Mobile: Protection (capture blocking, name on video)
 - [ ] Alerts (push)

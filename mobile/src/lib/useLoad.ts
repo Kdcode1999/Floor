@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 
 interface Loaded<T> {
   key: string;
+  /** Which run of the loader this answer came from. */
+  round: number;
   data?: T;
   error?: string;
 }
@@ -11,7 +13,7 @@ interface Loaded<T> {
  *
  * `key` names what is being loaded: when it changes, the old result is dropped and the load
  * runs again. Pass null as `load` to load nothing yet. `reload` runs it again, keeping what is
- * on screen until the new answer arrives.
+ * on screen until the new answer arrives. `refreshing` is true while that second run is under way.
  */
 export function useLoad<T>(load: (() => Promise<T>) | null, key: string) {
   const [loaded, setLoaded] = useState<Loaded<T> | null>(null);
@@ -30,8 +32,8 @@ export function useLoad<T>(load: (() => Promise<T>) | null, key: string) {
     const run = latest.current;
     if (!run) return;
     run().then(
-      (data) => current && setLoaded({ key, data }),
-      (error: Error) => current && setLoaded({ key, error: error.message }),
+      (data) => current && setLoaded({ key, round, data }),
+      (error: Error) => current && setLoaded({ key, round, error: error.message }),
     );
     return () => {
       current = false;
@@ -44,6 +46,7 @@ export function useLoad<T>(load: (() => Promise<T>) | null, key: string) {
     /** The server's own words when the load failed. */
     error: mine?.error ?? null,
     loading: enabled && !mine,
+    refreshing: enabled && mine !== null && mine.round !== round,
     reload: () => setRound((count) => count + 1),
   };
 }

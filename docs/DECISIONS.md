@@ -137,6 +137,37 @@ Newest at the bottom. Each entry says what was decided and why, so nobody has to
 - **Admins get the queue, invite codes and Members. Price, payment details and the look stay with
   the mentor.** An admin who could change the bank details could redirect every payment.
 
+- **Three kinds of post: a post, a trade setup, an offer.** Posts and setups are for VIP unless the
+  mentor picks Everyone. An offer is a deal with a link, pinned to the top of the Feed for
+  everyone, five at most.
+- **A free member sees that a VIP post exists, and nothing inside it.** They get its kind, its age,
+  a post's title or a setup's pair. The rest never reaches their phone: the database leaves it out,
+  the app does not merely hide it.
+- **A setup's prices are set once.** Nobody can rewrite a call after the market has moved. The
+  mentor can add an update in their own words and close the setup. A closed setup stays closed.
+  Posts and offers can be edited, and are marked as edited.
+- **The composer checks that a setup makes sense**: for a Buy the stop is below the entry and the
+  targets above, for a Sell the other way round. A setup that fails this is a typing slip, and
+  members act on these numbers.
+- **The phone app has no upgrade button.** A locked post says it is for VIP members and stops
+  there. The app does not link to the join page and does not take invite codes: both stores forbid
+  steering people to outside payment for digital content, and a rejection would block the launch.
+  Members get VIP on the web join page, as decided earlier.
+- **Embeds use each site's own player** and open the original with one tap. YouTube only plays
+  inside a page that says where it is, so the app gives its store id as that address.
+- **Pictures are shrunk on the phone before upload** (1600 pixels on the long side) and open full
+  screen with pinch to zoom. A chart has to be read up close.
+- **Jobs for the server wait in a queue in the database.** Sending an alert or posting to Telegram
+  cannot happen inside the database. A function that needs one adds a job in the same transaction
+  as its own change, so the job exists exactly when the change does. Floor's server takes jobs
+  with its secret key, retries a failed one with a growing wait, and gives up after five tries.
+- **Composing, managing a post and viewing a picture open over the tabs**, full screen, and
+  return to wherever they were opened from.
+- **Typing never hides behind the keyboard.** Screens use `react-native-keyboard-controller`, which
+  behaves the same on Android and iPhone and is part of Expo Go.
+- **The join page previews the space's newest posts**: free posts with their opening words, VIP
+  posts locked. It is what a free member would see, so nothing new is made public.
+
 ## Open
 
 - Card processors for the automatic path. Starting point: Paystack and Flutterwave, Stripe after.

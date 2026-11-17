@@ -34,7 +34,8 @@ npm run lint
 
 The scripts in `../checks/` walk the app in Chrome at phone size, check each step and save a picture of
 every screen: `phone_sample.py` (the sample space), `phone_sign_in.py` (sign-in and starting a space) and
-`phone_mentor.py` (the mentor's tools, on a real database). They need Python with Playwright, so they are
+`phone_mentor.py` (the mentor's tools) and `phone_feed.py` (the Feed, as mentor, VIP and free member). The
+last two run on a real database. They need Python with Playwright, so they are
 run on the build side, not on your computer.
 
 ## Where things are

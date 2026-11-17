@@ -7,7 +7,7 @@ import { cleanCode, CODE_LENGTH, looksLikeEmail } from "@/auth/messages";
 import { Avatar, Button, Card, Field } from "@/components/ui";
 import { logoUrl } from "@/lib/env";
 
-import { stepFor, type PublicSpace } from "./logic";
+import { stepFor, type PreviewItem, type PublicSpace } from "./logic";
 import { MemberView } from "./MemberView";
 import { useJoin, type Join } from "./useJoin";
 
@@ -15,10 +15,12 @@ interface JoinFlowProps {
   space: PublicSpace;
   /** "₦25,000 for 30 days", or null when the mentor has not set a price. */
   price: string | null;
+  /** The space's newest few posts, as a visitor may see them. */
+  preview: PreviewItem[];
 }
 
 /** A space's join page: see the space, sign in with an emailed code, join, and get VIP. */
-export function JoinFlow({ space, price }: JoinFlowProps) {
+export function JoinFlow({ space, price, preview }: JoinFlowProps) {
   const join = useJoin(space);
   const step = stepFor({
     signedIn: join.signedIn,
@@ -53,7 +55,7 @@ export function JoinFlow({ space, price }: JoinFlowProps) {
           </p>
         </Card>
       ) : step === "intro" ? (
-        <Intro space={space} price={price} join={join} />
+        <Intro space={space} price={price} join={join} preview={preview} />
       ) : step === "sign-in" ? (
         <SignIn space={space} join={join} />
       ) : step === "name" ? (
@@ -87,7 +89,7 @@ export function JoinFlow({ space, price }: JoinFlowProps) {
   );
 }
 
-function Intro({ space, price, join }: { space: PublicSpace; price: string | null; join: Join }) {
+function Intro({ space, price, join, preview }: { space: PublicSpace; price: string | null; join: Join; preview: PreviewItem[] }) {
   return (
     <>
       <Card>
@@ -113,7 +115,36 @@ function Intro({ space, price, join }: { space: PublicSpace; price: string | nul
           <p className="small center">Joining is free. You choose VIP afterwards.</p>
         )}
       </Card>
+
+      {preview.length > 0 ? (
+        <Card>
+          <h2 className="h3">Latest in {space.name}</h2>
+          <div className="rows">
+            {preview.map((item, index) => (
+              <div className="row preview" key={index}>
+                <span className={item.locked ? "badge locked" : "badge"} aria-hidden="true">
+                  {item.locked ? <Lock /> : null}
+                </span>
+                <div style={{ minWidth: 0 }}>
+                  <p className="strong body clip">{item.title}</p>
+                  {item.detail ? <p className="body clip-2">{item.detail}</p> : null}
+                  <p className="small">{item.meta}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      ) : null}
     </>
+  );
+}
+
+function Lock() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="5" y="11" width="14" height="9" rx="2.5" />
+      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+    </svg>
   );
 }
 

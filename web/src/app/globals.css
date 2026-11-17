@@ -252,6 +252,43 @@ textarea.input {
   gap: 2px;
   padding: 12px 0;
 }
+/* One of a space's latest posts on the join page: a small round badge, then the words. */
+.row.preview {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+.badge {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--chip-border);
+  border-radius: 99px;
+  background: var(--chip-bg);
+  color: var(--text2);
+}
+.badge:not(.locked)::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 99px;
+  background: currentColor;
+  opacity: 0.7;
+}
+.clip {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.clip-2 {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
 .stack {
   display: flex;
   flex-direction: column;

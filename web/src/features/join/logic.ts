@@ -186,3 +186,55 @@ export function nameMessage(failure: Failure): string {
   if (message.includes("profiles_display_name")) return "Use a name of 1 to 40 letters.";
   return "Your name couldn't be saved. Try again.";
 }
+
+/** One of a space's newest posts, as the database gives it to a visitor. */
+export interface PreviewRow {
+  kind: "post" | "setup";
+  locked: boolean;
+  title: string | null;
+  pair: string | null;
+  /** The opening words of a free post. */
+  snippet: string | null;
+  created_at: string;
+}
+
+/** The same post, worded for the join page. */
+export interface PreviewItem {
+  locked: boolean;
+  title: string;
+  /** The opening words of a free post, or null. */
+  detail: string | null;
+  /** "VIP · 2 hours ago" or "Free · Yesterday". */
+  meta: string;
+}
+
+/** How long ago something happened, in words: "12 min ago", "3 hours ago", "Yesterday". */
+export function timeAgo(value: string, now: number, locale?: string): string {
+  const gap = now - new Date(value).getTime();
+  const minute = 60_000;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+  if (gap < minute) return "Just now";
+  if (gap < hour) return `${Math.floor(gap / minute)} min ago`;
+  if (gap < day) return Math.floor(gap / hour) === 1 ? "1 hour ago" : `${Math.floor(gap / hour)} hours ago`;
+  if (gap < 2 * day) return "Yesterday";
+  if (gap < 14 * day) return `${Math.floor(gap / day)} days ago`;
+  return formatDay(value, locale);
+}
+
+/** Words one post for the join page. A locked post gives away its kind and nothing more. */
+export function previewLine(row: PreviewRow, now: number, locale?: string): PreviewItem {
+  const title =
+    row.kind === "setup"
+      ? row.pair
+        ? `${row.pair} setup`
+        : "Trade setup"
+      : (row.title ?? (row.locked ? "A post for VIP members" : (row.snippet ?? "A new post")));
+  const usedSnippet = row.kind === "post" && !row.title && !row.locked;
+  return {
+    locked: row.locked,
+    title,
+    detail: row.locked || usedSnippet ? null : row.snippet,
+    meta: `${row.locked ? "VIP" : "Free"} · ${timeAgo(row.created_at, now, locale)}`,
+  };
+}

@@ -84,6 +84,10 @@ def main() -> None:
         "broker_link": "https://broker.example/open?ref=kings",
         "broker_vip_days": 60,
     }
+    world["preview"]["kings-fx"] = [
+        {"kind": "setup", "locked": True, "title": None, "pair": "EURUSD", "snippet": None, "created_at": stand_in.days_from_now(-0.1)},
+        {"kind": "post", "locked": False, "title": "Why I skipped gold today", "pair": None, "snippet": "The spread was too wide before the news.", "created_at": stand_in.days_from_now(-1.2)},
+    ]
     world["invites"]["GOLD2026"] = {"space_id": "space-1", "days": 14}
     space("space-2", "Other Room", slug="other-room")
     world["invites"]["OTHER123"] = {"space_id": "space-2", "days": 30}
@@ -125,6 +129,10 @@ def main() -> None:
             preview = page.locator('meta[property="og:title"]').get_attribute("content")
             check("and a preview for chat apps", preview == "Kings FX Academy on Floor")
             check("how to pay is not shown to a visitor", page.get_by_text("0123456789").count() == 0)
+            check_visible("the newest posts are previewed", page.get_by_role("heading", name="Latest in Kings FX Academy"))
+            check_visible("a free post with its opening words", page.get_by_text("The spread was too wide before the news."))
+            check_visible("a VIP setup as locked, by its pair alone", page.get_by_text("EURUSD setup"))
+            check_visible("each marked free or VIP, with its age", page.get_by_text("VIP · 2 hours ago"))
             shot("1-intro")
 
             print("Signing in")

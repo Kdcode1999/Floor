@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { Card } from "@/components/ui";
+import { getPreview } from "@/features/join/getPreview";
 import { getSpace } from "@/features/join/getSpace";
 import { JoinFlow } from "@/features/join/JoinFlow";
 import { priceLine } from "@/features/join/logic";
@@ -50,10 +51,12 @@ async function Join({ params }: Pick<PageProps<"/[slug]">, "params">) {
     );
   }
 
+  const preview = await getPreview(space.slug);
+
   return (
     <main className="space" style={themeVars(themeFor(space.theme))}>
       <div className="column">
-        <JoinFlow space={space} price={priceLine(space)} />
+        <JoinFlow space={space} price={priceLine(space)} preview={preview} />
       </div>
     </main>
   );

@@ -59,7 +59,7 @@ export default function ManageScreen() {
   return (
     <Screen header={<SpaceHeader />} gap={16}>
       <View style={styles.tiles}>
-        <ActionTile icon="plus" label="New post" />
+        <ActionTile icon="plus" label="New post" onPress={() => router.push("/compose")} />
         <ActionTile icon="live" label="Go live" primary />
         <ActionTile icon="lesson" label="Add lesson" />
       </View>

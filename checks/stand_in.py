@@ -31,6 +31,7 @@ def fresh_world() -> dict:
         "requests": [],  # the test person's requests for VIP
         "invites": {},  # code -> {"space_id", "days"}
         "taken_slugs": ["kings"],  # link words another space already has
+        "preview": {},  # link word -> the newest posts a visitor may see
         "display_name": "Member",
     }
 
@@ -263,8 +264,12 @@ class StandIn(http.server.BaseHTTPRequestHandler):
                     rows.append({**{key: found[key] for key in ("id", "slug", "name", "theme", "logo_path", "status")}, "role": row["role"], "vip_until": row["vip_until"]})
             return self._reply(200, rows)
 
-        if url.path == "/rest/v1/rpc/list_requests":  # the mentor's queue: nobody is waiting here
+        # A space in these walk-throughs has an empty Feed and nobody in the mentor's queue.
+        if url.path in ("/rest/v1/rpc/list_requests", "/rest/v1/rpc/feed"):
             return self._reply(200, [])
+
+        if url.path == "/rest/v1/rpc/space_preview":
+            return self._reply(200, world["preview"].get(body.get("p_slug"), []))
 
         if url.path == "/rest/v1/rpc/create_space":
             # The same refusals, in the same words, as create_space in the database.

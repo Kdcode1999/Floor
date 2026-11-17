@@ -6,11 +6,14 @@ import {
   inviteMessage,
   isVip,
   latestRequests,
+  previewLine,
   priceLine,
   proofPath,
   proofProblem,
   stepFor,
+  timeAgo,
   type Membership,
+  type PreviewRow,
 } from "@/features/join/logic";
 
 const member: Membership = { role: "member", status: "active", vip_until: null };
@@ -119,4 +122,38 @@ describe("files shared with the phone app", () => {
       expect(readFileSync(web, "utf8")).toBe(readFileSync(phone, "utf8"));
     });
   }
+});
+
+describe("the preview of a space's latest posts", () => {
+  const NOW = Date.parse("2026-11-18T12:00:00Z");
+  const row: PreviewRow = { kind: "post", locked: false, title: "Welcome", pair: null, snippet: "Start here.", created_at: "2026-11-18T10:00:00Z" };
+
+  it("words how long ago", () => {
+    expect(timeAgo("2026-11-18T11:59:30Z", NOW)).toBe("Just now");
+    expect(timeAgo("2026-11-18T11:48:00Z", NOW)).toBe("12 min ago");
+    expect(timeAgo("2026-11-18T11:00:00Z", NOW)).toBe("1 hour ago");
+    expect(timeAgo("2026-11-17T10:00:00Z", NOW)).toBe("Yesterday");
+    expect(timeAgo("2026-11-13T10:00:00Z", NOW)).toBe("5 days ago");
+    expect(timeAgo("2026-10-01T10:00:00Z", NOW, "en-GB")).toBe("1 Oct 2026");
+  });
+
+  it("shows a free post with its title and opening words", () => {
+    expect(previewLine(row, NOW)).toEqual({ locked: false, title: "Welcome", detail: "Start here.", meta: "Free · 2 hours ago" });
+  });
+
+  it("uses the opening words as the title when a free post has none", () => {
+    expect(previewLine({ ...row, title: null }, NOW)).toMatchObject({ title: "Start here.", detail: null });
+    expect(previewLine({ ...row, title: null, snippet: null }, NOW).title).toBe("A new post");
+  });
+
+  it("gives away nothing from inside a VIP post", () => {
+    expect(previewLine({ ...row, kind: "setup", locked: true, title: null, pair: "EURUSD", snippet: null }, NOW)).toEqual({
+      locked: true,
+      title: "EURUSD setup",
+      detail: null,
+      meta: "VIP · 2 hours ago",
+    });
+    expect(previewLine({ ...row, locked: true, title: null, snippet: null }, NOW).title).toBe("A post for VIP members");
+    expect(previewLine({ ...row, locked: true, snippet: "should never be here" }, NOW).detail).toBeNull();
+  });
 });

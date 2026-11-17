@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
-import { ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
+import { RefreshControl, StyleSheet, useWindowDimensions, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { GlowField } from "@/components/GlowField";
@@ -14,10 +15,14 @@ interface ScreenProps {
   hasNav?: boolean;
   /** Space between the stacked blocks, in points. */
   gap?: number;
+  /** Lets the person pull down to load the content again. */
+  onRefresh?: () => void;
+  /** True while that reload is under way. */
+  refreshing?: boolean;
 }
 
 /** One screen of the app: the theme's lights, a fixed header, and content that scrolls. */
-export function Screen({ header, children, hasNav = true, gap = 14 }: ScreenProps) {
+export function Screen({ header, children, hasNav = true, gap = 14, onRefresh, refreshing = false }: ScreenProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const display = useWindowDimensions();
@@ -37,13 +42,18 @@ export function Screen({ header, children, hasNav = true, gap = 14 }: ScreenProp
       <GlowField theme={theme} width={size.width} height={size.height} />
       <View style={[styles.column, { paddingTop: insets.top }]}>
         {header}
-        <ScrollView
+        {/* Scrolls the box being typed in clear of the keyboard, the same way on both kinds of phone. */}
+        <KeyboardAwareScrollView
+          bottomOffset={24}
           style={styles.fill}
           contentContainerStyle={[styles.content, { gap, paddingBottom: bottomSpace }]}
           showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled">
+          keyboardShouldPersistTaps="handled"
+          refreshControl={
+            onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.text} /> : undefined
+          }>
           {children}
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </View>
     </View>
   );

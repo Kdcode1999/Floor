@@ -46,6 +46,9 @@ Supabase provides accounts, the Postgres database, file storage and live updates
 A screen loads with `useLoad(() => api.loadX(...), key)` and acts with `useAction()`. An action
 resolves with a sentence to show when it failed, or null.
 
+Screens inside a tab live under `app/(tabs)/`. Screens that take the whole phone (writing a post,
+a picture, later a lesson or a live session) are files directly in `app/` and open over the tabs.
+
 With `mobile/.env` empty the app runs on a sample space, so screens can be looked at with no setup.
 
 ## Web app (`web/src`)
@@ -68,6 +71,21 @@ when the copies differ.
 - Helper functions used by rules live in the `private` schema, which the API does not expose.
 - Errors raised for the apps are short codes (`not_allowed`, `banned`). The apps turn a code into
   a sentence.
+- `private.outbox` is the queue of jobs for Floor's server (alerts, Telegram, clean-up). Functions
+  add to it with `private.enqueue`. The server takes jobs with `claim_outbox` and reports back with
+  `finish_outbox`, both open to the secret key only.
+
+### Who can read what
+
+| Content | Free member | VIP member | Staff |
+| --- | --- | --- | --- |
+| Free posts, offers | yes | yes | yes |
+| VIP posts and setups | that they exist | yes | yes |
+| How to pay, broker link | yes | yes | yes |
+| The queue, members, invite codes | no | no | yes |
+
+A member also needs the account's one claimed login (`private.has_access`). Staff do not: a
+mentor uses the phone and a laptop at once.
 
 ## Checks (`checks/`)
 
@@ -77,7 +95,8 @@ when the copies differ.
   real rules. It refuses anything beyond plain columns and plain filters, which holds the apps to
   rule 3.
 - `phone_*.py` and `web_*.py` walk the apps in Chrome at phone size, check each step on screen
-  and in the database, and save a picture of every screen to `checks/out/`.
+  and in the database, and save a picture of every screen to `checks/out/`. Several people can be
+  walked at once, each on their own phone.
 - `stand_in.py` is the older, scripted stand-in. It answers whatever a walk-through tells it to,
   for the cases a real database will not produce on demand: a failing server, a second phone
   taking over.

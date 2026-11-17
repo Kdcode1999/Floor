@@ -8,6 +8,8 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import * as SystemUI from "expo-system-ui";
 import { useEffect } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { AuthProvider, useAuth } from "@/auth/AuthContext";
 import { holdFor, stageFor } from "@/auth/stage";
@@ -35,11 +37,15 @@ export default function RootLayout() {
   if (!fontsReady) return null;
 
   return (
-    <AuthProvider>
-      <SpaceProvider>
-        <GuardedStack />
-      </SpaceProvider>
-    </AuthProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <KeyboardProvider>
+        <AuthProvider>
+          <SpaceProvider>
+            <GuardedStack />
+          </SpaceProvider>
+        </AuthProvider>
+      </KeyboardProvider>
+    </GestureHandlerRootView>
   );
 }
 
@@ -81,6 +87,9 @@ function GuardedStack() {
         <Stack.Protected guard={stage === "app"}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="account" />
+          <Stack.Screen name="compose" />
+          <Stack.Screen name="post" />
+          <Stack.Screen name="picture" options={{ animation: "fade" }} />
         </Stack.Protected>
         <Stack.Protected guard={stage === "sign-in"}>
           <Stack.Screen name="sign-in" />
