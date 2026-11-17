@@ -9,11 +9,18 @@ import { StatusBar } from "expo-status-bar";
 import * as SystemUI from "expo-system-ui";
 import { useEffect } from "react";
 
-import { SpaceProvider } from "@/space/SpaceContext";
+import { AuthProvider, useAuth } from "@/auth/AuthContext";
+import { holdFor, stageFor } from "@/auth/stage";
+import { missingSettings } from "@/lib/env";
+import { SpaceProvider, useSpace } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
 
-// Keep the splash screen up until the fonts are in, so text never jumps from one font to another.
+// Keep the splash screen up until the fonts are in and the app knows what to show first, so
+// nothing flashes past.
 SplashScreen.preventAutoHideAsync();
+
+/** The longest the splash screen stays up. After that the app shows its own waiting screen. */
+const SPLASH_LIMIT_MS = 5000;
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -23,23 +30,43 @@ export default function RootLayout() {
     Inter_700Bold,
   });
   // If the fonts fail to load the app still opens, in the phone's own font.
-  const ready = fontsLoaded || fontError != null;
+  const fontsReady = fontsLoaded || fontError != null;
 
-  useEffect(() => {
-    if (ready) SplashScreen.hideAsync();
-  }, [ready]);
-
-  if (!ready) return null;
+  if (!fontsReady) return null;
 
   return (
-    <SpaceProvider>
-      <ThemedStack />
-    </SpaceProvider>
+    <AuthProvider>
+      <SpaceProvider>
+        <GuardedStack />
+      </SpaceProvider>
+    </AuthProvider>
   );
 }
 
-function ThemedStack() {
+/**
+ * The app has three parts and shows exactly one at a time:
+ * - the sign-in screens, for someone signed out
+ * - the hold screen, for someone signed in who cannot go further yet
+ * - the space itself
+ * The router moves between them by itself as sign-in and the space change.
+ */
+function GuardedStack() {
   const theme = useTheme();
+  const auth = useAuth();
+  const space = useSpace();
+
+  // A release build without its settings stops at the hold screen, which says so.
+  const stage = missingSettings ? "hold" : stageFor(auth.status, space.status);
+  const starting = !missingSettings && stage === "hold" && holdFor(auth.status, space.status) === "loading";
+
+  useEffect(() => {
+    if (!starting) {
+      SplashScreen.hideAsync();
+      return;
+    }
+    const timer = setTimeout(() => SplashScreen.hideAsync(), SPLASH_LIMIT_MS);
+    return () => clearTimeout(timer);
+  }, [starting]);
 
   // The colour behind every screen. It shows for a moment while screens change or the keyboard
   // moves, so it has to match the theme.
@@ -50,9 +77,19 @@ function ThemedStack() {
   return (
     <>
       <StatusBar style={theme.dark ? "light" : "dark"} />
-      <Stack
-        screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.background } }}
-      />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.background } }}>
+        <Stack.Protected guard={stage === "app"}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="account" />
+        </Stack.Protected>
+        <Stack.Protected guard={stage === "sign-in"}>
+          <Stack.Screen name="sign-in" />
+          <Stack.Screen name="code" />
+        </Stack.Protected>
+        <Stack.Protected guard={stage === "hold"}>
+          <Stack.Screen name="hold" options={{ animation: "fade" }} />
+        </Stack.Protected>
+      </Stack>
     </>
   );
 }

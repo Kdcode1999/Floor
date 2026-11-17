@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 
+import { useAuth } from "@/auth/AuthContext";
 import { AppText } from "@/components/AppText";
 import { Card } from "@/components/Card";
 import { Screen } from "@/components/Screen";
@@ -17,8 +18,11 @@ import { useTheme } from "@/theme/ThemeContext";
 export default function ManageScreen() {
   const theme = useTheme();
   const router = useRouter();
+  const { sample } = useAuth();
   const { isMentor } = useSpace();
-  const [requests, setRequests] = useState(sampleRequests);
+  // A real space has nobody waiting until the approval queue is built. Sample requests only
+  // appear on the sample space.
+  const [requests, setRequests] = useState(sample ? sampleRequests : []);
 
   // Approving and declining only clear the sample request for now.
   const settle = (id: string) => setRequests((current) => current.filter((request) => request.id !== id));

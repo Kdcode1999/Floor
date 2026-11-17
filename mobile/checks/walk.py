@@ -4,7 +4,11 @@ saves a picture of every screen.
 It drives the app's web build in Chrome at phone size. It is how screens are checked before a
 push. It does not replace looking at the app on a real phone.
 
-Needs Python with Playwright (`pip install playwright`) and Google Chrome. From `mobile/`:
+It covers the app as it runs with no backend: the sample space, seen as its mentor. Sign-in is
+walked by sign_in.py.
+
+Needs Python with Playwright (`pip install playwright`) and Google Chrome. From `mobile/`, with
+no .env file in the way:
 
     npx expo export --platform web
     python checks/walk.py
@@ -12,79 +16,27 @@ Needs Python with Playwright (`pip install playwright`) and Google Chrome. From 
 Pictures land in `checks/out/`. The script exits with an error if any check fails.
 """
 
-import http.server
-import os
-import pathlib
-import sys
-import threading
+from playwright.sync_api import sync_playwright
 
-from playwright.sync_api import Locator, expect, sync_playwright
+from common import MOBILE, OUT, check, check_visible, clear_pictures, finish, open_phone, serve
 
-MOBILE = pathlib.Path(__file__).resolve().parent.parent
 DIST = MOBILE / "dist"
-OUT = MOBILE / "checks" / "out"
 PORT = 8090
 BASE = f"http://127.0.0.1:{PORT}"
 
 # The colour behind every screen, per theme. From src/theme/themes.ts.
 BACKGROUND = {"night": "rgb(9, 10, 18)", "dawn": "rgb(242, 240, 247)", "smoke": "rgb(13, 13, 15)"}
 
-failures: list[str] = []
-
-
-def check(what: str, ok: bool) -> None:
-    print(("  ok    " if ok else "  FAIL  ") + what)
-    if not ok:
-        failures.append(what)
-
-
-def check_visible(what: str, locator: Locator) -> None:
-    """Passes once the element is on screen. Waits a moment for the app to catch up first."""
-    try:
-        expect(locator).to_be_visible(timeout=3000)
-        check(what, True)
-    except AssertionError:
-        check(what, False)
-
-
-class SinglePage(http.server.SimpleHTTPRequestHandler):
-    """Serves the export. Any address that is not a file gets index.html, as a phone app has no pages."""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=str(DIST), **kwargs)
-
-    def translate_path(self, path):
-        clean = path.split("?", 1)[0].split("#", 1)[0].strip("/")
-        target = DIST / clean
-        return str(target if clean and target.is_file() else DIST / "index.html")
-
-    def log_message(self, *args):
-        pass
-
 
 def main() -> None:
-    if not (DIST / "index.html").is_file():
-        sys.exit("No web build found. Run `npx expo export --platform web` in mobile/ first.")
-    OUT.mkdir(parents=True, exist_ok=True)
-    for old in OUT.glob("*.png"):
-        old.unlink()
-
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", PORT), SinglePage)
-    threading.Thread(target=server.serve_forever, daemon=True).start()
+    server = serve(DIST, PORT)
+    clear_pictures("night-")
+    clear_pictures("dawn-")
+    clear_pictures("smoke-")
 
     problems: list[str] = []
     with sync_playwright() as p:
-        # Chrome refuses to start as root without this. It only happens on build machines.
-        args = ["--no-sandbox"] if hasattr(os, "geteuid") and os.geteuid() == 0 else []
-        browser = p.chromium.launch(channel="chrome", args=args)
-        page = browser.new_context(
-            viewport={"width": 390, "height": 844}, device_scale_factor=2, has_touch=True, is_mobile=True
-        ).new_page()
-        page.on(
-            "console",
-            lambda m: problems.append(f"{m.type}: {m.text}") if m.type in ("error", "warning") else None,
-        )
-        page.on("pageerror", lambda e: problems.append(f"error: {e}"))
+        browser, page = open_phone(p, problems)
 
         def shot(name: str) -> None:
             page.wait_for_timeout(450)
@@ -173,15 +125,7 @@ def main() -> None:
 
         browser.close()
     server.shutdown()
-
-    check("the browser reported no errors or warnings", not problems)
-    for line in dict.fromkeys(problems):
-        print("        " + line[:300])
-
-    print(f"\nPictures: {OUT}")
-    if failures:
-        sys.exit(f"{len(failures)} check(s) failed.")
-    print("All checks passed.")
+    finish(problems)
 
 
 if __name__ == "__main__":

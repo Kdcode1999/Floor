@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, type StyleProp, type ViewStyle } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, type StyleProp, type ViewStyle } from "react-native";
 
 import { AppText } from "@/components/AppText";
 import { useTheme } from "@/theme/ThemeContext";
@@ -11,6 +11,8 @@ interface ButtonProps {
   /** "large" is 50 points high and lifts off the page. "medium" is 44 and sits flat. */
   size?: "large" | "medium";
   disabled?: boolean;
+  /** Shows a spinner in place of the label and ignores presses, while the action is under way. */
+  busy?: boolean;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -20,16 +22,19 @@ export function Button({
   kind = "primary",
   size = "large",
   disabled = false,
+  busy = false,
   style,
 }: ButtonProps) {
   const theme = useTheme();
   const primary = kind === "primary";
+  const foreground = primary ? theme.primary.foreground : theme.text;
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ disabled }}
-      disabled={disabled}
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: disabled || busy, busy }}
+      disabled={disabled || busy}
       onPress={onPress}
       style={({ pressed }) => [
         styles.base,
@@ -48,14 +53,13 @@ export function Button({
         pressed && styles.pressed,
         style,
       ]}>
-      <AppText
-        size={15}
-        line={20}
-        weight={primary ? "semibold" : "medium"}
-        color={primary ? theme.primary.foreground : theme.text}
-        numberOfLines={1}>
-        {label}
-      </AppText>
+      {busy ? (
+        <ActivityIndicator color={foreground} />
+      ) : (
+        <AppText size={15} line={20} weight={primary ? "semibold" : "medium"} color={foreground} numberOfLines={1}>
+          {label}
+        </AppText>
+      )}
     </Pressable>
   );
 }

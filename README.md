@@ -26,7 +26,10 @@ cd ..\mobile
 npm install
 ```
 
-## Put the database on Supabase
+## Connect it to Supabase
+
+`docs/SETUP.md` has every step that needs your accounts: the database, the phone app's two settings, and
+the email sender that sign-in needs. The database commands are repeated here.
 
 Once, from the `web` folder. `link` asks for the database password: type it there, never into a chat.
 
@@ -65,6 +68,7 @@ npm run lint
 
 ```powershell
 cd mobile
+npm test
 npm run typecheck
 npm run lint
 ```

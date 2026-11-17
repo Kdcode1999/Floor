@@ -29,6 +29,8 @@ export default function LookScreen() {
 
   const [name, setName] = useState(space.name);
   const [choice, setChoice] = useState<ThemeName>(space.theme);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Stop trying a theme on when the screen closes.
   useEffect(() => () => previewTheme(null), [previewTheme]);
@@ -42,9 +44,13 @@ export default function LookScreen() {
   const changed = cleanName !== space.name || choice !== space.theme;
   const canSave = changed && cleanName.length > 0;
 
-  const save = () => {
-    updateSpace({ name: cleanName, theme: choice });
-    goBack();
+  const save = async () => {
+    setSaving(true);
+    setError(null);
+    const problem = await updateSpace({ name: cleanName, theme: choice });
+    setSaving(false);
+    if (problem) setError(problem);
+    else goBack();
   };
 
   return (
@@ -106,7 +112,14 @@ export default function LookScreen() {
         ))}
       </View>
 
-      <Button label="Save look" disabled={!canSave} onPress={save} style={styles.save} />
+      <View style={styles.save}>
+        <Button label="Save look" disabled={!canSave} busy={saving} onPress={save} />
+        {error ? (
+          <AppText accessibilityLiveRegion="polite" size={13} line={18} color={theme.error} style={styles.error}>
+            {error}
+          </AppText>
+        ) : null}
+      </View>
     </Screen>
   );
 }
@@ -128,5 +141,6 @@ const styles = StyleSheet.create({
   },
   heading: { gap: 2, paddingTop: 4, paddingHorizontal: 6 },
   options: { gap: 14 },
-  save: { marginTop: 4 },
+  save: { gap: 8, marginTop: 4 },
+  error: { textAlign: "center" },
 });

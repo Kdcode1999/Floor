@@ -1,0 +1,22 @@
+import { Platform } from "react-native";
+
+// The two values that connect the app to its Supabase project. They come from mobile/.env on a
+// developer's computer and from the build settings for store builds. Both are safe to ship.
+//
+// Expo copies EXPO_PUBLIC_ values into the app when it is built, and only when they are
+// written out in full like this.
+export const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? "";
+export const SUPABASE_KEY = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "";
+
+/**
+ * False until mobile/.env is filled in. The app then runs on sample content with no sign-in,
+ * so the screens can be looked at before any setup.
+ */
+export const backendConfigured = SUPABASE_URL !== "" && SUPABASE_KEY !== "";
+
+/**
+ * True for a phone build made for release without its settings. Such a build must never reach
+ * people running on sample content, so it shows an error instead. The web build is only used
+ * for checking screens, so it may run on samples.
+ */
+export const missingSettings = !backendConfigured && !__DEV__ && Platform.OS !== "web";

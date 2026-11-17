@@ -6,21 +6,35 @@ Last update: 17 Nov 2026
 
 ## Now
 
-The phone app has its shell: the tabs, the glass look in Night, Dawn and Smoke, the Feed, Mentor home
-and Space look, where a mentor renames the space and switches theme. It runs on sample content until
-sign-in is built. Next is sign-in by emailed code.
+The phone app signs people in. Someone types their email, gets a 6-digit code, and is in. The phone
+then holds the account's one login: a second phone that signs in takes it over, and the first one is
+stopped with a "Signed in on another phone" screen. After sign-in the app loads the person's real space
+from the database, in that space's theme. Space look now saves to the database.
 
-The shell was checked in Chrome at phone size (23 checks, every screen in all three themes), and it
-builds for Android and iPhone. It has not been seen on a real phone yet.
+Nobody can reach a space yet except by hand: joining and creating a space are the next two pieces. Until
+then a new account lands on "You're not in a space yet". Next is the mentor creating their space.
+
+With `mobile/.env` empty the app still opens on the sample space, with no sign-in, so the screens can be
+looked at without any setup.
+
+Checked: 49 logic tests, and two walk-throughs in Chrome at phone size (23 checks on the sample space, 48
+on sign-in against a stand-in backend). The app builds for Android and iPhone. It has not been seen on a
+real phone, and sign-in has not been run against the real Supabase project yet: that needs steps 2 and 3
+of `docs/SETUP.md`.
 
 ## Needed from Kingsley
 
 - [x] GitHub repo `Kdcode1999/Floor`
 - [x] Supabase project
-- [ ] Put the database on the Supabase project: the three commands in the README, from `web/`
-- [ ] Fill in `web/.env.local` and `mobile/.env` from the Supabase dashboard (URL and publishable key)
+Each step is written out in `docs/SETUP.md`.
+
+- [ ] Put the database on the Supabase project (SETUP step 1). Not confirmed yet
 - [ ] Open the phone app on your phone: `cd mobile`, `npx expo start`, scan the code with Expo Go. Say
       how the glass looks and whether scrolling is smooth, on Android above all
+- [ ] Connect the phone app to Supabase: fill in `mobile/.env` (SETUP step 2)
+- [ ] Give the project its own email sender and change the two email templates, so sign-in emails carry
+      a code (SETUP step 3). Sign-in cannot work on the real project before this
+- [ ] Fill in `web/.env.local` the same way, when the web app starts using Supabase
 
 Later, when the build reaches them: an Expo account (EAS), a video host, a live video service, the card
 processors, a Telegram bot token, the Apple and Google developer accounts.
@@ -38,7 +52,8 @@ processors, a Telegram bot token, the Apple and Google developer accounts.
 - [x] The three themes as code in the mobile app
 - [x] Mobile: app shell, navigation, glass components in all three themes
 - [x] Mobile: Feed, Mentor home and Space look screens, on sample content
-- [ ] Mobile: sign-in by emailed code, claim the login, "signed in elsewhere" screen
+- [x] Mobile: sign-in by emailed code, claim the login, "signed in elsewhere" screen
+- [x] Mobile: the person's real space and place in it, a list when they are in several, Account screen
 - [ ] Web: join page for a space
 - [ ] Web: sign-in, pay by transfer or USDT with proof, broker proof, invite code
 - [ ] Mobile: mentor setup (name, logo, theme, price, how to pay, links), mentor Terms

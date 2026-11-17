@@ -70,6 +70,34 @@ Newest at the bottom. Each entry says what was decided and why, so nobody has to
 - **Screens are checked by walking the app, not by eye alone.** `mobile/checks/walk.py` drives the app in
   Chrome at phone size, checks each step and saves a picture of every screen in all three themes.
 
+- **Sign-in is a typed code, never a link.** A link opens a browser, and on a phone that means leaving
+  the app. Supabase's built-in email cannot send a code on a new Free project, so Floor needs its own
+  email sender from the start. See SETUP.md.
+- **The login is kept in the phone's secure storage** (Keychain on iPhone, Keystore on Android), marked
+  as never to be copied to another phone. A login is too big for one secure entry, so it is kept in pieces.
+- **How a phone is recognised.** Android: a one-way hash of the phone's Android ID, which survives a
+  reinstall. iPhone: a random id kept in the Keychain, which also survives a reinstall. Otherwise putting
+  the app back on the same phone would count as moving to a new one.
+- **Signing in takes the login over. Opening the app never does.** A phone that signs in claims the login.
+  A phone that still has an old login only asks whether it is current, and stops if it is not. If it took
+  the login back by itself, two phones would keep taking it from each other and burn through the account's
+  phone changes.
+- **A weak connection locks nobody out.** If the server cannot be reached when the app opens, the person
+  is let in and asked about again shortly. The database still guards every piece of content.
+- **Sign out only signs out this phone**, and works without a connection.
+- **An open app asks every five minutes, and whenever it comes back into view, whether its login is still
+  current.** Chat will bring a live connection that can replace the timer.
+- **Account opens from the badge in the header** (Mentor, Admin, VIP or Member). The design had no account
+  screen. This adds one without a new button or tab. Kingsley can ask for a visible button instead.
+- **One hold screen** covers every reason a signed-in person cannot go further: another phone took over,
+  the phone limit, a server that cannot be reached, no space yet, several spaces to choose from.
+- **Sample content never appears in a real space.** With `mobile/.env` empty the app shows the sample
+  space. Connected to Supabase, a space starts empty. A phone build made for release without its settings
+  shows an error and nothing else.
+- **Plain logic is tested on its own, screens are walked.** Files with no phone code in them (login rules,
+  storage in pieces, messages) have tests: `npm test` in `mobile/`. Sign-in is also walked end to end in
+  Chrome against a stand-in for Supabase: `mobile/checks/sign_in.py`.
+
 ## Open
 
 - Card processors for the automatic path. Starting point: Paystack and Flutterwave, Stripe after.

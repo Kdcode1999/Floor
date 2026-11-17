@@ -102,6 +102,8 @@ export interface Theme {
   sell: Surface & { foreground: string };
   /** Something is on or confirmed. */
   ok: string;
+  /** The words under a field when something went wrong. */
+  error: string;
 
 }
 
@@ -160,6 +162,7 @@ export const night: Theme = {
   buy: { background: "rgba(120,240,190,0.18)", border: "rgba(120,240,190,0.36)", foreground: "#C2F9E2" },
   sell: { background: "rgba(255,140,140,0.16)", border: "rgba(255,140,140,0.34)", foreground: "#FFCFCF" },
   ok: "#8FF0C8",
+  error: "#FFCFCF",
 };
 
 export const dawn: Theme = {
@@ -217,6 +220,7 @@ export const dawn: Theme = {
   buy: { background: "rgba(16,150,100,0.12)", border: "rgba(16,150,100,0.25)", foreground: "#0B6B45" },
   sell: { background: "rgba(200,50,60,0.1)", border: "rgba(200,50,60,0.22)", foreground: "#A12431" },
   ok: "#0B6B45",
+  error: "#A12431",
 };
 
 export const smoke: Theme = {
@@ -273,6 +277,7 @@ export const smoke: Theme = {
   buy: { background: "rgba(130,220,170,0.14)", border: "rgba(130,220,170,0.3)", foreground: "#BFEFD6" },
   sell: { background: "rgba(240,150,140,0.14)", border: "rgba(240,150,140,0.3)", foreground: "#F6CBC3" },
   ok: "#BFEFD6",
+  error: "#F6CBC3",
 };
 
 export const themes: Record<ThemeName, Theme> = { night, dawn, smoke };

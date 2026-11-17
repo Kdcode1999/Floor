@@ -252,6 +252,17 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+# Floor signs people in with a code typed into the app, so both sign-in emails carry the code.
+# This file only sets the templates for a local Supabase. On the hosted project they are pasted
+# into the dashboard: see docs/SETUP.md.
+[auth.email.template.magic_link]
+subject = "{{ .Token }} is your Floor code"
+content_path = "./supabase/templates/code.html"
+
+[auth.email.template.confirmation]
+subject = "{{ .Token }} is your Floor code"
+content_path = "./supabase/templates/code.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"

@@ -1,3 +1,4 @@
+import type { Href } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { AppText } from "@/components/AppText";
@@ -10,7 +11,7 @@ interface BackHeaderProps {
   /** What the back button is called for screen readers, for example "Back to Manage". */
   backLabel: string;
   /** Where to go when there is no earlier screen to return to. */
-  fallback: "/" | "/manage";
+  fallback: Href;
 }
 
 /** The top of a screen that was opened from another one: a round back button and a title. */
