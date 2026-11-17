@@ -34,10 +34,10 @@ Once, from the `web` folder. `link` asks for the database password: type it ther
 cd web
 npx supabase login
 npx supabase link --project-ref YOUR_PROJECT_REF
-npx supabase db push
+npx supabase db push --remote
 ```
 
-Run `npx supabase db push` again whenever a pull brings new files in `web/supabase/migrations`.
+Run `npx supabase db push --remote` again whenever a pull brings new files in `web/supabase/migrations`.
 
 ## Run the apps
 
