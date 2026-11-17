@@ -1,0 +1,6 @@
+# Each app has its own .gitignore. These are the repo-wide safety nets.
+node_modules/
+.env
+.env.*
+!.env.example
+.DS_Store

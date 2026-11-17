@@ -1,0 +1,60 @@
+# Decisions
+
+Newest at the bottom. Each entry says what was decided and why, so nobody has to dig through a chat.
+
+## Product
+
+- **Branded space inside one Floor app.** A mentor's own app in the stores comes later as a top tier.
+- **Flat monthly fee, no take-rate.** Tiered by VIP members and live minutes. Free members do not count.
+- **Members pay the mentor directly.** Floor never holds a member's money. This keeps chargebacks and
+  fraud claims with the mentor, where the sale happened.
+- **Checkout happens on the web join page, not inside the iOS app.**
+- **Themes change colour and light only.** One layout for all three (Night, Dawn, Smoke). Buy stays green
+  in every theme. Mentors pick a preset: there is no free colour picker. Every theme must still look right
+  with blur switched off, for cheap Android phones.
+- **Embeds only in free posts.** YouTube's developer policy rules out charging to watch an embedded video,
+  so paid lessons are uploaded and hosted in the app.
+- **"Never lose revenue" is not a promise we can make.** A second phone can always film the screen. What we
+  do: one login at a time, one phone per account, capture blocking on paid content, the viewer's name on
+  paid video.
+- **One login and one phone are always on.** Capture blocking and the name on video are switches the mentor
+  controls, on by default.
+- **No private messages in v1.** Impersonators are the daily problem on Telegram.
+- **Proof of results is optional, and Floor never vouches.** See PRODUCT.md.
+- **One launch.** Everything in PRODUCT.md ships together. It is still built in order: Paid space, then
+  Community, then Live.
+
+## Build
+
+- **Claude writes the code.** Kingsley owns the accounts, the keys, phone testing and store submission.
+- **One repo, two apps.** `web/` (Next.js, and home of the database) and `mobile/` (Expo). Each folder
+  has its own `package.json` and is installed and run on its own.
+- **Supabase** for accounts, database, files and realtime. **Vercel** for the web app. **EAS** for app builds.
+- **Sign-in is an emailed code, with no passwords.** Nothing to share, nothing to leak. It also means
+  "changing phones needs an emailed code" comes for free: signing in on the new phone is that code.
+- **VIP is a date, not a flag.** A member is VIP while `vip_until` is in the future. Nothing has to run for
+  VIP to end, so it cannot fail to end.
+- **Privileged changes go through database functions.** The apps cannot write `role`, `vip_until` or
+  `status` directly. Every rule lives in one place and is tested.
+- **One login at a time is enforced in the database.** The phone app calls `claim_session` after sign-in.
+  Content rules then accept only that login. We do not depend on Supabase's single-session setting.
+- **One phone per account.** The first phone to claim is tied to the account. A new phone may take over
+  at most twice in 30 days.
+- **Staff are exempt from the one-login rule in their own space.** A mentor needs the phone app and the
+  laptop page at once. Account sharing by staff does not cost the mentor money.
+- **Requests carry their own VIP days.** A pending request keeps the days it was made with, so a later
+  price change cannot alter it. Staff can set other days when approving.
+- **Invite codes need no approval.** The code is the approval. Every failure gives the same answer, so
+  codes cannot be probed.
+- **Access rules are tested against a real Postgres engine** (PGlite) on every change: `npm run test:db`
+  in `web/`.
+- **The Supabase project is created with "Automatically expose new tables" off and "Enable automatic RLS" on.**
+  Migrations grant access table by table, and switch RLS on themselves. Automatic RLS is the safety net.
+- **Database helper functions live in a `private` schema** that the API does not expose. Only functions
+  meant for the apps are in `public`.
+
+## Open
+
+- Card processors for the automatic path. Starting point: Paystack and Flutterwave, Stripe after.
+- Video host for lessons and the service behind the live room. To be chosen when Learn is built, on
+  current prices.
