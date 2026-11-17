@@ -6,7 +6,12 @@ Last update: 17 Nov 2026
 
 ## Now
 
-The foundation is in the repo: both apps, the database with its tests, the three themes.
+The phone app has its shell: the tabs, the glass look in Night, Dawn and Smoke, the Feed, Mentor home
+and Space look, where a mentor renames the space and switches theme. It runs on sample content until
+sign-in is built. Next is sign-in by emailed code.
+
+The shell was checked in Chrome at phone size (23 checks, every screen in all three themes), and it
+builds for Android and iPhone. It has not been seen on a real phone yet.
 
 ## Needed from Kingsley
 
@@ -14,6 +19,8 @@ The foundation is in the repo: both apps, the database with its tests, the three
 - [x] Supabase project
 - [ ] Put the database on the Supabase project: the three commands in the README, from `web/`
 - [ ] Fill in `web/.env.local` and `mobile/.env` from the Supabase dashboard (URL and publishable key)
+- [ ] Open the phone app on your phone: `cd mobile`, `npx expo start`, scan the code with Expo Go. Say
+      how the glass looks and whether scrolling is smooth, on Android above all
 
 Later, when the build reaches them: an Expo account (EAS), a video host, a live video service, the card
 processors, a Telegram bot token, the Apple and Google developer accounts.
@@ -29,7 +36,8 @@ processors, a Telegram bot token, the Apple and Google developer accounts.
 - [x] Database: reports and suspension, admins
 - [x] Tests for all of the above (41 passing)
 - [x] The three themes as code in the mobile app
-- [ ] Mobile: app shell, navigation, glass components in all three themes
+- [x] Mobile: app shell, navigation, glass components in all three themes
+- [x] Mobile: Feed, Mentor home and Space look screens, on sample content
 - [ ] Mobile: sign-in by emailed code, claim the login, "signed in elsewhere" screen
 - [ ] Web: join page for a space
 - [ ] Web: sign-in, pay by transfer or USDT with proof, broker proof, invite code

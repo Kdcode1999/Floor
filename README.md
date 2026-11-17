@@ -51,6 +51,9 @@ cd mobile
 npx expo start
 ```
 
+Scan the QR code with the Expo Go app on your phone. If the phone cannot reach the computer, run
+`npx expo start --tunnel` instead.
+
 ## Check the work
 
 ```powershell
@@ -62,7 +65,8 @@ npm run lint
 
 ```powershell
 cd mobile
-npx tsc --noEmit
+npm run typecheck
+npm run lint
 ```
 
 `test:db` applies the migrations to an in-memory Postgres and checks who can do what. It needs no

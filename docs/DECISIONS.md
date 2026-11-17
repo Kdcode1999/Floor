@@ -10,8 +10,10 @@ Newest at the bottom. Each entry says what was decided and why, so nobody has to
   fraud claims with the mentor, where the sale happened.
 - **Checkout happens on the web join page, not inside the iOS app.**
 - **Themes change colour and light only.** One layout for all three (Night, Dawn, Smoke). Buy stays green
-  in every theme. Mentors pick a preset: there is no free colour picker. Every theme must still look right
-  with blur switched off, for cheap Android phones.
+  and Sell stays red in every theme, in soft shades. Mentors pick a preset: there is no free colour
+  picker. Every theme must still look right with blur switched off, for cheap Android phones.
+- **A mentor tries a theme on before saving it.** Tapping a theme on Space look shows it across the whole
+  app at once. Nothing is kept until "Save look", and leaving without saving puts the old theme back.
 - **Embeds only in free posts.** YouTube's developer policy rules out charging to watch an embedded video,
   so paid lessons are uploaded and hosted in the app.
 - **"Never lose revenue" is not a promise we can make.** A second phone can always film the screen. What we
@@ -52,6 +54,21 @@ Newest at the bottom. Each entry says what was decided and why, so nobody has to
   Migrations grant access table by table, and switch RLS on themselves. Automatic RLS is the safety net.
 - **Database helper functions live in a `private` schema** that the API does not expose. Only functions
   meant for the apps are in `public`.
+
+- **Only the floating navigation blurs.** The cards are a see-through fill, a hairline border and a
+  shadow. The lights behind a card are already smooth, so blurring them changes nothing on screen and
+  costs battery on every card. The design's glass also made the colours behind it richer: that lift is
+  applied to the lights themselves, so a card looks the same as in the design.
+- **Blur per platform.** iPhone uses the system blur. Android gets a nearly solid navigation instead,
+  because live blur is slow on low-cost phones.
+- **Screens opened from Manage stay inside the Manage tab**, so the navigation remains in view, as in the
+  design.
+- **The phone app shows a sample space until sign-in is built.** The sample lives in one file,
+  `mobile/src/space/SpaceContext.tsx`, and is replaced by the real space and membership.
+- **The phone app's web build is for checking screens only.** It is not shipped to members: the student
+  web app is on the Later list. It is exported as a single page.
+- **Screens are checked by walking the app, not by eye alone.** `mobile/checks/walk.py` drives the app in
+  Chrome at phone size, checks each step and saves a picture of every screen in all three themes.
 
 ## Open
 

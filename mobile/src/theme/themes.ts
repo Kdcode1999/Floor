@@ -5,9 +5,9 @@
 // screen follows.
 //
 // Rules that hold in every theme
-// * Buy stays green.
-// * Colour marks status only (live, buy, ok). Everything else is the theme's neutrals.
-// * A theme must still read well with blur switched off: see `solid`.
+// * Buy stays green and Sell stays red, in a soft shade that suits the theme.
+// * Colour marks status only (live, buy, sell, ok). Everything else is the theme's neutrals.
+// * A theme must still read well where nothing can blur: see `nav.solid`.
 
 export type ThemeName = "night" | "dawn" | "smoke";
 
@@ -35,6 +35,8 @@ export interface Theme {
   name: ThemeName;
   /** The name a mentor sees when choosing. */
   label: string;
+  /** One short line under the name, on the Space look screen. */
+  description: string;
   /** True when the theme is dark, for the status bar and keyboard. */
   dark: boolean;
 
@@ -50,14 +52,20 @@ export interface Theme {
   placeholder: string;
   link: string;
 
-  /** Backdrop blur for glass, in points, and how much it lifts saturation. */
+  /** How strongly the floating navigation blurs what scrolls under it, in points. */
   blur: number;
+  /**
+   * How much the colour of the lights is lifted. In the design the glass did this to whatever
+   * was behind it. The app's cards do not blur, so the lift is applied to the lights instead.
+   */
   saturation: number;
 
   /** The glass card. `shadow` is a CSS box-shadow value, including the inner top highlight. */
   card: Surface & { shadow: string };
   /** The floating pill navigation. */
   nav: Surface & {
+    /** The fill where the navigation cannot blur, which is Android. Nearly opaque. */
+    solid: string;
     shadow: string;
     foreground: string;
     activeBackground: string;
@@ -90,16 +98,17 @@ export interface Theme {
   liveDot: string;
   /** A Buy tag. Green in every theme. */
   buy: Surface & { foreground: string };
+  /** A Sell tag. Red in every theme. */
+  sell: Surface & { foreground: string };
   /** Something is on or confirmed. */
   ok: string;
 
-  /** Used in place of `card.background` and `nav.background` when blur is off. */
-  solid: { card: string; nav: string };
 }
 
 export const night: Theme = {
   name: "night",
   label: "Night",
+  description: "Dark, with cool blue light",
   dark: true,
 
   background: "#090A12",
@@ -125,6 +134,7 @@ export const night: Theme = {
   },
   nav: {
     background: "rgba(16,18,32,0.6)",
+    solid: "rgba(16,18,32,0.96)",
     border: "rgba(255,255,255,0.16)",
     shadow: "0 24px 48px -16px rgba(0,0,0,0.7)",
     foreground: "rgba(255,255,255,0.72)",
@@ -148,14 +158,14 @@ export const night: Theme = {
 
   liveDot: "#FF9D8A",
   buy: { background: "rgba(120,240,190,0.18)", border: "rgba(120,240,190,0.36)", foreground: "#C2F9E2" },
+  sell: { background: "rgba(255,140,140,0.16)", border: "rgba(255,140,140,0.34)", foreground: "#FFCFCF" },
   ok: "#8FF0C8",
-
-  solid: { card: "rgba(30,32,48,0.92)", nav: "rgba(16,18,32,0.96)" },
 };
 
 export const dawn: Theme = {
   name: "dawn",
   label: "Dawn",
+  description: "Light, with soft pastel light",
   dark: false,
 
   background: "#F2F0F7",
@@ -181,6 +191,7 @@ export const dawn: Theme = {
   },
   nav: {
     background: "rgba(255,255,255,0.72)",
+    solid: "rgba(255,255,255,0.97)",
     border: "rgba(255,255,255,0.95)",
     shadow: "0 20px 40px -18px rgba(70,60,120,0.4)",
     foreground: "#47445A",
@@ -204,14 +215,14 @@ export const dawn: Theme = {
 
   liveDot: "#F2655A",
   buy: { background: "rgba(16,150,100,0.12)", border: "rgba(16,150,100,0.25)", foreground: "#0B6B45" },
+  sell: { background: "rgba(200,50,60,0.1)", border: "rgba(200,50,60,0.22)", foreground: "#A12431" },
   ok: "#0B6B45",
-
-  solid: { card: "rgba(255,255,255,0.9)", nav: "rgba(255,255,255,0.97)" },
 };
 
 export const smoke: Theme = {
   name: "smoke",
   label: "Smoke",
+  description: "Dark, with warm amber light",
   dark: true,
 
   background: "#0D0D0F",
@@ -236,6 +247,7 @@ export const smoke: Theme = {
   },
   nav: {
     background: "rgba(34,31,28,0.62)",
+    solid: "rgba(34,31,28,0.97)",
     border: "rgba(255,255,255,0.14)",
     shadow: "0 24px 48px -16px rgba(0,0,0,0.8)",
     foreground: "rgba(247,243,238,0.72)",
@@ -259,9 +271,8 @@ export const smoke: Theme = {
 
   liveDot: "#F5B97A",
   buy: { background: "rgba(130,220,170,0.14)", border: "rgba(130,220,170,0.3)", foreground: "#BFEFD6" },
+  sell: { background: "rgba(240,150,140,0.14)", border: "rgba(240,150,140,0.3)", foreground: "#F6CBC3" },
   ok: "#BFEFD6",
-
-  solid: { card: "rgba(32,30,29,0.94)", nav: "rgba(34,31,28,0.97)" },
 };
 
 export const themes: Record<ThemeName, Theme> = { night, dawn, smoke };
