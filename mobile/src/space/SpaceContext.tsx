@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { useAuth } from "@/auth/AuthContext";
+import { logoUrl } from "@/lib/env";
 import { secureStore } from "@/lib/secureStorage";
 import { supabase } from "@/lib/supabase";
 import { ThemeProvider } from "@/theme/ThemeContext";
@@ -14,6 +15,16 @@ export interface Space {
   id: string;
   name: string;
   theme: ThemeName;
+  /** The address of the space's logo picture. Null when it has none. */
+  logo: string | null;
+}
+
+/** What a mentor can change about the space's look. */
+export interface LookChanges {
+  name?: string;
+  theme?: ThemeName;
+  /** Where a newly uploaded logo is in the "logos" store. */
+  logoPath?: string;
 }
 
 /** The person using the app, inside this space. Mirrors their row in `memberships`. */
@@ -26,7 +37,12 @@ export interface Viewer {
 }
 
 /** One space the signed-in person belongs to, with their place in it. */
-export interface SpaceEntry extends Space {
+export interface SpaceEntry {
+  id: string;
+  name: string;
+  theme: ThemeName;
+  /** Where the logo is in the "logos" store. On the sample space, a picture on this phone. */
+  logoPath: string | null;
   role: Role;
   vipUntil: string | null;
 }
@@ -61,8 +77,8 @@ interface SpaceContextValue {
   choose: (id: string) => void;
   /** Goes back to the list of spaces. */
   switchSpace: () => void;
-  /** Saves a new name or theme. Resolves with a message to show if it failed, or null. */
-  updateSpace: (changes: Partial<Pick<Space, "name" | "theme">>) => Promise<string | null>;
+  /** Saves a new name, theme or logo. Resolves with a message to show if it failed, or null. */
+  updateSpace: (changes: LookChanges) => Promise<string | null>;
   /**
    * Shows a theme across the whole app without saving it, so a mentor can try one on.
    * Pass null to go back to the saved theme.
@@ -74,35 +90,38 @@ const SpaceContext = createContext<SpaceContextValue | null>(null);
 
 // Shown when mobile/.env is not filled in, so the screens can be looked at before any setup.
 // Change the role to "member" to see the app the way a member does.
-const SAMPLE: SpaceEntry = { id: "sample", name: "Your Academy", theme: DEFAULT_THEME, role: "mentor", vipUntil: null };
+const SAMPLE: SpaceEntry = { id: "sample", name: "Your Academy", theme: DEFAULT_THEME, logoPath: null, role: "mentor", vipUntil: null };
 
 // Stands in until a space is known: Floor's own name and look.
-const BLANK: SpaceEntry = { id: "", name: "Floor", theme: DEFAULT_THEME, role: "member", vipUntil: null };
+const BLANK: SpaceEntry = { id: "", name: "Floor", theme: DEFAULT_THEME, logoPath: null, role: "member", vipUntil: null };
 
 const CHOSEN_KEY = "floor-space";
 
-interface MembershipRow {
+interface SpaceRow {
+  id: string;
+  name: string;
+  theme: string;
+  logo_path: string | null;
+  status: "active" | "suspended";
   role: Role;
   vip_until: string | null;
-  space: { id: string; name: string; theme: string };
 }
 
-/** The spaces a person belongs to and may open: active membership, and a space they can see. */
-async function loadEntries(client: SupabaseClient, userId: string): Promise<SpaceEntry[]> {
-  const { data, error } = await client
-    .from("memberships")
-    .select("role, vip_until, space:spaces!inner(id, name, theme)")
-    .eq("user_id", userId)
-    .eq("status", "active")
-    .order("joined_at", { ascending: true });
+/** The spaces a person belongs to and may open, in the order they joined them. */
+async function loadEntries(client: SupabaseClient): Promise<SpaceEntry[]> {
+  const { data, error } = await client.rpc("my_spaces");
   if (error) throw new Error(error.message);
-  return ((data ?? []) as unknown as MembershipRow[]).map((row) => ({
-    id: row.space.id,
-    name: row.space.name,
-    theme: themeFor(row.space.theme).name,
-    role: row.role,
-    vipUntil: row.vip_until,
-  }));
+  return ((data ?? []) as SpaceRow[])
+    // A space Floor has suspended is closed to its members. Its staff can still open it.
+    .filter((row) => row.status === "active" || row.role !== "member")
+    .map((row) => ({
+      id: row.id,
+      name: row.name,
+      theme: themeFor(row.theme).name,
+      logoPath: row.logo_path,
+      role: row.role,
+      vipUntil: row.vip_until,
+    }));
 }
 
 interface Loaded {
@@ -143,7 +162,7 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!supabase || !userId) return;
     let current = true;
-    loadEntries(supabase, userId).then(
+    loadEntries(supabase).then(
       (entries) => current && setLoaded({ userId, entries, detail: null }),
       (error: Error) => current && setLoaded({ userId, entries: [], detail: error.message }),
     );
@@ -178,7 +197,12 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
       status,
       detail: mine?.detail ?? null,
       entries,
-      space: { id: shown.id, name: shown.name, theme: shown.theme },
+      space: {
+        id: shown.id,
+        name: shown.name,
+        theme: shown.theme,
+        logo: shown.logoPath === null ? null : auth.sample ? shown.logoPath : logoUrl(shown.logoPath),
+      },
       viewer: { role: shown.role, vip, vipUntil: shown.vipUntil },
       isStaff,
       isMentor: shown.role === "mentor",
@@ -207,11 +231,19 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
         }
         // Asking for the row back shows whether anything was changed: the database quietly
         // changes nothing when the person is not this space's mentor.
-        const { data, error } = await supabase.from("spaces").update(changes).eq("id", entry.id).select("id");
+        const row: Record<string, string> = {};
+        if (changes.name !== undefined) row.name = changes.name;
+        if (changes.theme !== undefined) row.theme = changes.theme;
+        if (changes.logoPath !== undefined) row.logo_path = changes.logoPath;
+        const { data, error } = await supabase.from("spaces").update(row).eq("id", entry.id).select("id");
         if (error) {
           return error.code === "23514" ? "That name can't be used. Try another." : "Couldn't save. Try again.";
         }
         if (!data || data.length === 0) return "Only the mentor can change the space's look.";
+        // The old logo is no longer shown anywhere. Throw it away, and carry on if that fails.
+        if (changes.logoPath !== undefined && entry.logoPath && entry.logoPath !== changes.logoPath) {
+          void supabase.storage.from("logos").remove([entry.logoPath]).then(undefined, () => {});
+        }
         const id = entry.id;
         setLoaded((current) =>
           current && {

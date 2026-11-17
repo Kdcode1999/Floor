@@ -1,15 +1,23 @@
-/** Someone asking for VIP: they paid outside the app, or opened an account with the mentor's broker. */
-export interface AccessRequest {
-  id: string;
-  /** The member's display name. */
-  name: string;
-  kind: "payment" | "broker";
-  /** What the member wrote with their proof. */
-  detail: string;
-}
+import type { RequestItem } from "./api";
 
-// Sample requests, so the queue can be seen before it is connected to the database.
-export const sampleRequests: AccessRequest[] = [
-  { id: "request-1", name: "Ada O.", kind: "broker", detail: "Account ID 4830 2291" },
-  { id: "request-2", name: "Sam K.", kind: "payment", detail: "USDT transfer, screenshot attached" },
+// Sample requests, shown only on the sample space so the queue can be looked at with no setup.
+export const sampleRequests: RequestItem[] = [
+  {
+    id: "request-1",
+    name: "Ada O.",
+    kind: "broker",
+    note: "Account ID 4830 2291",
+    days: 30,
+    proofPath: null,
+    createdAt: "2026-11-17T09:00:00Z",
+  },
+  {
+    id: "request-2",
+    name: "Sam K.",
+    kind: "payment",
+    note: "USDT transfer, screenshot attached",
+    days: 30,
+    proofPath: null,
+    createdAt: "2026-11-17T08:00:00Z",
+  },
 ];

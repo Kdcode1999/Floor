@@ -52,8 +52,13 @@ export function Field({ label, error, hint, code = false, id, ...input }: FieldP
   );
 }
 
-/** A circle with a name's initials, used until a space has a logo. */
-export function Avatar({ name }: { name: string }) {
+/** A space's logo in a circle, or its initials until it has one. */
+export function Avatar({ name, image }: { name: string; image?: string | null }) {
+  if (image) {
+    // A plain img: the logo is a small file from Floor's own store, already the right size.
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img className="avatar" src={image} alt="" />;
+  }
   return (
     <div className="avatar" aria-hidden="true">
       {initials(name)}

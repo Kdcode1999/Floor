@@ -2,31 +2,32 @@
 
 The single place that says where the build is. Updated with every change.
 
-Last update: 17 Nov 2026
+Last update: 18 Nov 2026
 
 ## Now
 
-The phone app signs people in. Someone types their email, gets a 6-digit code, and is in. The phone
-then holds the account's one login: a second phone that signs in takes it over, and the first one is
-stopped with a "Signed in on another phone" screen. After sign-in the app loads the person's real space
-from the database, in that space's theme. Space look now saves to the database.
+Kingsley asked for all of v1 to be built before he looks again. It is being built in the order below,
+each piece tested and pushed as it lands.
 
-A mentor can start their space in the app: its name, the word their join link ends with, its theme, and
-agreeing to the Mentor Terms. They land in it as its mentor.
+Working today:
 
-Members join on the web, at the mentor's join link. The page shows the space in its own theme, signs the
-visitor in with an emailed code, joins them as a free member, and offers the ways to VIP: paying the
-mentor and uploading proof, a broker account with proof, or an invite code. Proofs go to the mentor's
-queue. The mentor cannot work that queue yet: the mentor tools in the app are next.
+- **Sign-in** by emailed 6-digit code, in the phone app and on the web. One login at a time, one
+  phone per account.
+- **A mentor starts their space** in the app: name, link word, theme, Mentor Terms.
+- **The join page** on the web: the space in its own theme, sign-in, joining free, and the ways to
+  VIP (pay the mentor and upload proof, a broker account with proof, an invite code).
+- **The mentor's tools** in the app: the approval queue with each proof, price and how to pay,
+  the broker offer, the join link, invite codes, the members list with who is about to run out,
+  giving and ending VIP by hand, admins, removing someone, and the space's logo.
 
 With `mobile/.env` empty the app still opens on the sample space, with no sign-in, so the screens can be
 looked at without any setup.
 
-Checked: 49 database tests, 75 logic tests (58 phone, 17 web), and three walk-throughs in Chrome at phone
-size against a stand-in backend (the sample space, sign-in and starting a space, and the web join page).
-The phone app builds for Android and iPhone and the web app builds for production. Kingsley has seen the
-sample space on his phone and it looks right. Nothing has run against the real Supabase project yet:
-that needs `docs/SETUP.md`.
+Checked: 67 database tests, 93 logic tests (76 phone, 17 web), and four walk-throughs in Chrome at
+phone size. The newest walk-through runs the app against a real Postgres with Floor's migrations, so
+what it proves is true of the real rules. The phone app builds for Android and iPhone and the web app
+builds for production. Nothing has run against the real Supabase project yet: that needs
+`docs/SETUP.md`.
 
 ## Needed from Kingsley
 
@@ -35,11 +36,12 @@ that needs `docs/SETUP.md`.
 Each step is written out in `docs/SETUP.md`.
 
 - [x] Put the database on the Supabase project (SETUP step 1)
+- [ ] Run `npx supabase db push --remote` again: the database has grown since
 - [x] Look at the phone app on a real phone: it looks right
 - [ ] Connect the phone app to Supabase: fill in `mobile/.env` (SETUP step 2)
 - [ ] Give the project its own email sender and change the two email templates, so sign-in emails carry
       a code (SETUP step 3). Sign-in cannot work on the real project before this
-- [ ] Fill in `web/.env.local` the same way, when the web app starts using Supabase
+- [ ] Fill in `web/.env.local` the same way
 
 Later, when the build reaches them: an Expo account (EAS), a video host, a live video service, the card
 processors, a Telegram bot token, the Apple and Google developer accounts.
@@ -62,8 +64,9 @@ processors, a Telegram bot token, the Apple and Google developer accounts.
 - [x] Web: join page for a space, with a preview when the link is shared
 - [x] Web: sign-in, pay by transfer or USDT with proof, broker proof, invite code
 - [x] Mobile: a mentor starts their space: name, link word, theme, Mentor Terms
-- [ ] Mobile: the rest of mentor setup: logo, price, how to pay, links
-- [ ] Mobile: approval queue and Members
+- [x] Mobile: the rest of mentor setup: logo, price, how to pay, links
+- [x] Mobile: approval queue, invite codes and Members
+- [x] Walk-throughs run against a real Postgres with the real rules
 - [ ] Database and mobile: Feed (posts, setups, embeds, Offers)
 - [ ] Database and mobile: Learn (modules, lessons, hosted video)
 - [ ] Mobile: Protection (capture blocking, name on video)

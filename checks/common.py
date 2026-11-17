@@ -32,6 +32,19 @@ def check_visible(what: str, locator: Locator) -> None:
         check(what, False)
 
 
+def check_count(what: str, locator: Locator, count: int) -> None:
+    """Passes once there are exactly this many of the element. Waits a moment first."""
+    try:
+        expect(locator).to_have_count(count, timeout=4000)
+        check(what, True)
+    except AssertionError:
+        check(what, False)
+
+
+def check_gone(what: str, locator: Locator) -> None:
+    check_count(what, locator, 0)
+
+
 def finish(problems: list[str]) -> None:
     """Reports browser errors, then ends the run with a pass or a fail."""
     check("the browser reported no errors or warnings", not problems)
@@ -87,3 +100,47 @@ def clear_pictures(prefix: str) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     for old in OUT.glob(f"{prefix}*.png"):
         old.unlink()
+
+
+class Phone:
+    """One person's phone: Chrome at phone size, and the few moves every walk-through makes."""
+
+    def __init__(self, p: Playwright, base: str, prefix: str, problems: list[str], ignore: tuple[str, ...] = ()):
+        self.browser, self.page = open_phone(p, problems, ignore)
+        self.base = base
+        self.prefix = prefix
+
+    def shot(self, name: str) -> None:
+        self.page.wait_for_timeout(450)
+        self.page.screenshot(path=str(OUT / f"{self.prefix}{name}.png"))
+
+    def at(self, path: str) -> bool:
+        """True once the app is on this screen."""
+        try:
+            self.page.wait_for_url(lambda url: url.split("?")[0] == self.base + path, timeout=4000)
+            return True
+        except Exception:
+            print("        still at " + self.page.url)
+            return False
+
+    def button(self, name: str, exact: bool = True) -> Locator:
+        return self.page.get_by_role("button", name=name, exact=exact)
+
+    def field(self, label: str) -> Locator:
+        return self.page.get_by_role("textbox", name=label, exact=True)
+
+    def text(self, words: str, exact: bool = False) -> Locator:
+        return self.page.get_by_text(words, exact=exact)
+
+    def sign_in(self, email: str, code: str = "123456") -> None:
+        """Signs in with the emailed code and waits until the app has let the person in."""
+        self.page.goto(self.base + "/", wait_until="networkidle")
+        self.field("Email").fill(email)
+        self.button("Send code").click()
+        self.at("/code")
+        self.field("Code").fill(code)
+        self.page.wait_for_url(lambda url: "/code" not in url and "/sign-in" not in url, timeout=8000)
+        self.page.wait_for_load_state("networkidle")
+
+    def close(self) -> None:
+        self.browser.close()

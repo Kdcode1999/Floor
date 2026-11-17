@@ -112,6 +112,8 @@ def main() -> None:
         print("Requests")
         page.get_by_role("button", name="Approve").first.click()
         page.get_by_role("button", name="Decline").first.click()
+        check_visible("declining asks why first", page.get_by_role("textbox", name="Why? The member sees this"))
+        page.get_by_role("button", name="Decline").first.click()
         check_visible("the queue empties", page.get_by_text("No one is waiting."))
         shot("dawn-7-manage-queue-empty")
 

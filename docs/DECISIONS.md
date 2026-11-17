@@ -117,6 +117,26 @@ Newest at the bottom. Each entry says what was decided and why, so nobody has to
 - **Files both apps need are kept in both** (the themes, the sign-in messages). A test in `web/` fails
   when the two copies differ.
 
+- **A read that needs two tables is a database function.** The apps otherwise read one table at a
+  time with plain filters. The join is then written once and tested with the rest of the rules,
+  and nothing depends on the finer points of the table API.
+- **Walk-throughs run on a real Postgres.** `checks/local_supabase.py` puts Supabase's web API in
+  front of a local Postgres with Floor's migrations. Screens are checked against the real rules,
+  and each step is checked in the database too. It refuses any request beyond plain columns and
+  plain filters, which keeps the apps to the rule above.
+- **A space's logo is a file in Floor's own store**, never a link. A link could point at anything
+  and change later. The app crops it square and shrinks it to 512 pixels before upload.
+- **Declining a request asks for a reason**, and the member sees it. A bare "declined" only
+  produces a second identical request.
+- **Removing someone bans them.** They lose the space at once and cannot come back by the join
+  link, a proof or an invite code. It ends their VIP and any admin role for good: letting them
+  back in makes them a free member. An admin can remove members. Only the mentor can remove an
+  admin. Nobody can remove the mentor.
+- **Whether VIP is running is the database's call.** The phone's clock only words how long is
+  left. A phone with a wrong clock cannot show someone as VIP who is not.
+- **Admins get the queue, invite codes and Members. Price, payment details and the look stay with
+  the mentor.** An admin who could change the bank details could redirect every payment.
+
 ## Open
 
 - Card processors for the automatic path. Starting point: Paystack and Flutterwave, Stripe after.

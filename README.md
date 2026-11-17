@@ -7,7 +7,7 @@ community into it and teaches there.
 
 | Folder | What it holds |
 | --- | --- |
-| `docs/` | What v1 is, the decisions behind it, and where the build stands |
+| `docs/` | What v1 is, the decisions behind it, how the code is put together, and where the build stands |
 | `web/` | The web app (Next.js): the join page, sign-up, paying and proof upload, the mentor's laptop tools |
 | `web/supabase/` | The database: every table, access rule and function, with tests |
 | `mobile/` | The phone app (Expo), for members, mentors and admins |
@@ -76,3 +76,7 @@ npm run lint
 
 In `web`, `npm run test` applies the migrations to an in-memory Postgres and checks who can do what, and
 tests the web app's own logic. It needs no Supabase project and no network.
+
+The scripts in `checks/` walk both apps in Chrome and save a picture of every screen to `checks/out/`.
+They need Python with Playwright, Google Chrome and, for the ones that run on a real database,
+PostgreSQL. Each script says at its top how to run it. `docs/ARCHITECTURE.md` explains how they work.

@@ -7,6 +7,11 @@ export const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? 
 /** False until the two values above are set. Pages that need the backend then say so. */
 export const backendConfigured = SUPABASE_URL !== "" && SUPABASE_KEY !== "";
 
+/** The public address of a space's logo, from its place in the "logos" file store. */
+export function logoUrl(path: string): string {
+  return `${SUPABASE_URL}/storage/v1/object/public/logos/${path}`;
+}
+
 /** Where the web app lives, for links people share. No slash at the end. */
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/+$/, "");
 

@@ -22,15 +22,20 @@ Run the last line again whenever a pull brings new files in `web/supabase/migrat
 In the Supabase dashboard: Project Settings, then API Keys. Copy the Project URL and the
 publishable key. Both are safe to ship inside the app.
 
-In the `mobile` folder, copy `.env.example` to `.env` and fill in the two lines:
+In the `mobile` folder, copy `.env.example` to `.env` and fill in the lines:
 
 ```
 EXPO_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+EXPO_PUBLIC_SITE_URL=https://where-the-web-app-lives
 ```
 
+`EXPO_PUBLIC_SITE_URL` is the web app's address with no slash at the end. The app builds each
+mentor's join link from it. Until the web app is on Vercel, use your computer's address on your
+Wi-Fi, such as `http://192.168.1.20:3000`.
+
 Stop `npx expo start` and start it again so it picks the file up. The app now opens on sign-in
-instead of the sample space. Delete the two values to get the sample space back.
+instead of the sample space. Empty the first two values to get the sample space back.
 
 The web app needs the same two values. In the `web` folder, copy `.env.example` to `.env.local` and fill
 in `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. `npm run dev` then serves it at

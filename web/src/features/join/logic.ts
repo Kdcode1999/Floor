@@ -10,7 +10,8 @@ export interface PublicSpace {
   name: string;
   tagline: string | null;
   theme: ThemeName;
-  logo_url: string | null;
+  /** The logo's place in the "logos" file store, or null when the space has none. */
+  logo_path: string | null;
   vip_price_cents: number | null;
   vip_currency: string | null;
   vip_days: number;

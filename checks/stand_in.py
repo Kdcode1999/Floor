@@ -69,7 +69,7 @@ def space(space_id: str, name: str, theme: str = "night", slug: str | None = Non
         "name": name,
         "tagline": None,
         "theme": theme,
-        "logo_url": None,
+        "logo_path": None,
         "status": "active",
         "vip_price_cents": None,
         "vip_currency": None,
@@ -175,16 +175,9 @@ class StandIn(http.server.BaseHTTPRequestHandler):
             rows = [row for row in world["spaces"].values() if row["slug"] == wanted("slug") and row["status"] == "active"]
             return self._reply(200, rows)
 
-        if url.path == "/rest/v1/memberships":
-            if "space_id" in query:  # the web app: the person's place in one space
-                mine = _mine(wanted("space_id"))
-                return self._reply(200, [{key: mine[key] for key in ("role", "status", "vip_until")}] if mine else [])
-            rows = []  # the phone app: every space the person may open
-            for row in world["memberships"]:
-                found = world["spaces"].get(row["space_id"])
-                if row["status"] == "active" and found:
-                    rows.append({"role": row["role"], "vip_until": row["vip_until"], "space": {key: found[key] for key in ("id", "name", "theme")}})
-            return self._reply(200, rows)
+        if url.path == "/rest/v1/memberships":  # the web app: the person's place in one space
+            mine = _mine(wanted("space_id"))
+            return self._reply(200, [{key: mine[key] for key in ("role", "status", "vip_until")}] if mine else [])
 
         if url.path == "/rest/v1/profiles":
             return self._reply(200, [{"display_name": world["display_name"]}])
@@ -261,6 +254,17 @@ class StandIn(http.server.BaseHTTPRequestHandler):
 
         if url.path == "/rest/v1/rpc/session_status":
             return self._reply(200, world["status"])
+
+        if url.path == "/rest/v1/rpc/my_spaces":  # the phone app: every space the person is in
+            rows = []
+            for row in world["memberships"]:
+                found = world["spaces"].get(row["space_id"])
+                if row["status"] == "active" and found:
+                    rows.append({**{key: found[key] for key in ("id", "slug", "name", "theme", "logo_path", "status")}, "role": row["role"], "vip_until": row["vip_until"]})
+            return self._reply(200, rows)
+
+        if url.path == "/rest/v1/rpc/list_requests":  # the mentor's queue: nobody is waiting here
+            return self._reply(200, [])
 
         if url.path == "/rest/v1/rpc/create_space":
             # The same refusals, in the same words, as create_space in the database.

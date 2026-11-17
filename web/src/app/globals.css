@@ -231,6 +231,7 @@ textarea.input {
   color: var(--avatar-fg);
   font-size: 22px;
   font-weight: 600;
+  object-fit: cover;
 }
 .pill {
   align-self: flex-start;

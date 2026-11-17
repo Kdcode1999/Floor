@@ -32,6 +32,7 @@ export function TextField({ label, error, hint, code = false, ...input }: TextFi
         style={[
           styles.input,
           code && styles.code,
+          input.multiline && styles.multiline,
           {
             color: theme.text,
             backgroundColor: theme.input.background,
@@ -64,6 +65,8 @@ const styles = StyleSheet.create({
     fontFamily: FONT_FAMILY.medium,
     fontSize: 16,
   },
+  // A tall box for several lines, such as bank details.
+  multiline: { height: undefined, minHeight: 112, paddingVertical: 14, textAlignVertical: "top" },
   code: {
     fontFamily: FONT_FAMILY.semibold,
     fontSize: 26,

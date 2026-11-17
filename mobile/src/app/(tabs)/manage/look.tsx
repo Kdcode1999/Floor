@@ -7,9 +7,13 @@ import { BackHeader } from "@/components/BackHeader";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Screen } from "@/components/Screen";
+import { uploadLogo } from "@/features/look/logo";
 import { ThemeOption } from "@/features/look/ThemeOption";
+import { pickPicture, type Picture } from "@/lib/pictures";
+import { supabase } from "@/lib/supabase";
 import { useGoBack } from "@/lib/useGoBack";
-import { useSpace } from "@/space/SpaceContext";
+import { useAuth } from "@/auth/AuthContext";
+import { useSpace, type LookChanges } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
 import { themeNames, themes, type ThemeName } from "@/theme/themes";
 
@@ -17,7 +21,8 @@ import { themeNames, themes, type ThemeName } from "@/theme/themes";
 const NAME_MAX = 40;
 
 /**
- * Space look: the mentor sets the space's name and picks the theme every member will see.
+ * Space look: the mentor sets the space's logo and name, and picks the theme every member
+ * will see.
  *
  * Tapping a theme tries it on across the whole app straight away. Nothing is kept until
  * "Save look" is pressed, and leaving without saving puts the old theme back.
@@ -25,10 +30,13 @@ const NAME_MAX = 40;
 export default function LookScreen() {
   const theme = useTheme();
   const goBack = useGoBack("/manage");
+  const { sample } = useAuth();
   const { space, updateSpace, previewTheme } = useSpace();
 
   const [name, setName] = useState(space.name);
   const [choice, setChoice] = useState<ThemeName>(space.theme);
+  /** A new logo chosen from the phone and not saved yet. */
+  const [picked, setPicked] = useState<Picture | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,14 +48,39 @@ export default function LookScreen() {
     previewTheme(next);
   };
 
+  const chooseLogo = async () => {
+    setError(null);
+    try {
+      const picture = await pickPicture(true);
+      if (picture) setPicked(picture);
+    } catch {
+      setError("Your pictures couldn't be opened. Allow Floor to see them in your phone's settings.");
+    }
+  };
+
   const cleanName = name.trim();
-  const changed = cleanName !== space.name || choice !== space.theme;
+  const changed = cleanName !== space.name || choice !== space.theme || picked !== null;
   const canSave = changed && cleanName.length > 0;
 
   const save = async () => {
     setSaving(true);
     setError(null);
-    const problem = await updateSpace({ name: cleanName, theme: choice });
+    const changes: LookChanges = { name: cleanName, theme: choice };
+    if (picked) {
+      if (sample || !supabase) {
+        // The sample space keeps nothing: the picture is shown straight from this phone.
+        changes.logoPath = picked.uri;
+      } else {
+        try {
+          changes.logoPath = await uploadLogo(supabase, space.id, picked);
+        } catch {
+          setSaving(false);
+          setError("The logo couldn't be uploaded. Check your connection and try again.");
+          return;
+        }
+      }
+    }
+    const problem = await updateSpace(changes);
     setSaving(false);
     if (problem) setError(problem);
     else goBack();
@@ -57,10 +90,14 @@ export default function LookScreen() {
     <Screen header={<BackHeader title="Space look" backLabel="Back to Manage" fallback="/manage" />}>
       <Card radius={26} style={styles.identity}>
         <View style={styles.logo}>
-          <Avatar name={cleanName || space.name} size={52} />
-          <Pressable accessibilityRole="button" hitSlop={8} style={styles.changeLogo}>
+          <Avatar name={cleanName || space.name} image={picked?.uri ?? space.logo} size={52} />
+          <Pressable
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={chooseLogo}
+            style={({ pressed }) => [styles.changeLogo, pressed && styles.pressed]}>
             <AppText size={12} line={16} weight="semibold" color={theme.accent}>
-              Change logo
+              {picked || space.logo ? "Change logo" : "Add logo"}
             </AppText>
           </Pressable>
         </View>
@@ -128,6 +165,7 @@ const styles = StyleSheet.create({
   identity: { flexDirection: "row", alignItems: "center", gap: 14, padding: 16 },
   logo: { alignItems: "center", gap: 6 },
   changeLogo: { minHeight: 24, justifyContent: "center" },
+  pressed: { opacity: 0.6 },
   field: { flex: 1, gap: 6 },
   label: { paddingLeft: 4 },
   input: {

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { cleanCode, CODE_LENGTH, looksLikeEmail } from "@/auth/messages";
 import { Avatar, Button, Card, Field } from "@/components/ui";
+import { logoUrl } from "@/lib/env";
 
 import { stepFor, type PublicSpace } from "./logic";
 import { MemberView } from "./MemberView";
@@ -29,7 +30,7 @@ export function JoinFlow({ space, price }: JoinFlowProps) {
   return (
     <>
       <header style={{ display: "flex", alignItems: "center", gap: 16, paddingTop: 16 }}>
-        <Avatar name={space.name} />
+        <Avatar name={space.name} image={space.logo_path ? logoUrl(space.logo_path) : null} />
         <div style={{ minWidth: 0 }}>
           <h1 className="h1" style={{ overflowWrap: "anywhere" }}>
             {space.name}

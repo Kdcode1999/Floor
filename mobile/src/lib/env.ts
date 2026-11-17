@@ -14,6 +14,19 @@ export const SUPABASE_KEY = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? 
  */
 export const backendConfigured = SUPABASE_URL !== "" && SUPABASE_KEY !== "";
 
+/** Where the web app lives, with no slash at the end. Join links are built from it. */
+export const SITE_URL = (process.env.EXPO_PUBLIC_SITE_URL ?? "").replace(/\/+$/, "");
+
+/** A space's join link: the address a mentor shares. */
+export function joinLink(slug: string): string {
+  return `${SITE_URL || "https://your-floor-address"}/${slug}`;
+}
+
+/** The public address of a space's logo, from its place in the "logos" file store. */
+export function logoUrl(path: string): string {
+  return `${SUPABASE_URL}/storage/v1/object/public/logos/${path}`;
+}
+
 /**
  * True for a phone build made for release without its settings. Such a build must never reach
  * people running on sample content, so it shows an error instead. The web build is only used

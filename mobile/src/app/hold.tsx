@@ -10,7 +10,7 @@ import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Icon } from "@/components/Icon";
 import { Screen } from "@/components/Screen";
-import { missingSettings } from "@/lib/env";
+import { logoUrl, missingSettings } from "@/lib/env";
 import { useSpace, type SpaceEntry } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
 
@@ -167,7 +167,7 @@ function SpaceRow({ entry, onPress }: { entry: SpaceEntry; onPress: () => void }
         { backgroundColor: theme.card.background, borderColor: theme.card.border, boxShadow: theme.card.shadow },
         pressed && styles.pressed,
       ]}>
-      <Avatar name={entry.name} size={44} />
+      <Avatar name={entry.name} image={entry.logoPath ? logoUrl(entry.logoPath) : null} size={44} />
       <View style={styles.rowWords}>
         <AppText size={16} line={22} weight="semibold" numberOfLines={1}>
           {entry.name}

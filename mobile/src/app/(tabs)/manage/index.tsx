@@ -1,31 +1,60 @@
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { useAuth } from "@/auth/AuthContext";
 import { AppText } from "@/components/AppText";
 import { Card } from "@/components/Card";
+import { Loading, Trouble } from "@/components/LoadState";
 import { Screen } from "@/components/Screen";
 import { SpaceHeader } from "@/components/SpaceHeader";
+import { TextLink } from "@/components/TextLink";
 import { ActionTile } from "@/features/manage/ActionTile";
+import { approveRequest, declineRequest, loadRequests, type RequestItem } from "@/features/manage/api";
 import { RequestCard } from "@/features/manage/RequestCard";
 import { sampleRequests } from "@/features/manage/sample";
 import { SettingsRow } from "@/features/manage/SettingsRow";
+import { timeAgo } from "@/lib/format";
+import { supabase } from "@/lib/supabase";
+import { useLoad } from "@/lib/useLoad";
 import { useSpace } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
+
+/** How many requests Mentor home shows before pointing to the full queue. */
+const SHOWN = 3;
 
 /** Mentor home: the three things a mentor does most, who is waiting for VIP, and the settings. */
 export default function ManageScreen() {
   const theme = useTheme();
   const router = useRouter();
   const { sample } = useAuth();
-  const { isMentor } = useSpace();
-  // A real space has nobody waiting until the approval queue is built. Sample requests only
-  // appear on the sample space.
-  const [requests, setRequests] = useState(sample ? sampleRequests : []);
+  const { space, isMentor } = useSpace();
+  const client = sample ? null : supabase;
 
-  // Approving and declining only clear the sample request for now.
-  const settle = (id: string) => setRequests((current) => current.filter((request) => request.id !== id));
+  const queue = useLoad(client ? () => loadRequests(client, space.id) : null, `requests:${space.id}`);
+  const [samples, setSamples] = useState(sampleRequests);
+  const [now] = useState(() => Date.now());
+
+  // Look again whenever the mentor comes back to this screen.
+  const { reload } = queue;
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
+  );
+
+  const requests: RequestItem[] = client ? (queue.data ?? []) : samples;
+  const settle = async (id: string, action: (() => Promise<string | null>) | null) => {
+    if (!action) {
+      // The sample space: just take the request off the list.
+      setSamples((current) => current.filter((request) => request.id !== id));
+      return null;
+    }
+    const problem = await action();
+    if (!problem) reload();
+    return problem;
+  };
 
   return (
     <Screen header={<SpaceHeader />} gap={16}>
@@ -41,45 +70,72 @@ export default function ManageScreen() {
             Requests
           </AppText>
           {requests.length > 0 ? (
-            <View
-              style={[styles.count, { backgroundColor: theme.chip.background, borderColor: theme.chip.border }]}>
+            <View style={[styles.count, { backgroundColor: theme.chip.background, borderColor: theme.chip.border }]}>
               <AppText size={12} line={16} weight="semibold" tabular>
                 {requests.length}
               </AppText>
             </View>
           ) : null}
         </View>
-        {requests.length === 0 ? (
+        {client && queue.loading ? (
+          <Loading />
+        ) : client && queue.error ? (
+          <Trouble detail={queue.error} onRetry={reload} />
+        ) : requests.length === 0 ? (
           <Card style={styles.none}>
             <AppText size={14} line={20} color={theme.text2}>
               No one is waiting.
             </AppText>
           </Card>
         ) : (
-          requests.map((request) => (
+          requests.slice(0, SHOWN).map((request) => (
             <RequestCard
               key={request.id}
               request={request}
-              onApprove={() => settle(request.id)}
-              onDecline={() => settle(request.id)}
+              sent={client ? timeAgo(request.createdAt, now) : undefined}
+              onApprove={() => settle(request.id, client ? () => approveRequest(client, request.id) : null)}
+              onDecline={(reason) => settle(request.id, client ? () => declineRequest(client, request.id, reason) : null)}
+              onProof={
+                client && request.proofPath
+                  ? () => router.push({ pathname: "/manage/proof", params: { path: request.proofPath ?? "", name: request.name } })
+                  : undefined
+              }
             />
           ))
         )}
+        {requests.length > SHOWN ? (
+          <View style={styles.more}>
+            <TextLink label={`See all ${requests.length}`} onPress={() => router.push("/manage/requests")} />
+          </View>
+        ) : null}
       </View>
 
       <Card style={styles.rows}>
         {isMentor ? (
+          <SettingsRow title="Space look" detail="Logo, name and theme" onPress={() => router.push("/manage/look")} />
+        ) : null}
+        {isMentor ? (
           <SettingsRow
-            title="Space look"
-            detail="Logo, name and theme"
-            onPress={() => router.push("/manage/look")}
+            title="Price and payment"
+            detail="What VIP costs and how members pay you"
+            divided
+            onPress={client ? () => router.push("/manage/setup") : undefined}
           />
         ) : null}
-        <SettingsRow title="Groups" detail="Create groups and choose who gets in" divided={isMentor} />
-        {isMentor ? (
-          <SettingsRow title="Protection" detail="Logins, screenshots and paid video" divided />
-        ) : null}
-        <SettingsRow title="Members" detail="Who is VIP and who is expiring" divided />
+        <SettingsRow
+          title="Invite codes"
+          detail="Give VIP with a code"
+          divided={isMentor}
+          onPress={client ? () => router.push("/manage/codes") : undefined}
+        />
+        <SettingsRow title="Groups" detail="Create groups and choose who gets in" divided />
+        {isMentor ? <SettingsRow title="Protection" detail="Logins, screenshots and paid video" divided /> : null}
+        <SettingsRow
+          title="Members"
+          detail="Who is VIP and who is expiring"
+          divided
+          onPress={client ? () => router.push("/manage/members") : undefined}
+        />
       </Card>
     </Screen>
   );
@@ -99,5 +155,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   none: { paddingVertical: 18, paddingHorizontal: 20 },
+  more: { alignItems: "center" },
   rows: { paddingVertical: 2, paddingHorizontal: 18 },
 });

@@ -24,7 +24,7 @@ export function SpaceHeader() {
 
   return (
     <View style={styles.header}>
-      <Avatar name={space.name} size={40} />
+      <Avatar name={space.name} image={space.logo} size={40} />
       <AppText
         accessibilityRole="header"
         size={17}
