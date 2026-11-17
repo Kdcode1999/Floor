@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
 import { useAuth } from "@/auth/AuthContext";
@@ -25,8 +26,10 @@ function placeIn(viewer: Viewer): string {
 /** The person's own corner: who they are signed in as, their place in the space, and sign out. */
 export default function AccountScreen() {
   const theme = useTheme();
+  const router = useRouter();
   const auth = useAuth();
   const { space, viewer, entries, switchSpace } = useSpace();
+  const ownsSpace = entries.some((entry) => entry.role === "mentor");
 
   return (
     <Screen hasNav={false} header={<BackHeader title="Account" backLabel="Back" fallback="/" />}>
@@ -43,6 +46,9 @@ export default function AccountScreen() {
       ) : (
         <View style={styles.actions}>
           {entries.length > 1 ? <Button label="Switch space" kind="ghost" onPress={switchSpace} /> : null}
+          {ownsSpace ? null : (
+            <Button label="Start your own space" kind="ghost" onPress={() => router.push("/create")} />
+          )}
           <Button label="Sign out" kind="ghost" onPress={auth.signOut} />
         </View>
       )}

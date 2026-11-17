@@ -11,16 +11,17 @@ then holds the account's one login: a second phone that signs in takes it over, 
 stopped with a "Signed in on another phone" screen. After sign-in the app loads the person's real space
 from the database, in that space's theme. Space look now saves to the database.
 
-Nobody can reach a space yet except by hand: joining and creating a space are the next two pieces. Until
-then a new account lands on "You're not in a space yet". Next is the mentor creating their space.
+A mentor can start their space in the app: its name, the word their join link ends with, its theme, and
+agreeing to the Mentor Terms. They land in it as its mentor. Members cannot join yet: that needs the web
+join page, which is next.
 
 With `mobile/.env` empty the app still opens on the sample space, with no sign-in, so the screens can be
 looked at without any setup.
 
-Checked: 49 logic tests, and two walk-throughs in Chrome at phone size (23 checks on the sample space, 48
-on sign-in against a stand-in backend). The app builds for Android and iPhone. It has not been seen on a
-real phone, and sign-in has not been run against the real Supabase project yet: that needs steps 2 and 3
-of `docs/SETUP.md`.
+Checked: 58 logic tests, and two walk-throughs in Chrome at phone size (23 checks on the sample space, 69
+on sign-in and starting a space, against a stand-in backend). The app builds for Android and iPhone.
+Kingsley has seen the sample space on his phone and it looks right. Sign-in has not been run against the
+real Supabase project yet: that needs steps 2 and 3 of `docs/SETUP.md`.
 
 ## Needed from Kingsley
 
@@ -28,9 +29,8 @@ of `docs/SETUP.md`.
 - [x] Supabase project
 Each step is written out in `docs/SETUP.md`.
 
-- [ ] Put the database on the Supabase project (SETUP step 1). Not confirmed yet
-- [ ] Open the phone app on your phone: `cd mobile`, `npx expo start`, scan the code with Expo Go. Say
-      how the glass looks and whether scrolling is smooth, on Android above all
+- [x] Put the database on the Supabase project (SETUP step 1)
+- [x] Look at the phone app on a real phone: it looks right
 - [ ] Connect the phone app to Supabase: fill in `mobile/.env` (SETUP step 2)
 - [ ] Give the project its own email sender and change the two email templates, so sign-in emails carry
       a code (SETUP step 3). Sign-in cannot work on the real project before this
@@ -56,7 +56,8 @@ processors, a Telegram bot token, the Apple and Google developer accounts.
 - [x] Mobile: the person's real space and place in it, a list when they are in several, Account screen
 - [ ] Web: join page for a space
 - [ ] Web: sign-in, pay by transfer or USDT with proof, broker proof, invite code
-- [ ] Mobile: mentor setup (name, logo, theme, price, how to pay, links), mentor Terms
+- [x] Mobile: a mentor starts their space: name, link word, theme, Mentor Terms
+- [ ] Mobile: the rest of mentor setup: logo, price, how to pay, links
 - [ ] Mobile: approval queue and Members
 - [ ] Database and mobile: Feed (posts, setups, embeds, Offers)
 - [ ] Database and mobile: Learn (modules, lessons, hosted video)
@@ -79,5 +80,7 @@ processors, a Telegram bot token, the Apple and Google developer accounts.
 
 ### Launch
 - [ ] Store listings, privacy policy, Terms pages
+- [ ] A lawyer reviews the Mentor Terms, the member Terms and the privacy policy. The Mentor Terms in the
+      app today are Floor's product rules in plain words, not a lawyer's document
 - [ ] Test builds on Android and iPhone
 - [ ] Submit to the stores

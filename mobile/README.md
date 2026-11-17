@@ -17,8 +17,8 @@ phone cannot reach the computer, run `npx expo start --tunnel` instead.
 With no `.env` file the app opens on a sample space, seen as its mentor, with no sign-in. Once `.env`
 is filled in it opens on sign-in and shows the person's real space. `../docs/SETUP.md` has the steps.
 
-Signing in, the tabs, the three themes, Space look and Account work. The other buttons are in place but
-not connected yet.
+Signing in, starting a space, the tabs, the three themes, Space look and Account work. The other buttons
+are in place but not connected yet.
 
 Some features need a development build instead of Expo Go, because they use native code that Expo Go
 does not carry. The first one will be the live room. `../docs/STATUS.md` will say when.
@@ -43,7 +43,7 @@ for Supabase. They need Python with Playwright, so they are run on the build sid
   and Manage. Screens opened from Manage live in `(tabs)/manage/`.
 - `src/components/`: the building blocks every screen shares: card, button, pill, text, the floating
   navigation, the screen frame with its lights.
-- `src/features/`: the parts that belong to one area: `feed`, `manage`, `look`.
+- `src/features/`: the parts that belong to one area: `feed`, `manage`, `look`, `create`.
 - `src/auth/`: sign-in. `authStore.ts` and `access.ts` hold the rules for one login at a time.
 - `src/space/SpaceContext.tsx`: the space being shown and who is looking at it, loaded from the database.
 - `src/lib/`: the Supabase connection, secure storage, the phone's id.

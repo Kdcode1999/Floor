@@ -24,10 +24,11 @@ world = {
     "claim": "ok",  # "ok", "device_limit", or "error" for a failing server
     "status": "ok",  # "ok" or "not_current"
     "memberships": [],  # rows as the app asks for them
+    "taken_slugs": ["kings"],  # link words another space already has
 }
 
 # What the app sent, for the walk-through to check.
-seen = {"codes_sent_to": [], "claims": [], "space_changes": [], "sign_outs": 0}
+seen = {"codes_sent_to": [], "claims": [], "space_changes": [], "spaces_created": [], "sign_outs": 0}
 
 
 def _part(value: dict) -> str:
@@ -143,6 +144,17 @@ class StandIn(http.server.BaseHTTPRequestHandler):
 
         if url.path == "/rest/v1/rpc/session_status":
             return self._reply(200, world["status"])
+
+        if url.path == "/rest/v1/rpc/create_space":
+            # The same refusals, in the same words, as create_space in the database.
+            if body.get("p_slug") in world["taken_slugs"]:
+                return self._reply(400, {"code": "P0001", "message": "slug_taken", "details": None, "hint": None})
+            if not body.get("p_terms_version"):
+                return self._reply(400, {"code": "P0001", "message": "terms_required", "details": None, "hint": None})
+            seen["spaces_created"].append(body)
+            space_id = f"space-{len(seen['spaces_created'])}"
+            world["memberships"].append(membership(space_id, body["p_name"], theme=body["p_theme"], role="mentor"))
+            return self._reply(200, space_id)
 
         self._reply(404, {"message": f"The stand-in does not know {url.path}"})
 

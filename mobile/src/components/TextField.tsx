@@ -8,12 +8,14 @@ interface TextFieldProps extends Omit<TextInputProps, "style"> {
   label: string;
   /** Shown under the field when something went wrong. */
   error?: string | null;
+  /** A quiet line of help under the field. Gives way to the error. */
+  hint?: string;
   /** Large, centred, widely spaced digits, for typing a code. */
   code?: boolean;
 }
 
 /** A labelled box to type in, in the theme's glass. */
-export function TextField({ label, error, code = false, ...input }: TextFieldProps) {
+export function TextField({ label, error, hint, code = false, ...input }: TextFieldProps) {
   const theme = useTheme();
 
   return (
@@ -40,6 +42,10 @@ export function TextField({ label, error, code = false, ...input }: TextFieldPro
       {error ? (
         <AppText accessibilityLiveRegion="polite" size={13} line={18} color={theme.error} style={styles.label}>
           {error}
+        </AppText>
+      ) : hint ? (
+        <AppText size={13} line={18} color={theme.text3} style={styles.label}>
+          {hint}
         </AppText>
       ) : null}
     </View>

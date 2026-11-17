@@ -3,7 +3,7 @@ picture of every screen.
 
 The app is built against a stand-in for the Supabase project (stand_in.py), so every path can
 be walked without a real project or real emails: a wrong code, the right code, no space yet,
-one space, several spaces, another phone taking over, the phone limit, a failing server.
+starting a space, several spaces, another phone taking over, the phone limit, a failing server.
 
 Needs Python with Playwright and Google Chrome. From `mobile/` (bash shown; the two values
 only matter while building):
@@ -104,11 +104,48 @@ def main() -> None:
         check("the address shows the hold screen", at("/hold"))
         shot("5-no-space")
 
-        print("One space")
-        world["memberships"] = [membership("space-1", "Kings FX Academy", theme="dawn", role="mentor")]
         button("Check again").click()
-        check_visible("the space opens once the person belongs to one", page.get_by_role("heading", name="Kings FX Academy"))
-        check("in the space's own theme", theme_is("dawn"))
+        check_visible("Check again changes nothing while they are still in no space", page.get_by_text("You're not in a space yet"))
+
+        print("Starting a space")
+        button("Start your own space").click()
+        check("the way in opens the form", at("/create"))
+        button("Create space").click()
+        check_visible("a space needs a name", page.get_by_text("Give your space a name."))
+        check_visible("and a link word", page.get_by_text("Use at least 3 letters or numbers."))
+        field("Space name").fill("Kings")
+        check("the link word is written from the name", field("Link word").input_value() == "kings")
+        check("and the complaints about both are gone", page.get_by_text("Use at least 3 letters or numbers.").count() == 0 and page.get_by_text("Give your space a name.").count() == 0)
+        page.get_by_role("radio", name="Dawn").click()
+        check("tapping a theme tries it on", theme_is("dawn"))
+        shot("5b-create")
+        button("Create space").click()
+        check_visible("the Mentor Terms must be agreed to", page.get_by_text("Agree to the Mentor Terms to go on."))
+        check("nothing is created before that", seen["spaces_created"] == [])
+
+        button("Read the Mentor Terms").click()
+        check("the terms can be read first", at("/mentor-terms"))
+        check_visible("they open with the rule on profits", page.get_by_text("No promised profits"))
+        shot("5c-mentor-terms")
+        button("Back").last.click()
+        check("and reading them keeps what was typed", at("/create") and field("Space name").input_value() == "Kings")
+
+        page.get_by_role("checkbox", name="I agree to the Mentor Terms").click()
+        button("Create space").click()
+        check_visible("a taken link word is explained under its box", page.get_by_text("That link word is taken. Try another."))
+        field("Space name").fill("Kings FX")
+        check("the link word follows the name until the mentor types their own", field("Link word").input_value() == "kings-fx")
+        field("Link word").fill("Kings FX")
+        check("typing is tidied into a link word", field("Link word").input_value() == "kings-fx")
+        field("Space name").fill("Kings FX Academy")
+        check("a link word the mentor typed is left alone", field("Link word").input_value() == "kings-fx")
+        button("Create space").click()
+        check_visible("the new space opens", page.get_by_role("heading", name="Kings FX Academy"))
+        created = seen["spaces_created"]
+        check("it was created with the name, link word and theme chosen", len(created) == 1 and (created[0]["p_name"], created[0]["p_slug"], created[0]["p_theme"]) == ("Kings FX Academy", "kings-fx", "dawn"))
+        check("and with the version of the terms agreed to", created[0]["p_terms_version"] == "2026-11-17")
+        check_visible("its maker is the mentor", button("Account. You are: Mentor"))
+        check("in the theme they picked", theme_is("dawn"))
         check_visible("a real space starts with an empty feed", page.get_by_text("Nothing posted yet"))
         check("with no sample posts", page.get_by_text("London session").count() == 0)
         shot("6-space")
@@ -170,7 +207,11 @@ def main() -> None:
             membership("space-3", "Pips Before Bed", theme="dawn"),
         ]
         page.goto(BASE + "/", wait_until="networkidle")
-        check_visible("someone in several spaces picks one", page.get_by_text("Choose a space"))
+        check_visible("with several spaces, the one last opened comes up", page.get_by_role("heading", name="Kings FX Academy"))
+        page.get_by_role("button", name="Account").click()
+        check("a mentor is not offered a second space of their own", button("Start your own space").count() == 0)
+        button("Switch space").click()
+        check_visible("Switch space shows the list", page.get_by_text("Choose a space"))
         shot("11-choose")
         page.get_by_role("button", name="Lagos Gold Room").click()
         check_visible("the picked space opens", page.get_by_role("heading", name="Lagos Gold Room"))

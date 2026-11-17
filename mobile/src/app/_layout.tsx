@@ -89,6 +89,11 @@ function GuardedStack() {
         <Stack.Protected guard={stage === "hold"}>
           <Stack.Screen name="hold" options={{ animation: "fade" }} />
         </Stack.Protected>
+        {/* Open to anyone signed in, whether or not they are in a space yet. */}
+        <Stack.Protected guard={stage !== "sign-in"}>
+          <Stack.Screen name="create" />
+          <Stack.Screen name="mentor-terms" />
+        </Stack.Protected>
       </Stack>
     </>
   );

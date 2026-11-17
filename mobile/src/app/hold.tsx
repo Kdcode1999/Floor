@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 
@@ -32,7 +33,7 @@ const WORDS: Record<Exclude<Hold, "loading" | "choose">, { title: string; text: 
   },
   none: {
     title: "You're not in a space yet",
-    text: "Open your mentor's join link to join their space, then come back and check again.",
+    text: "Joining a mentor? Open their join link, then come back and check again. Running your own community? Start your space here.",
   },
 };
 
@@ -43,6 +44,7 @@ const WORDS: Record<Exclude<Hold, "loading" | "choose">, { title: string; text: 
  */
 export default function HoldScreen() {
   const theme = useTheme();
+  const router = useRouter();
   const auth = useAuth();
   const space = useSpace();
   const [busy, setBusy] = useState(false);
@@ -106,6 +108,9 @@ export default function HoldScreen() {
       {hold === "trouble" ? <Button label="Try again" busy={busy} onPress={run(auth.useThisPhone)} /> : null}
       {hold === "space_trouble" ? <Button label="Try again" onPress={space.reload} /> : null}
       {hold === "none" ? <Button label="Check again" onPress={space.reload} /> : null}
+      {hold === "none" ? (
+        <Button label="Start your own space" kind="ghost" onPress={() => router.push("/create")} />
+      ) : null}
       {signOut}
     </Notice>
   );

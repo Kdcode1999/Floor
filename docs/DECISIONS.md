@@ -98,8 +98,17 @@ Newest at the bottom. Each entry says what was decided and why, so nobody has to
   storage in pieces, messages) have tests: `npm test` in `mobile/`. Sign-in is also walked end to end in
   Chrome against a stand-in for Supabase: `mobile/checks/sign_in.py`.
 
+- **Anyone signed in can start a space, one per account.** There is no approval step. The Mentor Terms
+  and "report and suspend" are the guard.
+- **The join link ends with a word the mentor picks.** The app writes it from the space's name until the
+  mentor types their own. It cannot be changed afterwards in v1: links already shared must keep working.
+- **The Mentor Terms are seven short rules, read and agreed to in the app.** The database stores which
+  version each mentor agreed to. Changing the wording means changing the version.
+
 ## Open
 
 - Card processors for the automatic path. Starting point: Paystack and Flutterwave, Stripe after.
 - Video host for lessons and the service behind the live room. To be chosen when Learn is built, on
   current prices.
+- How a mentor pays Floor its monthly fee. Nothing in the build order covers it yet. It has to happen on
+  the web, not inside the iPhone app.
