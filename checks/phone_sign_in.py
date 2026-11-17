@@ -10,7 +10,7 @@ only matter while building):
 
     EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:8095 EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=stand-in \\
       npx expo export --platform web --output-dir dist-stand-in
-    python checks/sign_in.py
+    python ../checks/phone_sign_in.py
 
 Pictures land in `checks/out/`, named `signin-*`. The script exits with an error if a check fails.
 """

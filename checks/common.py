@@ -9,8 +9,10 @@ import threading
 
 from playwright.sync_api import Locator, Playwright, expect
 
-MOBILE = pathlib.Path(__file__).resolve().parent.parent
-OUT = MOBILE / "checks" / "out"
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+MOBILE = ROOT / "mobile"
+WEB = ROOT / "web"
+OUT = ROOT / "checks" / "out"
 
 failures: list[str] = []
 

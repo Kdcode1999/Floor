@@ -67,8 +67,8 @@ Newest at the bottom. Each entry says what was decided and why, so nobody has to
   `mobile/src/space/SpaceContext.tsx`, and is replaced by the real space and membership.
 - **The phone app's web build is for checking screens only.** It is not shipped to members: the student
   web app is on the Later list. It is exported as a single page.
-- **Screens are checked by walking the app, not by eye alone.** `mobile/checks/walk.py` drives the app in
-  Chrome at phone size, checks each step and saves a picture of every screen in all three themes.
+- **Screens are checked by walking the app, not by eye alone.** The scripts in `checks/` drive the phone
+  app and the web app in Chrome at phone size, check each step and save a picture of every screen.
 
 - **Sign-in is a typed code, never a link.** A link opens a browser, and on a phone that means leaving
   the app. Supabase's built-in email cannot send a code on a new Free project, so Floor needs its own
@@ -96,7 +96,7 @@ Newest at the bottom. Each entry says what was decided and why, so nobody has to
   shows an error and nothing else.
 - **Plain logic is tested on its own, screens are walked.** Files with no phone code in them (login rules,
   storage in pieces, messages) have tests: `npm test` in `mobile/`. Sign-in is also walked end to end in
-  Chrome against a stand-in for Supabase: `mobile/checks/sign_in.py`.
+  Chrome against a stand-in for Supabase: `checks/phone_sign_in.py`.
 
 - **Anyone signed in can start a space, one per account.** There is no approval step. The Mentor Terms
   and "report and suspend" are the guard.
@@ -104,6 +104,18 @@ Newest at the bottom. Each entry says what was decided and why, so nobody has to
   mentor types their own. It cannot be changed afterwards in v1: links already shared must keep working.
 - **The Mentor Terms are seven short rules, read and agreed to in the app.** The database stores which
   version each mentor agreed to. Changing the wording means changing the version.
+
+- **The join page runs in the visitor's browser.** The server only reads what anyone may know about the
+  space, so a shared link shows the space's name in chat apps. Signing in, joining and sending proof talk
+  to Supabase straight from the browser, under the same database rules as the phone app.
+- **The web never claims the account's one login.** People use the web to join and to prove a payment.
+  They read the space in the phone app. So signing in on the web does not stop their phone.
+- **How to pay is shown only after joining.** A visitor sees the price. The bank details, the payment
+  link and the broker link are for members.
+- **An invite code typed on a join page must be that space's code.** Another space's code gets the same
+  answer as a code that does not exist.
+- **Files both apps need are kept in both** (the themes, the sign-in messages). A test in `web/` fails
+  when the two copies differ.
 
 ## Open
 

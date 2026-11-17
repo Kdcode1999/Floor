@@ -11,6 +11,7 @@ community into it and teaches there.
 | `web/` | The web app (Next.js): the join page, sign-up, paying and proof upload, the mentor's laptop tools |
 | `web/supabase/` | The database: every table, access rule and function, with tests |
 | `mobile/` | The phone app (Expo), for members, mentors and admins |
+| `checks/` | Walk-throughs: scripts that drive both apps in Chrome and check each step |
 
 Read `docs/STATUS.md` first. It says what is done and what is next.
 
@@ -61,7 +62,7 @@ Scan the QR code with the Expo Go app on your phone. If the phone cannot reach t
 
 ```powershell
 cd web
-npm run test:db
+npm run test
 npm run typecheck
 npm run lint
 ```
@@ -73,5 +74,5 @@ npm run typecheck
 npm run lint
 ```
 
-`test:db` applies the migrations to an in-memory Postgres and checks who can do what. It needs no
-Supabase project and no network.
+In `web`, `npm run test` applies the migrations to an in-memory Postgres and checks who can do what, and
+tests the web app's own logic. It needs no Supabase project and no network.

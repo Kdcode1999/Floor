@@ -32,6 +32,10 @@ EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 Stop `npx expo start` and start it again so it picks the file up. The app now opens on sign-in
 instead of the sample space. Delete the two values to get the sample space back.
 
+The web app needs the same two values. In the `web` folder, copy `.env.example` to `.env.local` and fill
+in `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. `npm run dev` then serves it at
+`http://localhost:3000`, and a space's join page is `http://localhost:3000/its-link-word`.
+
 ## 3. Make sign-in emails carry a code
 
 Floor signs people in with a 6-digit code they type into the app. Out of the box Supabase emails

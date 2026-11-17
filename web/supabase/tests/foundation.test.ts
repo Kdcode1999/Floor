@@ -2,50 +2,7 @@ import { randomUUID } from "node:crypto";
 import { beforeAll, describe, expect, it } from "vitest";
 import { as, call, createDb, deviceId, newUser, type Db, type TestUser } from "./harness";
 
-const DAY = 24 * 60 * 60 * 1000;
-const TERMS = "2026-11";
-
-function openSpace(db: Db, mentor: TestUser, slug: string, name = "Gold Desk") {
-  return as(db, mentor, (tx) =>
-    call<string>(tx, "select public.create_space($1, $2, $3, $4)", [name, slug, "night", TERMS]),
-  );
-}
-
-function join(db: Db, user: TestUser, slug: string) {
-  return as(db, user, (tx) => call<string>(tx, "select public.join_space($1)", [slug]));
-}
-
-function claim(db: Db, user: TestUser, device: string) {
-  return as(db, user, (tx) => call<string>(tx, "select public.claim_session($1)", [device]));
-}
-
-function hasAccess(db: Db, user: TestUser, space: string, vip = false) {
-  return as(db, user, (tx) => call<boolean>(tx, "select private.has_access($1, $2)", [space, vip]));
-}
-
-function requestAccess(db: Db, user: TestUser, space: string, kind = "payment", file = "receipt.jpg") {
-  return as(db, user, (tx) =>
-    call<string>(tx, "select public.request_access($1, $2, $3, $4)", [
-      space,
-      kind,
-      `${space}/${user.id}/${file}`,
-      "Paid by transfer",
-    ]),
-  );
-}
-
-async function vipUntil(db: Db, space: string, user: TestUser): Promise<Date | null> {
-  const result = await db.query<{ vip_until: Date | null }>(
-    "select vip_until from public.memberships where space_id = $1 and user_id = $2",
-    [space, user.id],
-  );
-  return result.rows[0]?.vip_until ?? null;
-}
-
-function expectAbout(actual: Date | null, expectedMs: number) {
-  expect(actual).not.toBeNull();
-  expect(Math.abs((actual as Date).getTime() - expectedMs)).toBeLessThan(60_000);
-}
+import { DAY, openSpace, join, claim, hasAccess, requestAccess, vipUntil, expectAbout } from "./helpers";
 
 describe("accounts", () => {
   let db: Db;

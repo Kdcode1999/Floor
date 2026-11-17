@@ -4,3 +4,7 @@ node_modules/
 .env.*
 !.env.example
 .DS_Store
+
+# walk-throughs: pictures and python leftovers
+checks/out/
+__pycache__/

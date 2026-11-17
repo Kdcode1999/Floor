@@ -5,13 +5,13 @@ It drives the app's web build in Chrome at phone size. It is how screens are che
 push. It does not replace looking at the app on a real phone.
 
 It covers the app as it runs with no backend: the sample space, seen as its mentor. Sign-in is
-walked by sign_in.py.
+walked by phone_sign_in.py.
 
 Needs Python with Playwright (`pip install playwright`) and Google Chrome. From `mobile/`, with
 no .env file in the way:
 
     npx expo export --platform web
-    python checks/walk.py
+    python ../checks/phone_sample.py
 
 Pictures land in `checks/out/`. The script exits with an error if any check fails.
 """

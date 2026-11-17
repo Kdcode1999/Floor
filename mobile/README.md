@@ -33,9 +33,10 @@ npm run lint
 
 `npm test` runs the tests of the app's plain logic in `tests/`.
 
-`checks/walk.py` and `checks/sign_in.py` walk the app in Chrome at phone size, check each step and save a
-picture of every screen. The first covers the sample space. The second covers sign-in, against a stand-in
-for Supabase. They need Python with Playwright, so they are run on the build side, not on your computer.
+`../checks/phone_sample.py` and `../checks/phone_sign_in.py` walk the app in Chrome at phone size, check
+each step and save a picture of every screen. The first covers the sample space. The second covers sign-in
+and starting a space, against a stand-in for Supabase. They need Python with Playwright, so they are run
+on the build side, not on your computer.
 
 ## Where things are
 

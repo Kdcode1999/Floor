@@ -12,16 +12,21 @@ stopped with a "Signed in on another phone" screen. After sign-in the app loads 
 from the database, in that space's theme. Space look now saves to the database.
 
 A mentor can start their space in the app: its name, the word their join link ends with, its theme, and
-agreeing to the Mentor Terms. They land in it as its mentor. Members cannot join yet: that needs the web
-join page, which is next.
+agreeing to the Mentor Terms. They land in it as its mentor.
+
+Members join on the web, at the mentor's join link. The page shows the space in its own theme, signs the
+visitor in with an emailed code, joins them as a free member, and offers the ways to VIP: paying the
+mentor and uploading proof, a broker account with proof, or an invite code. Proofs go to the mentor's
+queue. The mentor cannot work that queue yet: the mentor tools in the app are next.
 
 With `mobile/.env` empty the app still opens on the sample space, with no sign-in, so the screens can be
 looked at without any setup.
 
-Checked: 58 logic tests, and two walk-throughs in Chrome at phone size (23 checks on the sample space, 69
-on sign-in and starting a space, against a stand-in backend). The app builds for Android and iPhone.
-Kingsley has seen the sample space on his phone and it looks right. Sign-in has not been run against the
-real Supabase project yet: that needs steps 2 and 3 of `docs/SETUP.md`.
+Checked: 49 database tests, 75 logic tests (58 phone, 17 web), and three walk-throughs in Chrome at phone
+size against a stand-in backend (the sample space, sign-in and starting a space, and the web join page).
+The phone app builds for Android and iPhone and the web app builds for production. Kingsley has seen the
+sample space on his phone and it looks right. Nothing has run against the real Supabase project yet:
+that needs `docs/SETUP.md`.
 
 ## Needed from Kingsley
 
@@ -54,8 +59,8 @@ processors, a Telegram bot token, the Apple and Google developer accounts.
 - [x] Mobile: Feed, Mentor home and Space look screens, on sample content
 - [x] Mobile: sign-in by emailed code, claim the login, "signed in elsewhere" screen
 - [x] Mobile: the person's real space and place in it, a list when they are in several, Account screen
-- [ ] Web: join page for a space
-- [ ] Web: sign-in, pay by transfer or USDT with proof, broker proof, invite code
+- [x] Web: join page for a space, with a preview when the link is shared
+- [x] Web: sign-in, pay by transfer or USDT with proof, broker proof, invite code
 - [x] Mobile: a mentor starts their space: name, link word, theme, Mentor Terms
 - [ ] Mobile: the rest of mentor setup: logo, price, how to pay, links
 - [ ] Mobile: approval queue and Members

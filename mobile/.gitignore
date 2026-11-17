@@ -47,8 +47,6 @@ example
 .env.*
 !.env.example
 
-# pictures from checks/walk.py
-checks/out/
 
 # web build made against the stand-in backend, for checks/sign_in.py
 dist-stand-in/
