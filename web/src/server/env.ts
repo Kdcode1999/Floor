@@ -24,6 +24,14 @@ export const BUNNY = {
 
 export const videoConfigured = BUNNY.libraryId !== "" && BUNNY.apiKey !== "" && BUNNY.cdn !== "" && BUNNY.tokenKey !== "";
 
+/** The notification service: Expo's, which passes alerts on to Apple and Google. */
+export const PUSH = {
+  /** Where the service lives. Only the walk-throughs point this somewhere else. */
+  api: (process.env.EXPO_PUSH_URL ?? "https://exp.host/--/api/v2/push").replace(/\/+$/, ""),
+  /** Optional. Set it if "enhanced security for push notifications" is switched on in the Expo account. */
+  accessToken: process.env.EXPO_ACCESS_TOKEN ?? "",
+};
+
 /**
  * A long random word of our own. Vercel sends it with every run of the timer that sweeps the
  * job queue, which is how the route knows the call is Vercel's.

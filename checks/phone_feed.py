@@ -28,9 +28,9 @@ DIST = MOBILE / "dist-stand-in"
 PORT = 8094
 BASE = f"http://127.0.0.1:{PORT}"
 
-# The video in the post is played by YouTube's own player, which this machine cannot reach, and
-# refusals are part of the walk. The browser logs both.
-EXPECTED_NOISE = ("Failed to load resource", "youtube", "ERR_", "No available adapters")
+# Refusals are part of the walk, and the browser logs each one. The video in the post would be
+# played by YouTube's own player: checks never leave this machine, so the frame stays empty.
+EXPECTED_NOISE = ("Failed to load resource",)
 
 
 def main() -> None:

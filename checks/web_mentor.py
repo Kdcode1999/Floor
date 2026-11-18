@@ -20,19 +20,17 @@ from playwright.sync_api import sync_playwright
 import fake_video_host
 import fixtures
 import local_db
+import local_services
 import local_supabase
-from common import OUT, check, check_gone, check_soon, check_visible, clear_pictures, finish, open_phone, start_web, stop_web
-from phone_learn import SERVER_SETTINGS
+from common import OUT, check, check_gone, check_soon, check_visible, clear_pictures, finish, open_phone
 
-BASE = "http://127.0.0.1:8096"
+BASE = local_services.WEB
 EXPECTED_NOISE = ("Failed to load resource",)
 
 
 def main() -> None:
-    backend = local_supabase.start(8095)
-    film, pieces = fixtures.film()
-    host = fake_video_host.start(8097, pieces, fixtures.picture("Lesson", size=(640, 360), kind="JPEG"))
-    web = start_web(8096, SERVER_SETTINGS)
+    services = local_services.start()
+    film = services.film
     clear_pictures("webmentor-")
 
     kay = fixtures.person("kay@example.com", "Kay")
@@ -131,9 +129,7 @@ def main() -> None:
 
             browser.close()
     finally:
-        stop_web(web)
-        host.shutdown()
-        backend.shutdown()
+        services.stop()
     finish(problems)
 
 

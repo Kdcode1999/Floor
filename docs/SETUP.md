@@ -119,3 +119,107 @@ To check it: in the app, as the mentor, add a lesson and upload a short video. I
 is being prepared", then "Video ready". Publish it and play it as a VIP member. **If it does not
 play, tell Claude what you see**: the playback address is signed to Bunny's published rules, and this
 is the first time it meets the real service.
+
+## 6. Build the app for your phone
+
+Until now the app ran inside Expo Go. Alerts, and later the live room, use parts of a phone that
+Expo Go does not carry, so from here Floor runs as its own app, built in your own Expo project.
+The build happens on Expo's servers. Nothing has to be installed on your computer.
+
+Expo Go still opens the app for a quick look at the screens: `npx expo start --go`. On Android it
+gets no alerts there.
+
+1. Make a free account at expo.dev.
+2. In the `mobile` folder:
+
+   ```powershell
+   npm install
+   npx eas-cli@latest login
+   npx eas-cli@latest init
+   ```
+
+   `init` creates the project on Expo and writes its id into `mobile/app.json`. The id is not a
+   secret. Save it to the repo:
+
+   ```powershell
+   git add app.json
+   git commit -m "Add the Expo project id"
+   git push
+   ```
+
+3. **Android.** Build, then install:
+
+   ```powershell
+   npx eas-cli@latest build --profile development --platform android
+   ```
+
+   The first time it asks to create a keystore: say yes, Expo keeps it. After about 15 minutes it
+   shows a QR code. Scan it with the phone, download the file and open it. Android asks once
+   whether to allow installing from your browser.
+
+4. **iPhone.** This needs the Apple Developer Program (99 dollars a year), which the App Store
+   needs anyway. Register the phone, then build:
+
+   ```powershell
+   npx eas-cli@latest device:create
+   npx eas-cli@latest build --profile development --platform ios
+   ```
+
+   Sign in with your Apple ID when asked, and let Expo create what it offers to create. Answer
+   **yes** when it asks whether to set up push notifications. Install from the QR code. The phone
+   also needs Developer Mode on: Settings, Privacy & Security, Developer Mode.
+
+5. Start the app as before, and open **Floor** on the phone instead of Expo Go:
+
+   ```powershell
+   npx expo start
+   ```
+
+   The phone must be on the same Wi-Fi as the computer. If it cannot find it, scan the QR code in
+   the terminal with the phone's camera.
+
+A new build is only needed when a pull changes `mobile/package.json` or `mobile/app.json`.
+`docs/STATUS.md` will say so when it happens. Everything else reaches the phone through
+`npx expo start`.
+
+The app's id in both stores is `ai.pikin.floor`. It can never change after the first store
+release. If you want another, tell Claude before you build.
+
+## 7. Alerts
+
+Alerts are sent through Expo's notification service, which hands them to Apple and Google.
+
+**iPhone:** nothing more to do. Step 6 set it up when you answered yes about push notifications.
+
+**Android** delivers every notification through Google's Firebase, so the app needs a Firebase
+project. It is free.
+
+1. At console.firebase.google.com, add a project. Analytics is not needed.
+2. In the project, add an Android app with the package name `ai.pikin.floor`. Download
+   `google-services.json` when it is offered and put it in the `mobile` folder. This file is safe
+   to commit: it ships inside every copy of the app.
+
+   ```powershell
+   git add google-services.json
+   git commit -m "Add the Firebase settings for Android alerts"
+   git push
+   ```
+
+3. In Firebase: the gear icon, Project settings, Service accounts, **Generate new private key**.
+   A second JSON file downloads. **This one is a secret.** Leave it in Downloads. It never goes in
+   the repo folder.
+4. On expo.dev, open the Floor project: Credentials, Android, the `ai.pikin.floor` identifier (add
+   it if it is not listed), then under Service credentials find **FCM V1 service account key**,
+   add a key and upload that secret file. Save. Then delete the file from Downloads.
+5. Build the Android app again (step 6.3) and install it. The app now carries the Firebase file.
+
+To check it: sign in on the phone as a member and tap **Turn on alerts** on the card in the Feed.
+With another account, as the mentor, post a trade setup. The member's phone should show "New
+setup" within a few seconds. The person who posts is never alerted themselves.
+
+**Before launch**, lock sending down. On expo.dev, in your account settings, open Access tokens:
+
+1. Create an access token and add it to Vercel as `EXPO_ACCESS_TOKEN`. Redeploy.
+2. Then switch on **Enhanced Security for Push Notifications** on the same page.
+
+In that order. With the switch on, only a server holding your token can send alerts as Floor.

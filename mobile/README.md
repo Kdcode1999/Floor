@@ -11,16 +11,23 @@ are in the README at the top of the repo.
 npx expo start
 ```
 
-Scan the QR code with the Expo Go app on your phone, or press `a` for an Android emulator. If the
-phone cannot reach the computer, run `npx expo start --tunnel` instead.
+Open the Floor app on your phone: the development build from `../docs/SETUP.md`, step 6. It finds
+the computer on the same Wi-Fi. If it cannot, run `npx expo start --tunnel` instead.
+
+For a quick look at the screens without a build, Expo Go still works:
+
+```powershell
+npx expo start --go
+```
+
+Expo Go does not carry everything the app uses. On Android it gets no alerts.
 
 With no `.env` file the app opens on a sample space, seen as its mentor, with no sign-in. Once `.env`
 is filled in it opens on sign-in and shows the person's real space. `../docs/SETUP.md` has the steps.
 
 `../docs/STATUS.md` says which parts work today.
 
-Some features need a development build instead of Expo Go, because they use native code that Expo Go
-does not carry. The first one will be the live room. `../docs/STATUS.md` will say when.
+A new build is needed only when `package.json` or `app.json` changes. `../docs/STATUS.md` says when.
 
 ## Check it
 
@@ -51,6 +58,10 @@ build side, not on your computer.
   app comes from here.
 - `src/theme/layout.ts`: the few sizes shared by more than one component.
 
-## Environment
+## Settings
 
-Copy `.env.example` to `.env` and fill it in. `.env` is never committed.
+- `.env`: copy `.env.example` and fill it in. Never committed.
+- `app.json`: everything about the app itself: name, store id, icons, permissions.
+- `app.config.js`: adds `google-services.json` to the Android settings once that file exists.
+- `eas.json`: the three kinds of build. `development` runs from your computer, `preview` is a
+  finished app for testers, `production` is for the stores.

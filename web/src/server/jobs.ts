@@ -2,6 +2,7 @@ import "server-only";
 
 import { deleteVideo } from "./bunny";
 import { videoConfigured } from "./env";
+import { checkReceipts, sendAlert } from "./push";
 import { asServer } from "./supabase";
 
 // The jobs the database queues for this server (see private.outbox in the migrations), and
@@ -18,6 +19,11 @@ export interface Job {
 type Handler = (job: Job) => Promise<void>;
 
 const handlers: Record<string, Handler> = {
+  /** Something new in a space: tell the members who could open it. */
+  alert: sendAlert,
+  /** Half an hour after an alert: learn which phones no longer have the app. */
+  push_receipts: checkReceipts,
+
   /** A lesson was deleted, so its video is removed from the video host. */
   video_delete: async (job) => {
     if (!videoConfigured) throw new Error("The video host is not set up");
@@ -25,11 +31,6 @@ const handlers: Record<string, Handler> = {
     if (typeof videoId === "string" && job.payload.provider === "bunny") await deleteVideo(videoId);
   },
 };
-
-/** Adds the handler for one kind of job. Each feature registers its own. */
-export function handle(kind: string, handler: Handler): void {
-  handlers[kind] = handler;
-}
 
 /** How long one run may keep taking jobs before it hands over to the next run. */
 const BUDGET_MS = 8000;

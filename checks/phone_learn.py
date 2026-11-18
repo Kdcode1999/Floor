@@ -28,33 +28,18 @@ from playwright.sync_api import sync_playwright
 import fake_video_host
 import fixtures
 import local_db
-import local_supabase
-from common import MOBILE, OUT, Phone, check, check_count, check_gone, check_soon, check_ticked, check_visible, clear_pictures, finish, serve, start_web, stop_web
+import local_services
+from common import MOBILE, OUT, Phone, check, check_count, check_gone, check_soon, check_ticked, check_visible, clear_pictures, finish, serve
 
 DIST = MOBILE / "dist-stand-in"
 PORT = 8094
 BASE = f"http://127.0.0.1:{PORT}"
-VIDEO_HOST = "http://127.0.0.1:8097"
-
-SERVER_SETTINGS = {
-    "SUPABASE_SECRET_KEY": local_supabase.SERVICE_KEY,
-    "BUNNY_STREAM_API_URL": VIDEO_HOST,
-    "BUNNY_STREAM_LIBRARY_ID": fake_video_host.LIBRARY,
-    "BUNNY_STREAM_API_KEY": fake_video_host.API_KEY,
-    "BUNNY_STREAM_CDN_HOST": VIDEO_HOST,
-    "BUNNY_STREAM_TOKEN_KEY": fake_video_host.TOKEN_KEY,
-    "BUNNY_STREAM_WEBHOOK_KEY": "local-webhook-key",
-    "CRON_SECRET": "local-cron-secret",
-}
-
 EXPECTED_NOISE = ("Failed to load resource",)
 
 
 def main() -> None:
-    backend = local_supabase.start(8095)
-    film, pieces = fixtures.film()
-    host = fake_video_host.start(8097, pieces, fixtures.picture("Reading a chart", size=(640, 360), kind="JPEG"))
-    web = start_web(8096, SERVER_SETTINGS)
+    services = local_services.start()
+    film = services.film
     server = serve(DIST, PORT)
     clear_pictures("learn-")
 
@@ -262,10 +247,8 @@ def main() -> None:
             for phone in (mentor, vip_phone, free_phone):
                 phone.close()
     finally:
-        stop_web(web)
         server.shutdown()
-        host.shutdown()
-        backend.shutdown()
+        services.stop()
     finish(problems)
 
 

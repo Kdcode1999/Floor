@@ -5,6 +5,11 @@ node_modules/
 !.env.example
 .DS_Store
 
+# The key that lets a server send Android alerts for the app. It is uploaded to Expo and
+# never belongs in the repo. (google-services.json is a different file and is safe to commit.)
+*-firebase-adminsdk-*.json
+*service-account*.json
+
 # walk-throughs: pictures and python leftovers
 checks/out/
 __pycache__/

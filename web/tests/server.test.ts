@@ -91,3 +91,55 @@ describe("reading a request", () => {
     expect(await code({ message: 'relation "secret_table" does not exist', code: "42P01" })).toEqual([502, "database_unavailable"]);
   });
 });
+
+describe("what an alert says", () => {
+  const space = { id: "space-1", name: "Gold Desk" };
+  let words: typeof import("@/server/alertWords");
+
+  beforeAll(async () => {
+    words = await import("@/server/alertWords");
+  });
+
+  it("names the space, and says what is new", () => {
+    expect(words.alertWords({ type: "setup", post_id: "p1", audience: "vip", pair: "EURUSD", side: "buy" }, space)).toEqual({
+      title: "Gold Desk",
+      body: "New setup: EURUSD · Buy",
+      vipOnly: true,
+      kind: "setup",
+      data: { type: "setup", space: "space-1", id: "p1" },
+    });
+    expect(words.alertWords({ type: "lesson", lesson_id: "l1", title: "Reading a chart" }, space)).toMatchObject({
+      body: "New lesson: Reading a chart",
+      vipOnly: true,
+      kind: "lesson",
+      data: { type: "lesson", id: "l1" },
+    });
+    expect(words.alertWords({ type: "live", session_id: "s1", title: "London session", audience: "vip" }, space)).toMatchObject({
+      body: "Live now: London session",
+      kind: "live",
+    });
+  });
+
+  it("tells free members only about what they can open", () => {
+    expect(words.alertWords({ type: "setup", audience: "everyone", pair: "XAUUSD", side: "sell" }, space)).toMatchObject({
+      body: "New setup: XAUUSD · Sell",
+      vipOnly: false,
+    });
+  });
+
+  it("puts no clock time in an alert about a class, because members are in different time zones", () => {
+    const alert = words.alertWords({ type: "class", session_id: "s1", title: "London session", audience: "vip" }, space);
+    expect(alert?.body).toBe("New class: London session. Open Floor to see when.");
+    expect(alert?.kind).toBe("live");
+  });
+
+  it("stays silent about kinds it does not know", () => {
+    expect(words.alertWords({ type: "something_else" }, space)).toBeNull();
+    expect(words.alertWords({}, space)).toBeNull();
+  });
+
+  it("cuts a long list into pieces the notification service takes", () => {
+    expect(words.inPieces([1, 2, 3, 4, 5], 2)).toEqual([[1, 2], [3, 4], [5]]);
+    expect(words.inPieces([], 100)).toEqual([]);
+  });
+});

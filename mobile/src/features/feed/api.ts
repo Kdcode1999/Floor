@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import * as Crypto from "expo-crypto";
 
 import { fittedJpeg, pictureBytes, type Picture } from "@/lib/pictures";
+import { kickJobs } from "@/lib/server";
 
 import { cleanPair, cleanPrice, feedMessage, filledTargets, type OfferForm, type SetupForm } from "./logic";
 import type { FeedPost, Side } from "./types";
@@ -153,7 +154,10 @@ export async function createSetup(client: SupabaseClient, spaceId: string, form:
     p_stop: cleanPrice(form.stop),
     p_targets: filledTargets(form.targets),
   });
-  return error ? feedMessage(error) : null;
+  if (error) return feedMessage(error);
+  // A new setup queues an alert for the members who can open it. Tell the server to send it now.
+  kickJobs();
+  return null;
 }
 
 export async function createOffer(client: SupabaseClient, spaceId: string, form: OfferForm): Promise<string | null> {

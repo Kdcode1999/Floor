@@ -81,7 +81,18 @@ secret. `server/` cannot be imported from code that runs in a browser.
 
 The files in `server/`: `env.ts` (the secret settings), `supabase.ts` (the database as the person,
 or with the secret key), `http.ts` (reading requests, wording refusals), `bunny.ts` (everything
-asked of the video host), `jobs.ts` (the queue's handlers).
+asked of the video host), `jobs.ts` (the queue's handlers), `push.ts` (everything asked of the
+notification service), `alertWords.ts` (what an alert says and who may get it).
+
+### Jobs the server does from the queue
+
+| Job | Queued by | What happens |
+| --- | --- | --- |
+| `alert` | `create_post` for a setup, `publish_lesson` | The server words the alert, asks the database who gets it (`alert_recipients`) and sends it |
+| `push_receipts` | the server, 30 minutes after an alert | Asks which phones took the alert and forgets the ones that are gone |
+| `video_delete` | `delete_lesson` | Removes the video from the video host |
+
+Every job carries `actor`: who caused it. An alert leaves that person out.
 
 ## Database (`web/supabase`)
 
@@ -95,6 +106,9 @@ asked of the video host), `jobs.ts` (the queue's handlers).
 - `private.outbox` is the queue of jobs for Floor's server (alerts, Telegram, clean-up). Functions
   add to it with `private.enqueue`. The server takes jobs with `claim_outbox` and reports back with
   `finish_outbox`, both open to the secret key only.
+- `push_tokens` holds each account's one address for alerts. Nothing reads it but functions: the
+  app saves and removes its own (`save_push_token`, `remove_push_token`), the server asks who to
+  alert (`alert_recipients`). A member's switches are three columns on their membership.
 
 ### Who can read what
 
@@ -122,6 +136,10 @@ mentor uses the phone and a laptop at once.
   walked at once, each on their own phone.
 - `fake_video_host.py` stands in for the video host. It checks upload tickets and playback
   addresses with its own copy of the host's rules, and serves a real short film in pieces.
+- `fake_push.py` stands in for the notification service. It keeps every alert it is sent, and
+  treats some addresses as phones that no longer have the app.
+- `local_services.py` starts all of it together: the backend, both stand-ins and Floor's server.
+- Nothing a check opens leaves the machine. A page from another site is answered with an empty one.
 - `stand_in.py` is the older, scripted stand-in. It answers whatever a walk-through tells it to,
   for the cases a real database will not produce on demand: a failing server, a second phone
   taking over.

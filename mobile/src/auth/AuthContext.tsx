@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createContext, useContext, useEffect, useMemo, useSyncExternalStore, type ReactNode } from "react";
 import { AppState } from "react-native";
 
+import { forgetAddress } from "@/features/alerts/push";
 import { getDeviceId } from "@/lib/deviceId";
 import { supabase } from "@/lib/supabase";
 
@@ -87,7 +88,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sendCode: store ? store.sendCode : notAvailable,
       verifyCode: store ? store.verifyCode : notAvailable,
       useThisPhone: store ? store.useThisPhone : nothing,
-      signOut: store ? store.signOut : nothing,
+      signOut: store
+        ? async () => {
+            // A signed-out phone gets no more alerts for this account.
+            if (supabase) await forgetAddress(supabase);
+            await store.signOut();
+          }
+        : nothing,
     }),
     [snapshot],
   );

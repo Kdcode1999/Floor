@@ -8,6 +8,7 @@ import { ErrorLine, Loading, Trouble } from "@/components/LoadState";
 import { Screen } from "@/components/Screen";
 import { SpaceHeader } from "@/components/SpaceHeader";
 import { TextLink } from "@/components/TextLink";
+import { AlertsCard } from "@/features/alerts/AlertsCard";
 import { loadFeed, PAGE } from "@/features/feed/api";
 import { LiveCard } from "@/features/feed/LiveCard";
 import { LockedCard } from "@/features/feed/LockedCard";
@@ -76,6 +77,7 @@ export default function FeedScreen() {
 
   return (
     <Screen header={<SpaceHeader />} onRefresh={reload} refreshing={first.refreshing}>
+      <AlertsCard />
       {first.loading ? (
         <Loading />
       ) : first.error ? (

@@ -14,9 +14,14 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { AuthProvider, useAuth } from "@/auth/AuthContext";
 import { holdFor, stageFor } from "@/auth/stage";
 import { CaptureGuard } from "@/components/CaptureGuard";
+import { AlertTaps } from "@/features/alerts/AlertTaps";
+import { setUpAlerts } from "@/features/alerts/push";
 import { missingSettings } from "@/lib/env";
 import { SpaceProvider, useSpace } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
+
+// How an alert shows while the app is open, and the channel alerts arrive on.
+setUpAlerts();
 
 // Keep the splash screen up until the fonts are in and the app knows what to show first, so
 // nothing flashes past.
@@ -85,6 +90,7 @@ function GuardedStack() {
   return (
     <>
       <StatusBar style={theme.dark ? "light" : "dark"} />
+      {stage === "app" ? <AlertTaps /> : null}
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.background } }}>
         <Stack.Protected guard={stage === "app"}>
           <Stack.Screen name="(tabs)" />
@@ -93,6 +99,7 @@ function GuardedStack() {
           <Stack.Screen name="post" />
           <Stack.Screen name="picture" options={{ animation: "fade" }} />
           <Stack.Screen name="lesson" />
+          <Stack.Screen name="alerts" />
         </Stack.Protected>
         <Stack.Protected guard={stage === "sign-in"}>
           <Stack.Screen name="sign-in" />

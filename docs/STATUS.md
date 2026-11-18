@@ -31,25 +31,30 @@ Working today:
   the Feed.
 - **Protection**: no screenshots or screen recording for members, and the viewer's name over paid
   video. The mentor can switch either off.
+- **Alerts**: a notification on the phone for a new setup and a new lesson, sent only to people
+  who can open it. Each member switches each kind on or off, per space. The person who posted is
+  not alerted.
 
 With `mobile/.env` empty the app still opens on the sample space, with no sign-in, so the screens can be
 looked at without any setup.
 
-Checked: 115 database tests, 137 logic tests (105 phone, 32 web and server), and seven walk-throughs in
-Chrome. Four of them run against a real Postgres with Floor's migrations, with the mentor, a VIP member
+Checked: 126 database tests, 147 logic tests (110 phone, 37 web and server), and eight walk-throughs in
+Chrome. Five of them run against a real Postgres with Floor's migrations, with the mentor, a VIP member
 and a free member each on their own phone. The Learn walk-through uploads a real video through the
 server to a stand-in for the video host, which checks every signature the way the real host does, and
-plays it back. The phone app builds for Android and iPhone and the web app builds for production.
+plays it back. The Alerts walk-through posts a setup in the app and checks who the server tells,
+through a stand-in for the notification service. The phone app builds for Android and iPhone and the
+web app builds for production.
 
 Not yet checked anywhere: anything on a real phone since the first look, and anything against the
-real Supabase project or the real video host. Those need `docs/SETUP.md`.
+real Supabase project, the real video host or a real notification. Those need `docs/SETUP.md`.
 
 ## Needed from Kingsley
 
-- [x] GitHub repo `Kdcode1999/Floor`
-- [x] Supabase project
 Each step is written out in `docs/SETUP.md`.
 
+- [x] GitHub repo `Kdcode1999/Floor`
+- [x] Supabase project
 - [x] Put the database on the Supabase project (SETUP step 1)
 - [ ] Run `npx supabase db push --remote` again: the database has grown since
 - [x] Look at the phone app on a real phone: it looks right
@@ -59,9 +64,13 @@ Each step is written out in `docs/SETUP.md`.
 - [ ] Fill in `web/.env.local` the same way
 - [ ] Put the web app on Vercel (SETUP step 4). The phone app needs it for video
 - [ ] Open a Bunny Stream library for lesson video (SETUP step 5)
+- [ ] Build the app for your phone in your own Expo project (SETUP step 6). Run `npm install` in
+      `mobile` first: the app has new parts. Expo Go still opens the app for a look at the screens
+      (`npx expo start --go`), without alerts on Android
+- [ ] A Firebase project, so Android phones can get alerts (SETUP step 7)
 
-Later, when the build reaches them: an Expo account (EAS), a live video service, the card processors, a
-Telegram bot token, the Apple and Google developer accounts.
+Later, when the build reaches them: a live video service, the card processors, a Telegram bot token,
+the Apple and Google developer accounts.
 
 ## Build order
 
@@ -88,7 +97,8 @@ Telegram bot token, the Apple and Google developer accounts.
 - [x] Database, server, mobile and web: Learn (modules, lessons, hosted video, progress)
 - [x] Mobile: Protection (capture blocking, name on video)
 - [x] Floor's server: routes for video, and the job queue
-- [ ] Alerts (push)
+- [x] Database, server and mobile: Alerts (push)
+- [x] Mobile: the app's store id, build profiles, permission wording
 - [ ] Card payments that unlock VIP by themselves
 - [ ] Report a space (mobile), suspend a space (Floor's own admin page)
 

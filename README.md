@@ -30,7 +30,8 @@ npm install
 ## Connect it to Supabase
 
 `docs/SETUP.md` has every step that needs your accounts: the database, the apps' settings, the email
-sender that sign-in needs, Vercel, and the video host. The database commands are repeated here.
+sender that sign-in needs, Vercel, the video host, building the app for your phone, and alerts. The
+database commands are repeated here.
 
 Once, from the `web` folder. `link` asks for the database password: type it there, never into a chat.
 
@@ -55,8 +56,9 @@ cd mobile
 npx expo start
 ```
 
-Scan the QR code with the Expo Go app on your phone. If the phone cannot reach the computer, run
-`npx expo start --tunnel` instead.
+Open the Floor app on your phone: the build from `docs/SETUP.md`, step 6. For a quick look without a
+build, `npx expo start --go` opens it in Expo Go. If the phone cannot reach the computer, add
+`--tunnel`.
 
 ## Check the work
 

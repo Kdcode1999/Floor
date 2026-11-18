@@ -8,6 +8,7 @@ import subprocess
 import sys
 import threading
 import time
+import urllib.parse
 import urllib.request
 
 from playwright.sync_api import Locator, Playwright, expect
@@ -101,6 +102,11 @@ def serve(dist: pathlib.Path, port: int) -> http.server.ThreadingHTTPServer:
     return server
 
 
+def _elsewhere(address: str) -> bool:
+    parts = urllib.parse.urlsplit(address)
+    return parts.scheme in ("http", "https", "ws", "wss") and parts.hostname not in ("127.0.0.1", "localhost")
+
+
 def open_phone(p: Playwright, problems: list[str], ignore: tuple[str, ...] = (), laptop: bool = False):
     """Opens Chrome at phone size, or at laptop size for the pages a mentor uses on one.
     Browser errors and warnings are collected into `problems`."""
@@ -108,11 +114,16 @@ def open_phone(p: Playwright, problems: list[str], ignore: tuple[str, ...] = (),
     args = ["--no-sandbox"] if hasattr(os, "geteuid") and os.geteuid() == 0 else []
     browser = p.chromium.launch(channel="chrome", args=args)
     if laptop:
-        page = browser.new_context(viewport={"width": 1280, "height": 800}).new_page()
+        context = browser.new_context(viewport={"width": 1280, "height": 800})
     else:
-        page = browser.new_context(
+        context = browser.new_context(
             viewport={"width": 390, "height": 844}, device_scale_factor=2, has_touch=True, is_mobile=True
-        ).new_page()
+        )
+    # Nothing a check opens may leave this machine. A page from somewhere else (YouTube's player
+    # inside a post) would make the result depend on the network and on that site's own messages,
+    # so it is answered here with an empty page.
+    context.route(_elsewhere, lambda route: route.fulfill(status=200, content_type="text/html", body=""))
+    page = context.new_page()
 
     def on_console(message):
         if message.type in ("error", "warning") and not any(text in message.text for text in ignore):

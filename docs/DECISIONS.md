@@ -205,6 +205,32 @@ Newest at the bottom. Each entry says what was decided and why, so nobody has to
   video. Renaming, sorting and deleting stay in the app. It never takes the account's one login
   from the phone.
 
+- **An alert goes only to people who can open what it is about.** A VIP setup alerts VIP members
+  and staff. A setup for everyone alerts everyone. So an alert can say what is new ("New setup:
+  EURUSD · Buy") without leaking anything, and nobody is teased with something locked. It never
+  carries the prices: those are read in the app, behind the login.
+- **The person who posted is not alerted.** They know. Other staff are.
+- **One address per account**, like one phone per account. Signing in on a phone moves alerts to
+  it. Signing out stops them.
+- **Each member chooses per space**: new setups, live sessions and classes, new lessons. All on to
+  begin with. The phone's own notification setting stays the master switch.
+- **The app asks before the phone does.** A card in the Feed says what alerts are for, with a
+  button. The phone's own question appears only after a tap, because a phone asks once and a "no"
+  there is hard to undo.
+- **A class alert carries no clock time.** Members are in different time zones, and a notification
+  is the same words for everyone. The app shows the time in each member's own.
+- **Floor finds out when an app was removed** and stops sending to it. The notification service
+  says so when a message is handed over, or a while later: the server asks again after 30 minutes.
+- **Alerts go through Expo's notification service**, which passes them to Apple and Google. It is
+  free and saves running two integrations. Everything asked of it is in `web/src/server/push.ts`.
+- **The app's id in both stores is `ai.pikin.floor`.** It can never change once the app is in a
+  store. It can be changed freely before the first build: two lines in `mobile/app.json`.
+- **The app asks for no camera and no microphone.** Pictures and lesson videos are chosen from the
+  phone's library. A mentor goes live from a laptop.
+- **Checks never leave the build machine.** Any page from another site (YouTube's player inside a
+  post) is answered with an empty page, so a result cannot depend on the network or on another
+  site's messages.
+
 ## Open
 
 - Card processors for the automatic path. Starting point: Paystack and Flutterwave, Stripe after.

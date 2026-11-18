@@ -417,10 +417,16 @@ class Api(http.server.BaseHTTPRequestHandler):
             if proc["returns"] == "void":
                 conn.execute(sql.SQL("select {} from {}").format(called, source), params)
                 return self._send(204)
-            if proc["proretset"]:
+            # A function that returns a table, even of one column, answers with objects named by
+            # column. One that returns plain values answers with the values themselves.
+            rows_of = sql.SQL("(select _out.* from {}, lateral {} _out) _row").format(source, called)
+            is_table = proc["typtype"] == "c" or proc["has_table"]
+            if proc["proretset"] and is_table:
+                statement = sql.SQL("select coalesce(json_agg(_row), '[]'::json)::text as body from {}").format(rows_of)
+            elif proc["proretset"]:
                 statement = sql.SQL("select coalesce(json_agg(_out), '[]'::json)::text as body from {}, lateral {} _out").format(source, called)
-            elif proc["typtype"] == "c" or proc["has_table"]:
-                statement = sql.SQL("select row_to_json(_out)::text as body from {}, lateral {} _out").format(source, called)
+            elif is_table:
+                statement = sql.SQL("select row_to_json(_row)::text as body from {}").format(rows_of)
             else:
                 statement = sql.SQL("select to_json({})::text as body from {}").format(called, source)
             body = conn.execute(statement, params).fetchone()["body"]

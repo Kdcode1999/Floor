@@ -45,6 +45,7 @@ export default function AccountScreen() {
         </AppText>
       ) : (
         <View style={styles.actions}>
+          <Button label="Alerts" kind="ghost" onPress={() => router.push("/alerts")} />
           {entries.length > 1 ? <Button label="Switch space" kind="ghost" onPress={switchSpace} /> : null}
           {ownsSpace ? null : (
             <Button label="Start your own space" kind="ghost" onPress={() => router.push("/create")} />

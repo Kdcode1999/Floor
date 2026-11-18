@@ -8,9 +8,15 @@
     "scheme": "floor",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "ai.pikin.floor",
+      "supportsTablet": false,
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
+      "package": "ai.pikin.floor",
       "adaptiveIcon": {
         "backgroundColor": "#090A12",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -34,7 +40,22 @@
         }
       ],
       "expo-secure-store",
-      "expo-video"
+      "expo-video",
+      [
+        "expo-notifications",
+        {
+          "color": "#5A5F7A",
+          "defaultChannel": "alerts"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Floor opens your photos so you can choose a picture for a post, a logo for your space or a video for a lesson.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
