@@ -350,3 +350,53 @@ token in Vercel in place of the old one. Mentors do not have to connect again.
 
 Optional, also with `@BotFather`: `/setuserpic` gives the bot Floor's logo, and `/setdescription`
 sets what people read when they open it.
+
+## 11. Live video: Floor's own LiveKit server
+
+Live sessions run on LiveKit, open-source software Floor runs on a machine it rents. Nothing is
+paid per minute. LiveKit Cloud would work with the same three settings, if renting a machine is
+ever not worth it.
+
+**What you need.** A Linux machine with its own public address (Ubuntu, 2 CPUs and 4 GB of
+memory to start), from any provider. And a domain you can add a record to: the server lives at
+an address such as `live.yourdomain.com`.
+
+**Make the settings, on your own computer.** With Docker installed, in an empty folder:
+
+```
+docker run --rm -it -v ${PWD}:/output livekit/generate
+```
+
+Answer its questions: your address (`live.yourdomain.com`), the latest version, no egress for
+now, and "Startup Shell Script". It makes a folder with the settings, and prints an API key and
+an API secret. Keep both: they go to Vercel below. The secret signs every pass into a room, so
+it never goes in a chat or an email.
+
+**Point the address at the machine.** At your domain's provider, add an A record for `live`
+with the machine's public address.
+
+**Start it on the machine.** Follow the lines the tool printed: the startup script goes into the
+machine's "user data" when you create it, or you run it on the machine. Open these ports in the
+provider's firewall: 443 and 80 (TCP), 7881 (TCP), 3478 (UDP) and 50000 to 60000 (UDP).
+
+**Tell LiveKit where to report.** On the machine, in `/opt/livekit/livekit.yaml`, add:
+
+```
+webhook:
+  api_key: <the API key>
+  urls:
+    - https://<your Vercel address>/api/live/webhook
+```
+
+then `sudo systemctl restart livekit-docker`.
+
+**Give the three settings to Floor's server.** In Vercel, Settings, Environment Variables, for
+Production: `LIVEKIT_URL` as `wss://live.yourdomain.com`, `LIVEKIT_API_KEY` and
+`LIVEKIT_API_SECRET` (tick "Sensitive" on the secret). Redeploy.
+
+**Try it.** On a laptop, open `/mentor`, the Live tab, and go live. Allow the camera. On a phone
+with the installed app, signed in as a VIP member of the same space, the Feed shows "Live now":
+tap "Join session" and you should see and hear the laptop. Share your screen from the laptop
+and the phone shows it.
+
+Live video does not play in Expo Go. It needs the app built in step 6, or the web app.

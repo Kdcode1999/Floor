@@ -64,15 +64,18 @@ Working today:
   if the mentor wants, tells the Telegram channel. The live room opens for VIP members and staff,
   with a chat of its own under the video that the usual filter, mute, report and block all work in.
   Free members see that a session is on and that it is for VIP. Ending a session closes its chat.
-  **The video itself comes next** (Live B): until then the room opens with its chat and says live
-  video is not switched on. In the sample space a short film stands in for the video.
+  The video runs on Floor's own LiveKit server. The mentor broadcasts from the laptop page at
+  `/mentor` (camera, microphone, and the screen to go through a chart) or from the phone (camera
+  and microphone). Members watch and hear it on the phone, and can switch to sound only to save
+  data. Only the broadcaster can be seen or heard. Live video needs the installed app or the web
+  app: it does not play in Expo Go, where the sample's short film stands in for it.
 
 - **The sample space**: with `mobile/.env` empty the app runs on a made-up community held in
   memory. Every screen above works in it with nothing set up, seen as the mentor, as a VIP member
   or as someone who has not paid. It is how the build is looked at in Expo Go today. See below.
 
-Checked: 216 database tests, 263 logic tests (176 phone, 87 web and server), 47 tests of the sample
-space, and twelve walk-throughs in Chrome. One of them opens every screen of the sample space as
+Checked: 216 database tests, 265 logic tests (176 phone, 89 web and server), 47 tests of the sample
+space, and thirteen walk-throughs in Chrome. One of them runs a live session with real video through LiveKit. One opens every screen of the sample space as
 each of its three viewers. Nine run against a real Postgres with Floor's migrations, with the mentor, a VIP
 member and a free member each on their own phone. The Community walk-through has four people in one
 group at once: what one writes shows on the others' phones, and a link, a number, a mute, a report and
@@ -164,8 +167,9 @@ Each step is written out in `docs/SETUP.md`.
 - [ ] ~~Card payments (SETUP step 8)~~: no longer needed, card payments are being taken out
 - [ ] Put yourself on Floor's own team, and choose the address people write to (SETUP step 9)
 - [ ] Make Floor's Telegram bot and give its token to Vercel (SETUP step 10)
+- [ ] Rent a machine for live video and start Floor's LiveKit server on it (SETUP step 11)
 
-Later, when the build reaches them: a server for live and lesson video (a rented machine), and a way to collect the $50 a month. No Apple or Google developer accounts are needed.
+Later, when the build reaches them: storage for lesson video on Floor's own servers, and a way to collect the $50 a month. No Apple or Google developer accounts are needed.
 
 ## Build order
 
@@ -208,9 +212,9 @@ Later, when the build reaches them: a server for live and lesson video (a rented
 ### 3. Live
 - [x] Class schedule with reminders
 - [x] Live room: who may enter, the session's chat, ending a session (video comes with the next item)
-- [ ] Live room video: broadcasting from the phone, and from the laptop with screen share
+- [x] Live room video: broadcasting from the phone, and from the laptop with screen share
 - [ ] Recordings saved into Learn
-- [ ] Data saver
+- [x] Data saver: sound only in live sessions, a small size for lessons
 
 ### 4. Plan change of 18 Nov: no stores, no cards, low running costs
 - [ ] Take card payments out: the mentor's Paystack and Flutterwave, the card checkout, the

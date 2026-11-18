@@ -55,6 +55,14 @@
           "cameraPermission": false,
           "microphonePermission": false
         }
+      ],
+      "@livekit/react-native-expo-plugin",
+      [
+        "@config-plugins/react-native-webrtc",
+        {
+          "cameraPermission": "Floor uses your camera when you go live for your members.",
+          "microphonePermission": "Floor uses your microphone when you go live for your members."
+        }
       ]
     ],
     "experiments": {

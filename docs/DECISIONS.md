@@ -399,10 +399,9 @@ Newest at the bottom. Each entry says what was decided and why, so nobody has to
   has no time picker that works the same on Android, iPhone and the web, so the mentor picks a day
   from the next four weeks and types the time ("7:30 pm" or "19:30"), and the form reads it back
   in words before saving.
-- **Live video will run on LiveKit.** It is open source and can be run on Floor's own server
-  later, and LiveKit Cloud has a free tier to start on (5,000 participant-minutes a month), then
-  $50 a month for 150,000. It works in React Native and in the browser, which the laptop page
-  needs for screen share. Connecting it is the next piece.
+- **Live video runs on LiveKit.** It is open source and works in React Native and in the browser,
+  which the laptop page needs for screen share. Floor runs it on its own rented machine (see the
+  plan change below). LiveKit Cloud takes the same settings if that ever stops being worth it.
 
 ## Plan change, 18 Nov 2026
 
@@ -424,6 +423,20 @@ Kingsley's calls. These replace the earlier entries they contradict, which stay 
   notification service stay on their free tiers for as long as they last.
 - **The mentor pays Floor a flat $50 a month.** It is the only money Floor takes. How it is
   collected is decided when that piece is built.
+
+- **Only the broadcaster can send video or sound.** The server's pass into a room lets the
+  broadcaster publish and everyone else only watch, whatever their app tries. Chat goes through
+  Floor's own groups, never the video room, so the filter, mute and report all apply.
+- **The mentor broadcasts from the laptop or the phone.** The laptop adds screen share, for going
+  through a chart. Starting the session again from the other one takes the broadcast over.
+- **A room emptying does not end the session.** A mentor alone in the room who loses signal for a
+  moment would lose the session with it. The broadcaster's half-minute "still here" decides.
+- **Sound only, for data.** A member switches the pictures off in the room and keeps the sound. The
+  choice is remembered on the phone.
+- **Live video does not play in Expo Go**, which lacks the parts it needs. There the room says so,
+  and the sample space shows a short film instead.
+- **Walk-throughs use LiveKit's real server**, built from its source and run on the machine
+  that runs the checks, with Chrome's made-up camera and microphone.
 
 ## Open
 

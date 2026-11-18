@@ -246,3 +246,16 @@ mentor uses the phone and a laptop at once.
 - `stand_in.py` is the older, scripted stand-in. It answers whatever a walk-through tells it to,
   for the cases a real database will not produce on demand: a failing server, a second phone
   taking over.
+
+## Live video
+
+A live session's video goes through Floor's own LiveKit server, never through Vercel or Supabase.
+The database decides who may enter (`live_join`, asked as the person). Floor's server then signs a
+pass into that one room (`web/src/server/live.ts`): the broadcaster may send camera, microphone and
+screen, everyone else may only watch. The pass is the only thing the server adds: the room's chat
+is an ordinary group, and the session's state lives in `live_sessions`.
+
+In the phone app, `features/live/useLiveRoom.ts` joins the room with `livekit-client`, on the phone
+through `@livekit/react-native` (loaded only in the installed app, `features/live/native.ts`) and in
+a browser directly. `VideoSurface.tsx` and `VideoSurface.web.tsx` draw a track on each. The
+laptop page's broadcaster is `web/src/features/mentor/Live.tsx`.

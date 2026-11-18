@@ -125,14 +125,22 @@ def _elsewhere(address: str) -> bool:
     return parts.scheme in ("http", "https", "ws", "wss") and parts.hostname not in ("127.0.0.1", "localhost")
 
 
-def open_phone(p: Playwright, problems: list[str], ignore: tuple[str, ...] = (), laptop: bool = False):
+def open_phone(p: Playwright, problems: list[str], ignore: tuple[str, ...] = (), laptop: bool = False, media: bool = False):
     """Opens Chrome at phone size, or at laptop size for the pages a mentor uses on one.
-    Browser errors and warnings are collected into `problems`."""
+    Browser errors and warnings are collected into `problems`. With `media`, the browser has a
+    made-up camera and microphone, says yes when a page asks for them, and plays sound unasked."""
     # Chrome refuses to start as root without this. It only happens on build machines.
     args = ["--no-sandbox"] if hasattr(os, "geteuid") and os.geteuid() == 0 else []
     # Chrome's own chatter with Google (updates, sync, its messaging service) is switched off:
     # a check is about Floor, and stays on this machine.
     args += ["--disable-background-networking", "--disable-component-update", "--disable-sync", "--no-first-run"]
+    if media:
+        args += [
+            "--use-fake-device-for-media-stream",
+            "--use-fake-ui-for-media-stream",
+            "--autoplay-policy=no-user-gesture-required",
+            "--auto-select-desktop-capture-source=Entire screen",
+        ]
     browser = p.chromium.launch(channel="chrome", args=args)
     if laptop:
         context = browser.new_context(viewport={"width": 1280, "height": 800})
@@ -165,8 +173,8 @@ def clear_pictures(prefix: str) -> None:
 class Phone:
     """One person's phone: Chrome at phone size, and the few moves every walk-through makes."""
 
-    def __init__(self, p: Playwright, base: str, prefix: str, problems: list[str], ignore: tuple[str, ...] = ()):
-        self.browser, self.page = open_phone(p, problems, ignore)
+    def __init__(self, p: Playwright, base: str, prefix: str, problems: list[str], ignore: tuple[str, ...] = (), media: bool = False):
+        self.browser, self.page = open_phone(p, problems, ignore, media=media)
         self.base = base
         self.prefix = prefix
 

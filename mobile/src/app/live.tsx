@@ -18,12 +18,14 @@ import { Conversation } from "@/features/chat/Conversation";
 import { cannotWrite } from "@/features/chat/logic";
 import { endSession, goLive, heartbeat, loadSchedule, openRoom } from "@/features/live/api";
 import { classWhen, liveFor, recordingLine, startsIn } from "@/features/live/logic";
+import { LiveStage } from "@/features/live/LiveStage";
 import { SampleStage } from "@/features/live/SampleStage";
 import type { LiveClass, RoomPass } from "@/features/live/types";
 import { SampleNote } from "@/features/sample/SampleNote";
 import { database } from "@/lib/database";
 import { useAction } from "@/lib/useAction";
 import { useGoBack } from "@/lib/useGoBack";
+import { useKeptSwitch } from "@/lib/useKeptSwitch";
 import { useLoad } from "@/lib/useLoad";
 import { useNow } from "@/lib/useNow";
 import { useSpace } from "@/space/SpaceContext";
@@ -95,7 +97,7 @@ export default function LiveScreen() {
 
   let body;
   if (pass.data && id) {
-    body = <Room sessionId={id} pass={pass.data} session={session} onChanged={reload} />;
+    body = <Room sessionId={id} pass={pass.data} session={session} onChanged={reload} onRetry={pass.reload} />;
   } else if (schedule.loading) body = <Loading />;
   else if (schedule.error) body = <Padded><Trouble detail={schedule.error} onRetry={reload} /></Padded>;
   else if (!session || session.state === "ended") {
@@ -136,10 +138,12 @@ interface RoomProps {
   session: LiveClass | null;
   /** Asks the schedule again, after something this screen did changed it. */
   onChanged: () => void;
+  /** Asks for a fresh pass into the room. */
+  onRetry: () => void;
 }
 
 /** The room itself: the video, what staff can do, and the chat. */
-function Room({ sessionId, pass, session, onChanged }: RoomProps) {
+function Room({ sessionId, pass, session, onChanged, onRetry }: RoomProps) {
   const theme = useTheme();
   const auth = useAuth();
   const { space, viewer, isStaff } = useSpace();
@@ -148,6 +152,8 @@ function Room({ sessionId, pass, session, onChanged }: RoomProps) {
   const [confirming, setConfirming] = useState(false);
   /** Set when the broadcast was taken over from another phone or laptop. */
   const [takenOver, setTakenOver] = useState(false);
+  /** Sound only, to save data. Kept on the phone between sessions. */
+  const [audioOnly, setAudioOnly] = useKeptSwitch("floor-live-sound-only");
 
   const over = session?.state !== "live";
   const userId = auth.user?.id ?? null;
@@ -176,6 +182,17 @@ function Room({ sessionId, pass, session, onChanged }: RoomProps) {
   return (
     <>
       <View style={styles.top}>
+        {pass.video && !over ? (
+          <LiveStage
+            url={pass.video.url}
+            token={pass.video.token}
+            broadcast={pass.isHost && !takenOver}
+            audioOnly={audioOnly}
+            onAudioOnly={setAudioOnly}
+            watermark={mark}
+            onRetry={onRetry}
+          />
+        ) : (
         <View style={[styles.frame, { borderColor: theme.tile.border }]}>
           {over ? (
             <View style={styles.centered}>
@@ -199,7 +216,8 @@ function Room({ sessionId, pass, session, onChanged }: RoomProps) {
           )}
           {mark && !over ? <Watermark text={mark} /> : null}
         </View>
-        {over ? null : <SampleNote text="a short film stands in for the mentor's camera and screen." />}
+        )}
+        {over || !pass.sampleFilm ? null : <SampleNote text="a short film stands in for the mentor's camera and screen." />}
         {takenOver ? (
           <AppText size={13} line={18} color={theme.text2} style={styles.line}>
             This session is now being broadcast from another phone or laptop.

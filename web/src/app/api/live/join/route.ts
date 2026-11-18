@@ -1,4 +1,5 @@
 import { bearer, body, id, preflight, refusalFor, refuse, reply } from "@/server/http";
+import { passFor, personIn } from "@/server/live";
 import { asPerson } from "@/server/supabase";
 
 export const OPTIONS = preflight;
@@ -14,10 +15,9 @@ interface JoinRow {
 
 /**
  * Someone opens the live room. The database, asked as the person, says whether it opens for
- * them: VIP or staff, while the session is on. The answer carries the session's chat.
- *
- * The way into the video itself is added once the video service is connected. Until then the
- * room opens with its chat and says live video is not switched on.
+ * them: VIP or staff, while the session is on. The answer carries the session's chat and a pass
+ * into the video room that lets the broadcaster send and everyone else only watch. While live
+ * video is not set up there is no pass, and the room opens with its chat alone.
  */
 export async function POST(request: Request) {
   const token = bearer(request);
@@ -30,6 +30,9 @@ export async function POST(request: Request) {
   if (refusal) return refusal;
   const row = ((joined.data ?? []) as JoinRow[])[0];
   if (!row?.group_id) return refuse(400, "not_live");
+  const person = personIn(token);
+  if (!person) return refuse(401, "signed_out");
+  const pass = await passFor(session, { id: person, name: row.viewer_name, broadcaster: row.is_host });
 
   return reply({
     title: row.title,
@@ -38,5 +41,6 @@ export async function POST(request: Request) {
     isHost: row.is_host,
     isStaff: row.is_staff,
     viewerName: row.viewer_name,
+    ...(pass ?? {}),
   });
 }

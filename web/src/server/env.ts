@@ -60,6 +60,22 @@ export const TELEGRAM = {
 export const telegramConfigured = TELEGRAM.token !== "";
 
 /**
+ * The live video server: LiveKit, run by Floor on a machine it rents (or LiveKit Cloud, which
+ * takes the same settings). The key and secret sign the passes that let one person into one room.
+ */
+export const LIVEKIT = {
+  /** Where phones and browsers reach it, such as wss://live.floor.example. */
+  url: (process.env.LIVEKIT_URL ?? "").trim().replace(/\/+$/, ""),
+  apiKey: process.env.LIVEKIT_API_KEY ?? "",
+  apiSecret: process.env.LIVEKIT_API_SECRET ?? "",
+};
+
+export const liveConfigured = LIVEKIT.url !== "" && LIVEKIT.apiKey !== "" && LIVEKIT.apiSecret !== "";
+
+/** The same server's address for Floor's own server to call: https:// in place of wss://. */
+export const livekitApi = () => LIVEKIT.url.replace(/^ws(s?):\/\//, "http$1://");
+
+/**
  * A long random word of our own. Vercel sends it with every run of the timer that sweeps the
  * job queue, which is how the route knows the call is Vercel's.
  */
