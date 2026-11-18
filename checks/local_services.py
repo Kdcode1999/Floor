@@ -6,7 +6,7 @@
 
 That is: the local backend (a real Postgres with Floor's migrations, behind Supabase's API),
 the web app with its server routes, and stand-ins for the outside services those routes talk
-to: the video host, the notification service, the card processors and Telegram.
+to: the video host, the notification service and Telegram.
 
 The web app must have been built first. `checks/README.md` has the command.
 """
@@ -15,7 +15,6 @@ import dataclasses
 import http.server
 import subprocess
 
-import fake_processors
 import fake_push
 import fake_telegram
 import fake_video_host
@@ -27,7 +26,6 @@ SUPABASE_PORT = 8095
 WEB_PORT = 8096
 VIDEO_PORT = 8097
 PUSH_PORT = 8098
-PAY_PORT = 8099
 TELEGRAM_PORT = 8100
 
 WEB = f"http://127.0.0.1:{WEB_PORT}"
@@ -43,9 +41,6 @@ SERVER_SETTINGS = {
     "BUNNY_STREAM_TOKEN_KEY": fake_video_host.TOKEN_KEY,
     "BUNNY_STREAM_WEBHOOK_KEY": "local-webhook-key",
     "EXPO_PUSH_URL": f"http://127.0.0.1:{PUSH_PORT}",
-    "PAYMENT_KEYS_SECRET": "local-secret-for-encrypting-processor-keys",
-    "PAYSTACK_API_URL": f"http://127.0.0.1:{PAY_PORT}/paystack",
-    "FLUTTERWAVE_API_URL": f"http://127.0.0.1:{PAY_PORT}/flutterwave",
     "TELEGRAM_API_URL": f"http://127.0.0.1:{TELEGRAM_PORT}",
     "TELEGRAM_BOT_TOKEN": fake_telegram.TOKEN,
 }
@@ -56,7 +51,6 @@ class Services:
     backend: http.server.ThreadingHTTPServer
     video: http.server.ThreadingHTTPServer
     push: http.server.ThreadingHTTPServer
-    pay: http.server.ThreadingHTTPServer
     telegram: http.server.ThreadingHTTPServer
     web: subprocess.Popen
     # The short film every video plays as, as one file: what a mentor would upload.
@@ -64,7 +58,7 @@ class Services:
 
     def stop(self) -> None:
         stop_web(self.web)
-        for server in (self.telegram, self.pay, self.push, self.video, self.backend):
+        for server in (self.telegram, self.push, self.video, self.backend):
             server.shutdown()
 
 
@@ -74,7 +68,6 @@ def start(settings: dict[str, str] | None = None) -> Services:
     film, pieces = fixtures.film()
     video = fake_video_host.start(VIDEO_PORT, pieces, fixtures.picture("Lesson", size=(640, 360), kind="JPEG"))
     push = fake_push.start(PUSH_PORT)
-    pay = fake_processors.start(PAY_PORT)
     telegram = fake_telegram.start(TELEGRAM_PORT)
     web = start_web(WEB_PORT, {**SERVER_SETTINGS, **(settings or {})})
-    return Services(backend, video, push, pay, telegram, web, film)
+    return Services(backend, video, push, telegram, web, film)

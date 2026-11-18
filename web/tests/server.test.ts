@@ -132,27 +132,6 @@ describe("what an alert says", () => {
     expect(alert).toMatchObject({ body: "Starting soon: London session", kind: "live", vipOnly: true, data: { type: "class", id: "s1" } });
   });
 
-  it("tells the mentor that a member paid by card, and whether VIP was given", () => {
-    expect(words.alertWords({ type: "payment", payment_id: "pay-1", name: "Ada O.", days: 30, vip: true }, space)).toEqual({
-      title: "Gold Desk",
-      body: "Ada O. paid by card. 30 days of VIP added.",
-      vipOnly: true,
-      kind: "payment",
-      data: { type: "payment", space: "space-1", id: "pay-1" },
-    });
-    expect(words.alertWords({ type: "payment", name: "Cee", days: 30, vip: false }, space)?.body).toBe(
-      "Cee paid by card, but is no longer in your space. No VIP was given.",
-    );
-  });
-
-  it("tells the mentor when card payments stop working", () => {
-    expect(words.alertWords({ type: "payment_problem" }, space)).toMatchObject({
-      body: "A member could not pay by card. Open your mentor page on the web to see why.",
-      kind: "payment",
-      data: { type: "payment_problem", space: "space-1" },
-    });
-  });
-
   it("tells the mentor and admins when a member reports a message", () => {
     expect(words.alertWords({ type: "report", message_id: "m1", group: "General" }, space)).toEqual({
       title: "Gold Desk",

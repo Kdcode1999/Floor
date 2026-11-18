@@ -10,10 +10,10 @@ import { ErrorLine, Loading, Trouble } from "@/components/LoadState";
 import { Screen } from "@/components/Screen";
 import { TextField } from "@/components/TextField";
 import { loadSetup, saveSetup, type Setup } from "@/features/manage/api";
-import { cardLine, CURRENCIES, DAY_CHOICES, parseAmount, parseDays, setupProblems, type SetupForm, type SetupProblems } from "@/features/manage/logic";
+import { CURRENCIES, DAY_CHOICES, parseAmount, parseDays, setupProblems, type SetupForm, type SetupProblems } from "@/features/manage/logic";
 import { SampleNote } from "@/features/sample/SampleNote";
 import { database } from "@/lib/database";
-import { joinLink, SITE_URL } from "@/lib/env";
+import { joinLink } from "@/lib/env";
 import { days, formatPrice } from "@/lib/format";
 import { useGoBack } from "@/lib/useGoBack";
 import { useLoad } from "@/lib/useLoad";
@@ -77,7 +77,6 @@ function SetupFormView({ spaceId, setup }: { spaceId: string; setup: Setup }) {
         ? `Your join page will say: ${formatPrice(cents, form.currency)} for ${days(length)}`
         : null;
   const link = joinLink(setup.slug);
-  const card = cardLine(setup.cardProvider, SITE_URL);
 
   return (
     <>
@@ -149,23 +148,16 @@ function SetupFormView({ spaceId, setup }: { spaceId: string; setup: Setup }) {
       </Card>
 
       <Card radius={28} style={styles.card}>
-        <Heading title={card.title} />
-        <AppText size={13} line={18} color={theme.text2} selectable>
-          {card.detail}
-        </AppText>
-      </Card>
-
-      <Card radius={28} style={styles.card}>
         <Heading
-          title={card.on ? "Other ways members pay you" : "How members pay you"}
-          detail="Members pay you directly and send proof. You approve it under Requests. Only people who have joined see these details."
+          title="How members pay you"
+          detail="Members pay you directly, by bank transfer or USDT, and send proof. You approve it under Requests. Floor never touches the money. Only people who have joined see these details."
         />
         <TextField
           label="Payment details"
           value={form.instructions}
           onChangeText={set("instructions")}
           error={problems.instructions}
-          hint="A bank account, a wallet address, or anything else a member needs to pay you."
+          hint="Your bank account, your USDT wallet address and network, or anything else a member needs to pay you."
           placeholder={"Bank: Example Bank\nAccount: 0123456789\nName: Kings FX"}
           multiline
           maxLength={1000}

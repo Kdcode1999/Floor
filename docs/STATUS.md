@@ -34,9 +34,6 @@ Working today:
 - **Alerts**: a notification on the phone for a new setup and a new lesson, sent only to people
   who can open it. Each member switches each kind on or off, per space. The person who posted is
   not alerted.
-- **Card payments** (being taken out: members now pay only by transfer or USDT): the mentor connects their own Paystack or Flutterwave account on the web at
-  `/mentor`. A member pays by card on the join page and is VIP at once, with nothing to approve.
-  The mentor is alerted and sees who paid in the app. Floor never holds the money.
 - **Reports and suspension**: a member reports their space from the app. Floor's own team reads
   reports on the web at `/admin`, and can suspend a space with a note to its mentor, and restore
   it. A suspended space is closed to members and to the public, and the app says why.
@@ -78,28 +75,25 @@ Working today:
   memory. Every screen above works in it with nothing set up, seen as the mentor, as a VIP member
   or as someone who has not paid. It is how the build is looked at in Expo Go today. See below.
 
-Checked: 218 database tests, 265 logic tests (176 phone, 89 web and server), 47 tests of the sample
-space, and thirteen walk-throughs in Chrome. One of them runs a live session with real video through LiveKit. One opens every screen of the sample space as
+Checked: 202 database tests, 239 logic tests (172 phone, 67 web and server), 46 tests of the sample
+space, and twelve walk-throughs in Chrome. One of them runs a live session with real video through LiveKit. One opens every screen of the sample space as
 each of its three viewers. Nine run against a real Postgres with Floor's migrations, with the mentor, a VIP
 member and a free member each on their own phone. The Community walk-through has four people in one
 group at once: what one writes shows on the others' phones, and a link, a number, a mute, a report and
 a block each do what they should on screen and in the database. The Learn walk-through uploads a real video through the
 server to a stand-in for the video host, which checks every signature the way the real host does, and
 plays it back. The Alerts walk-through posts a setup in the app and checks who the server tells,
-through a stand-in for the notification service. The card payments walk-through connects a processor,
-pays on its page, and tries a wrong key, a forged webhook and an underpayment, against stand-ins for
-Paystack and Flutterwave. The Telegram walk-through connects a channel through a stand-in for
+through a stand-in for the notification service. The Telegram walk-through connects a channel through a stand-in for
 Telegram, reads every notice the bot posts, and tries a call that only pretends to be Telegram's. The phone app builds for Android and iPhone and the web app builds for
 production.
 
 Not yet checked anywhere: anything on a real phone since the first look, and anything against the
-real Supabase project, the real video host, a real notification, a real card processor or the real
+real Supabase project, the real video host, a real notification, a real live session or the real
 Telegram. Those need
 `docs/SETUP.md`. In a group, two things can only be seen on a real phone: that the box to type in
 sits just above the keyboard, and that a message reaches the other phones at once. That speed comes
 from Supabase's live connection, which the checks cannot use. Without it a phone still asks every few
-seconds, so chat works either way. The first real card payment should be a test one (SETUP step 8): it is the first
-time Floor's reading of Paystack's and Flutterwave's rules meets the real services.
+seconds, so chat works either way.
 
 ## See what is built, on your phone
 
@@ -120,7 +114,7 @@ While `mobile/.env` is not filled in, the app opens on the **sample space**. Not
 up for it: no database, no keys, no sign-in.
 
 - It is one made-up mentor's community, "Your Academy", with members, posts and setups, a course,
-  groups with conversations in them, people waiting for VIP, card payments, invite codes and a
+  groups with conversations in them, people waiting for VIP, invite codes and a
   connected Telegram channel. Every screen built so far works in it.
 - It opens as the mentor. Tap the badge at the top right, then choose **VIP member** or **Free
   member**, to see the same space through their eyes. The free member has just joined: they find
@@ -147,7 +141,7 @@ npx supabase db push
 since the last push. Then SETUP step 3, so that sign-in emails carry a code.
 
 In Expo Go the real app has everything but alerts, which need Floor's own build. Video lessons,
-card payments and Telegram teasers also need their SETUP steps.
+live video and Telegram teasers also need their SETUP steps.
 
 ## Needed from Kingsley
 
@@ -168,7 +162,6 @@ Each step is written out in `docs/SETUP.md`.
       `mobile` first: the app has new parts. Expo Go still opens the app for a look at the screens
       (`npx expo start --go`), without alerts on Android
 - [ ] A Firebase project, so Android phones can get alerts (SETUP step 7)
-- [ ] ~~Card payments (SETUP step 8)~~: no longer needed, card payments are being taken out
 - [ ] Put yourself on Floor's own team, and choose the address people write to (SETUP step 9)
 - [ ] Make Floor's Telegram bot and give its token to Vercel (SETUP step 10)
 - [ ] Rent a machine for live video and start Floor's LiveKit server on it (SETUP step 11)
@@ -202,7 +195,7 @@ Later, when the build reaches them: storage for lesson video on Floor's own serv
 - [x] Floor's server: routes for video, and the job queue
 - [x] Database, server and mobile: Alerts (push)
 - [x] Mobile: the app's store id, build profiles, permission wording
-- [x] Database, server, web and mobile: card payments that unlock VIP by themselves
+- [x] ~~Card payments that unlock VIP by themselves~~: built, then taken out in the plan change of 18 Nov
 - [x] Report a space (mobile), suspend a space (Floor's own page at `/admin`)
 - [x] Delete an account, in the app and on the web
 - [x] Mobile: the sample space runs every screen, as the mentor, a VIP member or a free member
@@ -221,7 +214,7 @@ Later, when the build reaches them: storage for lesson video on Floor's own serv
 - [x] Data saver: sound only in live sessions, a small size for lessons
 
 ### 4. Plan change of 18 Nov: no stores, no cards, low running costs
-- [ ] Take card payments out: the mentor's Paystack and Flutterwave, the card checkout, the
+- [x] Take card payments out: the mentor's Paystack and Flutterwave, the card checkout, the
       payments list. Transfer, USDT, broker link and invite code stay
 - [ ] Now that no store rules apply: the app shows the way to VIP and takes invite codes
 - [ ] iPhone: Floor as a web app on the home screen, with alerts

@@ -3,7 +3,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { actionMessage, setupChanges, type CodeRow, type MemberRow, type PaymentRow, type SetupForm } from "./logic";
+import { actionMessage, setupChanges, type CodeRow, type MemberRow, type SetupForm } from "./logic";
 
 /** Throws the server's message when a read fails, so the screen can offer to try again. */
 function rows<T>(result: { data: unknown; error: { message: string } | null }): T[] {
@@ -145,17 +145,15 @@ export const revokeCode = async (client: SupabaseClient, id: string) =>
 
 export interface Setup {
   slug: string;
-  /** The card processor members can pay through, or null. It is connected on the web. */
-  cardProvider: string | null;
   form: SetupForm;
 }
 
 export async function loadSetup(client: SupabaseClient, spaceId: string): Promise<Setup> {
   const [space, settings] = await Promise.all([
-    client.from("spaces").select("slug, tagline, vip_price_cents, vip_currency, vip_days, broker_name, card_provider").eq("id", spaceId).limit(1),
+    client.from("spaces").select("slug, tagline, vip_price_cents, vip_currency, vip_days, broker_name").eq("id", spaceId).limit(1),
     client.from("space_settings").select("payment_link, payment_instructions, broker_link, broker_vip_days").eq("space_id", spaceId).limit(1),
   ]);
-  type SpaceRow = { slug: string; tagline: string | null; vip_price_cents: number | null; vip_currency: string | null; vip_days: number; broker_name: string | null; card_provider: string | null };
+  type SpaceRow = { slug: string; tagline: string | null; vip_price_cents: number | null; vip_currency: string | null; vip_days: number; broker_name: string | null };
   type SettingsRow = { payment_link: string | null; payment_instructions: string | null; broker_link: string | null; broker_vip_days: number };
   const s = rows<SpaceRow>(space)[0];
   const t = rows<SettingsRow>(settings)[0];
@@ -163,7 +161,6 @@ export async function loadSetup(client: SupabaseClient, spaceId: string): Promis
   const cents = s.vip_price_cents;
   return {
     slug: s.slug,
-    cardProvider: s.card_provider,
     form: {
       tagline: s.tagline ?? "",
       price: cents === null ? "" : Number.isInteger(cents / 100) ? String(cents / 100) : (cents / 100).toFixed(2),
@@ -176,30 +173,6 @@ export async function loadSetup(client: SupabaseClient, spaceId: string): Promis
       brokerDays: String(t?.broker_vip_days ?? 30),
     },
   };
-}
-
-/** A card payment that went through. */
-export type PaymentItem = PaymentRow & { id: string };
-
-/** The card payments that went through, newest first. For the mentor and admins. */
-export async function loadPayments(client: SupabaseClient, spaceId: string): Promise<PaymentItem[]> {
-  return rows<PaymentItem>(await client.rpc("list_payments", { p_space: spaceId, p_limit: 100 }));
-}
-
-/** Why the last member who tried could not start a card payment, if one could not. */
-export interface CardTrouble {
-  provider: string | null;
-  problem: string | null;
-}
-
-/**
- * Whether card payments have hit trouble. Only the mentor may ask: for anyone else the
- * database says no, and that reads as no trouble to show.
- */
-export async function loadCardTrouble(client: SupabaseClient, spaceId: string): Promise<CardTrouble> {
-  const { data, error } = await client.rpc("payment_account", { p_space: spaceId });
-  const row = error ? undefined : ((data ?? []) as { provider: string; last_error: string | null }[])[0];
-  return { provider: row?.provider ?? null, problem: row?.last_error ?? null };
 }
 
 /** Saves the form. Asking for the rows back shows whether the database let the change through. */

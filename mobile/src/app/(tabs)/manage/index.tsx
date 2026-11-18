@@ -116,12 +116,6 @@ export default function ManageScreen() {
           />
         ) : null}
         <SettingsRow
-          title="Card payments"
-          detail="Who paid by card"
-          divided={isMentor}
-          onPress={() => router.push("/manage/payments")}
-        />
-        <SettingsRow
           title="Invite codes"
           detail="Give VIP with a code"
           divided

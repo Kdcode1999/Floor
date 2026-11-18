@@ -37,7 +37,6 @@ From `mobile/` or `web/`, one at a time (they share ports):
 | `web_mentor.py` | The mentor's laptop page: course and video upload | the real database, server routes, video host stand-in |
 | `phone_alerts.py` | Alerts: who is told when a setup is posted, a member's switches, signing out | the real database, server routes, notification stand-in |
 | `web_safety.py` | Reporting a space, Floor suspending and restoring it, and deleting an account | the real database, server routes, and the phone app |
-| `web_pay.py` | Card payments: the mentor connects, members pay, and what happens when it goes wrong | the real database, server routes, processor stand-ins, and the phone app at the end |
 | `phone_teasers.py` | Telegram teasers: connecting a channel, what the bot announces and what it keeps back, switches, a test, and the bot being removed | the real database, server routes, Telegram stand-in |
 | `phone_chat.py` | Groups, with four people on their own phones: writing, the link and number filter, names, pictures, groups for staff and by invitation, report, block, mute, delete | the real database |
 
@@ -55,7 +54,6 @@ A script exits with an error if any check fails.
 | `local_supabase.py` | Supabase's sign-in, table API, functions and file storage | Requests run as the signed-in person under the real rules. Sign-in takes any email and the code `123456` |
 | `fake_video_host.py` | The video host | Checks upload tickets and playback addresses with its own copy of the host's rules, and serves a real short film in pieces |
 | `fake_push.py` | The notification service | Keeps every alert it is sent. Answers "this phone no longer has the app" for addresses with `gone` in them. A browser cannot get a phone's address, so walk-throughs put addresses in the database directly |
-| `fake_processors.py` | Paystack and Flutterwave | Every API call needs the mentor's key. A page to pay on with Pay and Cancel, which sends the member back the way the real pages do. Webhooks signed the way each processor signs, genuine or forged on request |
 | `fake_telegram.py` | Telegram's Bot API | Refuses a wrong token, a bad webhook secret and an empty message. Keeps what the bot posted and took down. Plays Telegram's other part too: it calls Floor's webhook with the registered secret, or with a wrong one on request, and can refuse a chat the way Telegram does when the bot was removed |
 | `stand_in.py` | Supabase, scripted | Answers whatever a walk-through tells it to. For cases a real database will not produce on demand |
 

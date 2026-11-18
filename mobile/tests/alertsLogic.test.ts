@@ -19,12 +19,6 @@ describe("a tapped alert", () => {
     expect(routeFor(null)).toEqual({ pathname: "/" });
   });
 
-  it("opens the list of card payments for the mentor's own alert that someone paid", () => {
-    expect(routeFor({ type: "payment", space: "s1", id: "pay-1" })).toEqual({ pathname: "/manage/payments" });
-    expect(routeFor({ type: "payment" })).toEqual({ pathname: "/manage/payments" });
-    expect(routeFor({ type: "payment_problem", space: "s1" })).toEqual({ pathname: "/manage/payments" });
-  });
-
   it("opens the queue of reported messages for the staff's alert that one was reported", () => {
     expect(routeFor({ type: "report", space: "s1", id: "m1" })).toEqual({ pathname: "/manage/reported" });
   });

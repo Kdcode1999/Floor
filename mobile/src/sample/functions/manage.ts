@@ -1,6 +1,6 @@
-// The mentor's tools, in the sample space: requests, members, invite codes and card payments.
+// The mentor's tools, in the sample space: requests, members and invite codes.
 // Each function follows the database's own of the same name: see
-// web/supabase/migrations/…_foundation.sql, …_mentor_tools.sql and …_card_payments.sql.
+// web/supabase/migrations/…_foundation.sql and …_mentor_tools.sql.
 
 import { DAY, isMentor, isStaff, membershipOf, nameOf, notAllowed, randomCode, Refusal, within, words, type Ctx } from "../rules";
 import { iso, newId, type CodeRow, type RequestRow } from "../world";
@@ -208,34 +208,5 @@ export const manageFunctions = {
     staffOnly(ctx, code.space_id);
     code.revoked = true;
     return null;
-  },
-
-  // --- Card payments -------------------------------------------------------------------------
-
-  /** The card payments that went through, newest first, with who paid. */
-  list_payments(ctx: Ctx, args: { p_space: string; p_limit?: number | null }) {
-    staffOnly(ctx, args.p_space);
-    return ctx.world.payments
-      .filter((each) => each.space_id === args.p_space)
-      .sort((a, b) => Date.parse(b.paid_at) - Date.parse(a.paid_at))
-      .slice(0, within(args.p_limit, 1, 200, 50))
-      .map((each) => ({
-        id: each.id,
-        user_id: each.user_id,
-        name: nameOf(ctx.world, each.user_id),
-        amount_cents: each.amount_cents,
-        currency: each.currency,
-        days: each.days,
-        paid_at: each.paid_at,
-        vip_until: each.vip_until,
-      }));
-  },
-
-  /** What the mentor sees about their card processor. Never the key: the sample has none. */
-  payment_account(ctx: Ctx, args: { p_space: string }) {
-    if (!isMentor(ctx, args.p_space)) throw notAllowed();
-    return ctx.world.payment_accounts
-      .filter((each) => each.space_id === args.p_space)
-      .map((each) => ({ provider: each.provider, key_hint: "…mple", has_hook_secret: true, connected_at: null, last_error: each.last_error, last_error_at: null }));
   },
 };

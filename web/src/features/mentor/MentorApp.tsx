@@ -10,7 +10,6 @@ import { supabase } from "@/lib/supabase";
 import { themeFor, themes } from "@/theme/themes";
 import { themeVars } from "@/theme/vars";
 
-import { CardPayments } from "./CardPayments";
 import { Course } from "./Course";
 import { Live } from "./Live";
 
@@ -24,12 +23,11 @@ export interface StaffSpace {
   role: "mentor" | "admin" | "member";
 }
 
-type Tool = "course" | "live" | "payments";
+type Tool = "course" | "live";
 
 /**
  * The mentor's laptop page: the jobs that are easier with a big screen and a fast connection.
- * Building the course and uploading lesson videos, going live with a shared screen, and
- * connecting a card processor, which means copying a key out of that processor's own website.
+ * Building the course and uploading lesson videos, and going live with a shared screen.
  */
 export function MentorApp() {
   const tools = useSession();
@@ -140,12 +138,8 @@ export function MentorApp() {
           </Card>
         ) : (
           <>
-            {/* Only the mentor connects a processor: whoever holds it receives every card payment. */}
             <div className="choices" role="tablist" aria-label="Tools">
-              {(space.role === "mentor"
-                ? (["course", "live", "payments"] as const)
-                : (["course", "live"] as const)
-              ).map((each) => (
+              {(["course", "live"] as const).map((each) => (
                 <button
                   key={each}
                   type="button"
@@ -154,21 +148,11 @@ export function MentorApp() {
                   className={tool === each ? "choice chosen" : "choice"}
                   onClick={() => setTool(each)}
                 >
-                  {each === "course"
-                    ? "Course"
-                    : each === "live"
-                      ? "Live"
-                      : "Card payments"}
+                  {each === "course" ? "Course" : "Live"}
                 </button>
               ))}
             </div>
-            {space.role === "mentor" && tool === "payments" ? (
-              <CardPayments space={space} />
-            ) : tool === "live" ? (
-              <Live space={space} />
-            ) : (
-              <Course space={space} />
-            )}
+            {tool === "live" ? <Live space={space} /> : <Course space={space} />}
           </>
         )}
       </div>

@@ -3,10 +3,9 @@
 import { useState } from "react";
 
 import { Button, Card, Field } from "@/components/ui";
-import { cardOffer } from "@/features/pay/logic";
 import { APP_STORE_URL, PLAY_STORE_URL, SITE_URL } from "@/lib/env";
 
-import { days, formatDay, formatPrice, isVip, latestRequests, type AccessRequest, type PublicSpace, type RequestKind } from "./logic";
+import { days, formatDay, isVip, latestRequests, type AccessRequest, type PublicSpace, type RequestKind } from "./logic";
 import type { Join } from "./useJoin";
 
 interface MemberViewProps {
@@ -28,7 +27,6 @@ export function MemberView({ space, price, join }: MemberViewProps) {
   const settings = join.settings;
   const canPay = Boolean(settings?.payment_instructions || settings?.payment_link);
   const canBroker = Boolean(settings?.broker_link);
-  const card = cardOffer(join.card);
 
   if (staff) {
     return (
@@ -80,20 +78,9 @@ export function MemberView({ space, price, join }: MemberViewProps) {
         {vip ? "Add more VIP time" : "Get VIP"}
       </h2>
 
-      {card && join.card?.vip_price_cents && join.card.vip_currency ? (
-        <CardPay
-          spaceName={space.name}
-          processor={card.label}
-          test={card.test}
-          amount={formatPrice(join.card.vip_price_cents, join.card.vip_currency)}
-          length={days(join.card.vip_days)}
-          join={join}
-        />
-      ) : null}
-
       {canPay ? (
         <Card>
-          <h3 className="h2">{card ? "Pay another way" : `Pay ${space.name}`}</h3>
+          <h3 className="h2">Pay {space.name}</h3>
           {price ? <p className="body strong">{price}</p> : null}
           {settings?.payment_instructions ? <p className="body pre">{settings.payment_instructions}</p> : null}
           {settings?.payment_link ? (
@@ -142,67 +129,12 @@ export function MemberView({ space, price, join }: MemberViewProps) {
         <InviteForm join={join} />
       </Card>
 
-      {!card && !canPay && !canBroker ? (
+      {!canPay && !canBroker ? (
         <p className="small center">{space.name} has not set up payment here yet. Ask them how to get VIP.</p>
       ) : null}
 
       <SignedInAs join={join} />
     </>
-  );
-}
-
-interface CardPayProps {
-  spaceName: string;
-  /** The processor's name: "Paystack". */
-  processor: string;
-  test: boolean;
-  /** "₦25,000". */
-  amount: string;
-  /** "30 days". */
-  length: string;
-  join: Join;
-}
-
-/** Pay by card on the mentor's processor. VIP starts by itself when the payment goes through. */
-function CardPay({ spaceName, processor, test, amount, length, join }: CardPayProps) {
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const pay = async () => {
-    setBusy(true);
-    setError(null);
-    const problem = await join.payByCard();
-    // When it works the browser is already on its way to the processor's page.
-    if (problem) {
-      setError(problem);
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Card>
-      <h3 className="h2">Pay by card</h3>
-      <p className="body strong">
-        {amount} for {length}
-      </p>
-      {test ? (
-        <p className="error" role="status">
-          Test mode: no real money moves, and only test cards work.
-        </p>
-      ) : null}
-      {error ? (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      ) : null}
-      <Button busy={busy} onClick={() => void pay()}>
-        Pay {amount}
-      </Button>
-      <p className="small">
-        You pay {spaceName} on {processor}&apos;s page, and VIP starts as soon as the payment goes through. {processor} gets
-        your email for the receipt. Floor never holds your money.
-      </p>
-    </Card>
   );
 }
 

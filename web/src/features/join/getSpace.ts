@@ -5,7 +5,7 @@ import { backendConfigured, SUPABASE_KEY, SUPABASE_URL } from "@/lib/env";
 import type { PublicSpace } from "./logic";
 
 const SLUG = /^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$/;
-const COLUMNS = "id,slug,name,tagline,theme,logo_path,vip_price_cents,vip_currency,vip_days,broker_name,card_provider,card_test";
+const COLUMNS = "id,slug,name,tagline,theme,logo_path,vip_price_cents,vip_currency,vip_days,broker_name";
 
 /**
  * What anyone may know about the space behind a join link, or null when there is no open space

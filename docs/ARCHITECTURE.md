@@ -102,8 +102,7 @@ account), the screen says so in place, with `features/sample/SampleNote`.
 | --- | --- |
 | `app/[slug]/` | A space's join page. The server reads only what anyone may know about the space |
 | `features/join/` | Sign-in, joining, paying with proof, invite codes, all in the visitor's browser |
-| `app/mentor/`, `features/mentor/` | The mentor's laptop page: the course and video upload, and connecting a card processor |
-| `features/pay/` | Card payments' plain logic, shared by the pages and the server |
+| `app/mentor/`, `features/mentor/` | The mentor's laptop page: the course and video upload, and going live with a shared screen |
 | `app/account/`, `features/account/` | A person's own account on the web: deleting it |
 | `app/admin/`, `features/admin/` | Floor's own page: reports, suspending and restoring a space |
 | `features/session/` | Sign-in by emailed code for the pages staff use |
@@ -123,11 +122,10 @@ an account) are kept in both. A test in `web/` fails when the copies differ.
 | `POST /api/video/webhook` | the video host | Hears that a video changed, then asks the host itself |
 | `POST /api/jobs/run` | any signed-in app, and Vercel's timer | Does the jobs waiting in the queue |
 | `POST /api/account/delete` | anyone signed in | Deletes their account, and their space if they run one |
-| `POST /api/pay/connect` | the mentor | Tries their processor key, encrypts it and stores it |
-| `POST /api/pay/start` | a member | Starts a card payment and answers with the processor's page for it |
-| `POST /api/pay/confirm` | the page a member returns to, no login | Asks the processor what became of a payment, and adds the VIP days if it went through |
-| `POST /api/pay/hook/<processor>/<space>` | the mentor's processor | Checks the webhook's signature with that mentor's key, then does the same as confirm |
 | `POST /api/telegram/start` | the mentor | Answers with the bot's name and the code to post in their channel. Registers the webhook with Telegram if this copy of the server has not yet |
+| `POST /api/live/join` | VIP members and staff | Asks the database whether the room opens for them, answers with a pass into the video room. Starts the recording when the broadcaster arrives |
+| `POST /api/live/end` | staff | Ends the session and closes the video room |
+| `POST /api/live/webhook` | the live video server | Checks the signature, then takes a finished recording into the queue |
 | `POST /api/telegram/webhook` | Telegram | Checks the secret word, then acts on what the bot saw: a code posted in a chat connects it, being removed is noted |
 
 Every route follows the same steps: take the person's login from the request, ask the database
@@ -140,13 +138,6 @@ asked of the video host), `jobs.ts` (the queue's handlers), `push.ts` (everythin
 notification service), `alertWords.ts` (what an alert says and who may get it), `telegram.ts`
 (everything asked of Telegram, as Floor's bot), `teaserWords.ts` (what a notice says, and how the
 bot reads what it is told) and `teasers.ts` (posting a notice, and acting on an update).
-
-Card payments are in `server/pay/`: `processor.ts` (what Floor asks of any card processor),
-`paystack.ts` and `flutterwave.ts` (one file each, and the only places that know either
-processor), `vault.ts` (encrypting a mentor's key) and `index.ts` (`confirmPayment`, which the
-return, the webhook and the later check all go through). What both the pages and the server
-need to know about processors, such as which currencies each charges, is in
-`features/pay/logic.ts`.
 
 ### Jobs the server does from the queue
 
@@ -180,10 +171,6 @@ Every job carries `actor`: who caused it. An alert leaves that person out.
 - Deleting an account is two steps on the server: `erase_account` deletes the space the person
   owns and queues the removal of files and videos, then Supabase deletes the account, which
   takes with it every row that points at it.
-- `payments` is one row per try at paying by card. A member reads their own, staff read their
-  space's. Only `start_payment` (as the member) and `settle_payment` (secret key) write to it.
-- `private.payment_accounts` holds each mentor's processor key, encrypted by the server. No app
-  can reach the table. The mentor sees the key's last four characters through `payment_account`.
 - `groups`, `messages`, `group_members`, `group_reads`, `blocks` and `message_reports` are chat. The
   apps never read them directly: `my_groups` lists what a person may see, `chat_page` and
   `chat_changes` give the messages, `send_message` is the only way to write one. The link and
@@ -212,10 +199,8 @@ Every job carries `actor`: who caused it. An alert leaves that person out.
 | VIP groups | that they exist | yes | yes |
 | Groups by invitation | only if added | only if added | yes |
 | Reported messages | no | no | yes |
-| Card payments | their own | their own | the space's |
 | Reports about the space | their own | their own | no |
 | Floor's note when suspended | no | no | yes |
-| The card processor's key | no | no | no: only Floor's server, encrypted |
 
 A member also needs the account's one claimed login (`private.has_access`). Staff do not: a
 mentor uses the phone and a laptop at once.

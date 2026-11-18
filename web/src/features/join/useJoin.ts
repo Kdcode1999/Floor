@@ -4,8 +4,6 @@ import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useState } from "react";
 
 import { sendCodeMessage, verifyCodeMessage } from "@/auth/messages";
-import { payMessage, type CardSettings } from "@/features/pay/logic";
-import { callServer, ServerError } from "@/lib/server";
 import { supabase } from "@/lib/supabase";
 
 import {
@@ -26,8 +24,6 @@ interface Loaded {
   userId: string;
   membership: Membership | null;
   settings: Settings | null;
-  /** The space's price and card processor as they are right now. The page itself may be a few minutes old. */
-  card: (CardSettings & { vip_days: number }) | null;
   requests: AccessRequest[];
   displayName: string;
 }
@@ -50,13 +46,11 @@ async function load(client: SupabaseClient, space: PublicSpace, userId: string, 
 
   const mine = (membership.data as Membership | null) ?? null;
   let settings: Settings | null = null;
-  let card: Loaded["card"] = null;
   let requests: AccessRequest[] = [];
   if (mine?.status === "active") {
     // How to pay is only shown to people who have joined.
-    const [settingsRow, cardRow, requestRows] = await Promise.all([
+    const [settingsRow, requestRows] = await Promise.all([
       client.from("space_settings").select("payment_link,payment_instructions,broker_link,broker_vip_days").eq("space_id", space.id).maybeSingle(),
-      client.from("spaces").select("card_provider,card_test,vip_price_cents,vip_currency,vip_days").eq("id", space.id).maybeSingle(),
       client
         .from("access_requests")
         .select("kind,status,decline_reason,created_at")
@@ -66,7 +60,6 @@ async function load(client: SupabaseClient, space: PublicSpace, userId: string, 
         .limit(20),
     ]);
     settings = (settingsRow.data as Settings | null) ?? null;
-    card = (cardRow.data as Loaded["card"]) ?? null;
     requests = (requestRows.data as AccessRequest[] | null) ?? [];
   }
 
@@ -74,7 +67,6 @@ async function load(client: SupabaseClient, space: PublicSpace, userId: string, 
     userId,
     membership: mine,
     settings,
-    card,
     requests,
     displayName: (profile.data as { display_name: string } | null)?.display_name ?? "Member",
   };
@@ -129,7 +121,6 @@ export function useJoin(space: PublicSpace) {
     email: session?.user.email ?? "",
     membership: userId ? (mine ? mine.membership : undefined) : undefined,
     settings: mine?.settings ?? null,
-    card: mine?.card ?? null,
     requests: mine?.requests ?? [],
     displayName: mine?.displayName,
     wantsToJoin,
@@ -189,20 +180,6 @@ export function useJoin(space: PublicSpace) {
       if (error) return proofMessage(error);
       reload();
       return null;
-    },
-
-    /**
-     * Starts a card payment and sends the member to the processor's page. Resolves with a
-     * message to show if it could not be started. When it works the browser leaves this page.
-     */
-    async payByCard(): Promise<string | null> {
-      try {
-        const { url } = await callServer<{ url: string }>("/api/pay/start", { space: space.id });
-        window.location.assign(url);
-        return null;
-      } catch (error) {
-        return payMessage(error instanceof ServerError ? error.code : null, space.name);
-      }
     },
 
     async signOut() {

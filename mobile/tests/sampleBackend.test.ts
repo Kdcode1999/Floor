@@ -321,15 +321,6 @@ describe("the mentor's tools", () => {
     expect(await rows(as("vee").from("invite_codes").select("id").eq("space_id", SPACE))).toEqual([]);
   });
 
-  it("shows card payments to staff and the processor's state to the mentor alone", async () => {
-    const { as } = sample();
-    const payments = await rows(as("tobi").rpc("list_payments", { p_space: SPACE, p_limit: 100 }));
-    expect(payments.map((payment) => payment.name)).toEqual(["Vee", "Chidi", "Ada O."]);
-    expect(payments[0]).toMatchObject({ amount_cents: 2_500_000, currency: "NGN", days: 30 });
-    expect(await rows(as("kay").rpc("payment_account", { p_space: SPACE }))).toMatchObject([{ provider: "paystack", last_error: null }]);
-    expect((await refusal(as("tobi").rpc("payment_account", { p_space: SPACE })))?.message).toBe("not_allowed");
-  });
-
   it("lets only the mentor change the price, the payment details and the look", async () => {
     const { as } = sample();
     const change = { tagline: "New line", vip_price_cents: 3_000_000, vip_currency: "NGN", vip_days: 30, broker_name: null };
@@ -337,8 +328,8 @@ describe("the mentor's tools", () => {
     expect(await rows(as("kay").from("spaces").update(change).eq("id", SPACE).select("id"))).toEqual([{ id: SPACE }]);
     expect((await as("kay").from("spaces").update({ ...change, vip_currency: "naira" }).eq("id", SPACE).select("id")).error).toMatchObject({ code: "23514" });
     expect((await as("kay").from("spaces").update({ owner_id: PEOPLE.tobi }).eq("id", SPACE).select("id")).error).toMatchObject({ code: "42501" });
-    const [space] = await rows(as("vee").from("spaces").select("slug, tagline, vip_price_cents, vip_currency, vip_days, broker_name, card_provider").eq("id", SPACE).limit(1));
-    expect(space).toEqual({ slug: "your-academy", tagline: "New line", vip_price_cents: 3_000_000, vip_currency: "NGN", vip_days: 30, broker_name: null, card_provider: "paystack" });
+    const [space] = await rows(as("vee").from("spaces").select("slug, tagline, vip_price_cents, vip_currency, vip_days, broker_name").eq("id", SPACE).limit(1));
+    expect(space).toEqual({ slug: "your-academy", tagline: "New line", vip_price_cents: 3_000_000, vip_currency: "NGN", vip_days: 30, broker_name: null });
 
     expect(await rows(as("kay").from("space_settings").update({ block_capture: true }).eq("space_id", SPACE).select("space_id"))).toHaveLength(1);
     expect((await rows(as("vee").rpc("my_spaces")))[0]).toMatchObject({ block_capture: true, watermark: true, role: "member" });

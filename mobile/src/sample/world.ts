@@ -35,7 +35,6 @@ export interface SpaceRow {
   vip_currency: string | null;
   vip_days: number;
   broker_name: string | null;
-  card_provider: string | null;
   created_at: string;
 }
 
@@ -151,23 +150,6 @@ export interface ProgressRow {
   lesson_id: string;
   seconds: number;
   completed_at: string | null;
-}
-
-export interface PaymentRow {
-  id: string;
-  space_id: string;
-  user_id: string;
-  amount_cents: number;
-  currency: string;
-  days: number;
-  paid_at: string;
-  vip_until: string;
-}
-
-export interface PaymentAccountRow {
-  space_id: string;
-  provider: string;
-  last_error: string | null;
 }
 
 export interface GroupRow {
@@ -287,8 +269,6 @@ export interface World {
   modules: ModuleRow[];
   lessons: LessonRow[];
   lesson_progress: ProgressRow[];
-  payments: PaymentRow[];
-  payment_accounts: PaymentAccountRow[];
   groups: GroupRow[];
   group_members: GroupMemberRow[];
   messages: MessageRow[];
@@ -316,8 +296,6 @@ export function emptyWorld(): World {
     modules: [],
     lessons: [],
     lesson_progress: [],
-    payments: [],
-    payment_accounts: [],
     groups: [],
     group_members: [],
     messages: [],

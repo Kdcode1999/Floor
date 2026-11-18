@@ -2,7 +2,6 @@ import "server-only";
 
 import { deleteVideo, fetchVideo } from "./bunny";
 import { RECORDINGS, videoConfigured } from "./env";
-import { confirmPayment, REFERENCE, vaultReady } from "./pay";
 import { checkReceipts, sendAlert } from "./push";
 import { asServer } from "./supabase";
 import { sendTeaser } from "./teasers";
@@ -28,32 +27,6 @@ const handlers: Record<string, Handler> = {
   /** Something new in a space: post a notice in the Telegram channel it is connected to. */
   telegram: sendTeaser,
 
-  /**
-   * A member started a card payment a while ago. If they paid and never came back to the
-   * page, and no webhook arrived, this is what gives them their VIP.
-   */
-  payment_check: async (job) => {
-    const reference = job.payload.reference;
-    if (
-      !vaultReady ||
-      typeof reference !== "string" ||
-      !REFERENCE.test(reference)
-    )
-      return;
-    const confirmed = await confirmPayment(reference);
-    if (
-      confirmed.state === "paid" ||
-      confirmed.state === "unknown" ||
-      confirmed.state === "mismatch"
-    )
-      return;
-    // Still open at the processor: the member may yet pay. Look again later, for a while.
-    const age = confirmed.createdAt
-      ? Date.now() - Date.parse(confirmed.createdAt)
-      : Infinity;
-    if (age < STILL_OPEN_MS)
-      throw new Error("The payment has not gone through yet");
-  },
 
   /**
    * An account or a space was deleted. The rows that pointed at its files went with it. The
@@ -130,9 +103,6 @@ async function recordingToLesson(job: Job): Promise<void> {
     throw new Error(handed.error.message);
   }
 }
-
-/** How long after it was started a card payment is still worth asking about. */
-const STILL_OPEN_MS = 2 * 60 * 60_000;
 
 /** How long one run may keep taking jobs before it hands over to the next run. */
 const BUDGET_MS = 8000;

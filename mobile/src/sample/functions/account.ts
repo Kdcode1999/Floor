@@ -68,7 +68,6 @@ export const accountFunctions = {
       vip_currency: null,
       vip_days: 30,
       broker_name: null,
-      card_provider: null,
       created_at: iso(ctx.now),
     });
     ctx.world.space_settings.push(settings(id));

@@ -111,7 +111,6 @@ export function createWorld(now: number): World {
     vip_currency: "NGN",
     vip_days: 30,
     broker_name: "Example Broker",
-    card_provider: "paystack",
     created_at: ago(40 * DAY),
   });
   world.space_settings.push({
@@ -121,7 +120,6 @@ export function createWorld(now: number): World {
     // Off to begin with, so the sample can be captured while it is looked at as a member.
     block_capture: false,
   });
-  world.payment_accounts.push({ space_id: SPACE, provider: "paystack", last_error: null });
 
   const joined = (key: keyof typeof PEOPLE, time: number, more: Parameters<typeof membership>[3] = {}) =>
     world.memberships.push(membership(SPACE, PEOPLE[key], now - time, more));
@@ -161,7 +159,7 @@ export function createWorld(now: number): World {
   request(0x603, "ngozi", "broker", "Account ID 4830 2291", 3 * HOUR);
   request(0x604, "sam", "payment", "Paid by bank transfer this morning", 40 * MINUTE);
 
-  // --- Invite codes and card payments ---------------------------------------------------------
+  // --- Invite codes ----------------------------------------------------------------------------
   const code = (id: number, text: string, days: number, max: number | null, used: number, time: number, revoked = false) =>
     world.invite_codes.push({ id: fixedId(id), space_id: SPACE, code: text, days, max_uses: max, used_count: used, expires_at: null, revoked, created_at: ago(time) });
   code(0x701, "WELCOME7", 7, 50, 12, 9 * DAY);
@@ -169,20 +167,6 @@ export function createWorld(now: number): World {
   code(0x703, "LAUNCH24", 30, 10, 10, 36 * DAY);
   code(0x704, "TRYVIP22", 7, null, 1, 30 * DAY, true);
 
-  const paid = (id: number, key: keyof typeof PEOPLE, time: number) =>
-    world.payments.push({
-      id: fixedId(id),
-      space_id: SPACE,
-      user_id: PEOPLE[key],
-      amount_cents: 2_500_000,
-      currency: "NGN",
-      days: 30,
-      paid_at: ago(time),
-      vip_until: iso(now - time + 30 * DAY),
-    });
-  paid(0x801, "vee", 6 * DAY);
-  paid(0x802, "chidi", 12 * DAY);
-  paid(0x803, "ada", 27 * DAY);
 
   // --- The Feed -------------------------------------------------------------------------------
   const blank: Omit<PostRow, "id" | "kind" | "created_at"> = {
@@ -393,8 +377,8 @@ export function createWorld(now: number): World {
   say(GROUPS.vip, "kay", 3 * DAY + 6 * HOUR, "The VIP room is open. This is where we talk through setups after I post them.");
   say(GROUPS.vip, "vee", 3 * DAY + 2 * HOUR, "Took the gold buy. Stop is at entry now.");
   say(GROUPS.vip, "chidi", 3 * DAY + HOUR, "Same here. Thanks for the update on it.");
-  const renew = say(GROUPS.vip, "ada", 26 * HOUR, "My VIP ends this week. I can renew by card from the join page, right?");
-  say(GROUPS.vip, "tobi", 25 * HOUR, "Yes. Or send proof of a transfer and we approve it.", { reply_to: renew });
+  const renew = say(GROUPS.vip, "ada", 26 * HOUR, "My VIP ends this week. Same account for the transfer as last time?");
+  say(GROUPS.vip, "tobi", 25 * HOUR, "Yes. Or pay in USDT to the address on the join page. Send proof and we approve it.", { reply_to: renew });
   say(GROUPS.vip, "kay", 60 * MINUTE, "The EURUSD setup is in the Feed. Wait for the retest.");
   say(GROUPS.vip, "vee", 55 * MINUTE, "Got the alert. Watching it.");
   say(GROUPS.vip, "chidi", 15 * MINUTE, "Entry filled on my side.");

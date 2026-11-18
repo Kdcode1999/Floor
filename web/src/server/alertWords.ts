@@ -7,10 +7,10 @@ export interface AlertWords {
   /** True when only people who could open it are told: VIP members and staff. */
   vipOnly: boolean;
   /**
-   * Which kind of alert this is, for each member's own switches. "payment" goes to the mentor
-   * alone, and "staff" to the mentor and admins.
+   * Which kind of alert this is, for each member's own switches. "staff" goes to the mentor
+   * and admins.
    */
-  kind: "setup" | "lesson" | "live" | "payment" | "staff";
+  kind: "setup" | "lesson" | "live" | "staff";
   /** Travels with the notification, so a tap opens the right screen. */
   data: { type: string; space: string; id: string };
 }
@@ -61,29 +61,6 @@ export function alertWords(payload: Record<string, unknown>, space: { id: string
       vipOnly: payload.audience !== "everyone",
       kind: "live",
       data: { type, space: space.id, id: text(payload.session_id) },
-    };
-  }
-  if (type === "payment") {
-    const days = typeof payload.days === "number" ? payload.days : 0;
-    const name = text(payload.name) || "A member";
-    return {
-      title: space.name,
-      body:
-        payload.vip === false
-          ? `${name} paid by card, but is no longer in your space. No VIP was given.`
-          : `${name} paid by card. ${days} ${days === 1 ? "day" : "days"} of VIP added.`,
-      vipOnly: true,
-      kind: "payment",
-      data: { type, space: space.id, id: text(payload.payment_id) },
-    };
-  }
-  if (type === "payment_problem") {
-    return {
-      title: space.name,
-      body: "A member could not pay by card. Open your mentor page on the web to see why.",
-      vipOnly: true,
-      kind: "payment",
-      data: { type, space: space.id, id: "" },
     };
   }
   if (type === "report") {
