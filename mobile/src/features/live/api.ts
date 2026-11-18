@@ -112,6 +112,7 @@ interface JoinAnswer {
   isHost: boolean;
   isStaff: boolean;
   viewerName: string;
+  recorded?: boolean;
   url?: string;
   token?: string;
   sampleFilm?: string;
@@ -131,6 +132,7 @@ export async function openRoom(sessionId: string): Promise<RoomPass> {
       isHost: answer.isHost,
       isStaff: answer.isStaff,
       viewerName: answer.viewerName,
+      recorded: answer.recorded ?? false,
       video: answer.url && answer.token ? { url: answer.url, token: answer.token } : null,
       sampleFilm: answer.sampleFilm ?? null,
     };

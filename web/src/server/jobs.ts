@@ -1,7 +1,7 @@
 import "server-only";
 
-import { deleteVideo } from "./bunny";
-import { videoConfigured } from "./env";
+import { deleteVideo, fetchVideo } from "./bunny";
+import { RECORDINGS, videoConfigured } from "./env";
 import { confirmPayment, REFERENCE, vaultReady } from "./pay";
 import { checkReceipts, sendAlert } from "./push";
 import { asServer } from "./supabase";
@@ -34,12 +34,25 @@ const handlers: Record<string, Handler> = {
    */
   payment_check: async (job) => {
     const reference = job.payload.reference;
-    if (!vaultReady || typeof reference !== "string" || !REFERENCE.test(reference)) return;
+    if (
+      !vaultReady ||
+      typeof reference !== "string" ||
+      !REFERENCE.test(reference)
+    )
+      return;
     const confirmed = await confirmPayment(reference);
-    if (confirmed.state === "paid" || confirmed.state === "unknown" || confirmed.state === "mismatch") return;
+    if (
+      confirmed.state === "paid" ||
+      confirmed.state === "unknown" ||
+      confirmed.state === "mismatch"
+    )
+      return;
     // Still open at the processor: the member may yet pay. Look again later, for a while.
-    const age = confirmed.createdAt ? Date.now() - Date.parse(confirmed.createdAt) : Infinity;
-    if (age < STILL_OPEN_MS) throw new Error("The payment has not gone through yet");
+    const age = confirmed.createdAt
+      ? Date.now() - Date.parse(confirmed.createdAt)
+      : Infinity;
+    if (age < STILL_OPEN_MS)
+      throw new Error("The payment has not gone through yet");
   },
 
   /**
@@ -48,19 +61,75 @@ const handlers: Record<string, Handler> = {
    */
   files_delete: async (job) => {
     const bucket = job.payload.bucket;
-    const paths = Array.isArray(job.payload.paths) ? job.payload.paths.filter((path): path is string => typeof path === "string") : [];
+    const paths = Array.isArray(job.payload.paths)
+      ? job.payload.paths.filter(
+          (path): path is string => typeof path === "string",
+        )
+      : [];
     if (typeof bucket !== "string" || paths.length === 0) return;
     const { error } = await asServer().storage.from(bucket).remove(paths);
     if (error) throw new Error(error.message);
+  },
+
+  /**
+   * A live session's recording is finished and in the file store. The video host fetches it
+   * from a short-lived address, and the session's draft lesson is made with that video.
+   */
+  recording: async (job) => {
+    try {
+      await recordingToLesson(job);
+    } catch (error) {
+      // The last try: staff are told the recording could not be saved, not left waiting.
+      if (job.attempts >= 5 && typeof job.payload.session_id === "string") {
+        await asServer().rpc("live_recording", {
+          p_session: job.payload.session_id,
+          p_status: "failed",
+        });
+      }
+      throw error;
+    }
   },
 
   /** A lesson was deleted, so its video is removed from the video host. */
   video_delete: async (job) => {
     if (!videoConfigured) throw new Error("The video host is not set up");
     const videoId = job.payload.video_id;
-    if (typeof videoId === "string" && job.payload.provider === "bunny") await deleteVideo(videoId);
+    if (typeof videoId === "string" && job.payload.provider === "bunny")
+      await deleteVideo(videoId);
   },
 };
+
+async function recordingToLesson(job: Job): Promise<void> {
+  if (!videoConfigured) throw new Error("The video host is not set up");
+  const session = job.payload.session_id;
+  if (typeof session !== "string") return;
+  const server = asServer();
+  const { data, error } = await server
+    .from("live_sessions")
+    .select("title, recording_status, recording_path")
+    .eq("id", session)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data || data.recording_status !== "saving" || !data.recording_path)
+    return;
+  const signed = await server.storage
+    .from(RECORDINGS.bucket)
+    .createSignedUrl(data.recording_path, 24 * 60 * 60);
+  if (signed.error || !signed.data)
+    throw new Error(
+      signed.error?.message ?? "The recording could not be reached",
+    );
+  const videoId = await fetchVideo(signed.data.signedUrl, data.title);
+  const handed = await server.rpc("live_recording_handed", {
+    p_session: session,
+    p_provider: "bunny",
+    p_video_id: videoId,
+  });
+  if (handed.error) {
+    await deleteVideo(videoId).catch(() => {});
+    throw new Error(handed.error.message);
+  }
+}
 
 /** How long after it was started a card payment is still worth asking about. */
 const STILL_OPEN_MS = 2 * 60 * 60_000;

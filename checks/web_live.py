@@ -7,6 +7,11 @@ session's chat and switches to sound only. A free member sees the session is on 
 in. The mentor ends it and the room closes on the phone. Then the mentor goes live from the
 phone, and the VIP member sees the phone's camera.
 
+Recording: no recorder runs here (LiveKit's recorder is a separate service), so the first
+session shows what happens when one cannot start: the session carries on, unrecorded. Then a
+finished recording is reported the way the live video server reports one, signed with its
+secret, and the job that follows hands the file to the video host and makes the draft lesson.
+
 The video goes through LiveKit's own open-source server, run here (live_server.py). Chrome's
 made-up camera and microphone stand in for real ones. Everything else is the local backend (a
 real Postgres with Floor's migrations) and the web app's own server routes.
@@ -27,6 +32,15 @@ Pictures land in `checks/out/`, named `live-*`. The script exits with an error i
 
 from playwright.sync_api import sync_playwright
 
+import base64
+import hashlib
+import hmac
+import json
+import time
+import urllib.error
+import urllib.request
+
+import fake_video_host
 import fixtures
 import live_server
 import local_db
@@ -52,9 +66,39 @@ PLAYING = """(label) => {
 }"""
 
 
+# Where recordings would be written. Nothing listens there: the recorder never starts here.
+RECORDINGS = {
+    "RECORDINGS_S3_ENDPOINT": "http://127.0.0.1:9/storage/v1/s3",
+    "RECORDINGS_S3_REGION": "local",
+    "RECORDINGS_S3_ACCESS_KEY": "local-access",
+    "RECORDINGS_S3_SECRET": "local-recordings-secret",
+}
+
+
+def signed_webhook(event: dict) -> None:
+    """Sends Floor's server a message the way the live video server does: the body, and a token
+    signed with the server's secret that carries the body's fingerprint."""
+    body = json.dumps(event).encode()
+    part = lambda value: base64.urlsafe_b64encode(json.dumps(value).encode()).rstrip(b"=").decode()
+    now = int(time.time())
+    claims = {"iss": live_server.KEY, "nbf": now - 10, "exp": now + 600, "sha256": base64.b64encode(hashlib.sha256(body).digest()).decode()}
+    unsigned = f"{part({'alg': 'HS256', 'typ': 'JWT'})}.{part(claims)}"
+    signature = base64.urlsafe_b64encode(hmac.new(live_server.SECRET.encode(), unsigned.encode(), hashlib.sha256).digest()).rstrip(b"=").decode()
+    request = urllib.request.Request(
+        LAPTOP + "/api/live/webhook", data=body, method="POST",
+        headers={"Authorization": f"{unsigned}.{signature}", "Content-Type": "application/webhook+json"},
+    )
+    urllib.request.urlopen(request, timeout=10).read()
+
+
+def run_jobs() -> None:
+    request = urllib.request.Request(LAPTOP + "/api/jobs/run", headers={"Authorization": "Bearer local-cron-secret"})
+    urllib.request.urlopen(request, timeout=30).read()
+
+
 def main() -> None:
     livekit = live_server.start()
-    services = local_services.start(live_server.SETTINGS)
+    services = local_services.start({**live_server.SETTINGS, **RECORDINGS})
     phones = serve(DIST, PORT)
     clear_pictures("live-")
 
@@ -94,6 +138,7 @@ def main() -> None:
             check("and the database says so", session()["status"] == "live")
             check_soon("the laptop's camera goes out", lambda: laptop.evaluate(PLAYING, "What your members see"), 15)
             check_visible("nobody is watching yet", laptop.get_by_text("Nobody is watching yet"))
+            check("with no recorder running, the session carries on unrecorded", session()["recording_status"] == "failed")
             shot("1-live")
 
             print("A VIP member watches on the phone")
@@ -145,6 +190,39 @@ def main() -> None:
             check_visible("and its chat is closed", vip.text("The session has ended, so its chat is closed."))
             vip.shot("3-ended")
             browser.close()
+
+            print("A finished recording becomes a draft lesson")
+            ended = session()
+            path = f"{space}/{ended['id']}.mp4"
+            local_db.run("insert into storage.objects (bucket_id, name) values ('recordings', %s)", [path])
+            local_supabase.files[("recordings", path)] = (services.film, "video/mp4")
+            signed_webhook({
+                "event": "egress_ended",
+                "id": "EV_local",
+                "createdAt": str(int(time.time())),
+                "egressInfo": {
+                    "egressId": "EG_local",
+                    "roomName": str(ended["id"]),
+                    "status": "EGRESS_COMPLETE",
+                    "fileResults": [{"filename": path, "size": str(len(services.film))}],
+                },
+            })
+            check("the server takes the report and queues the recording", session()["recording_status"] == "saving")
+            try:
+                urllib.request.urlopen(urllib.request.Request(LAPTOP + "/api/live/webhook", data=b"{}", method="POST", headers={"Authorization": "made-up"}), timeout=10)
+                check("an unsigned report is turned away", False)
+            except urllib.error.HTTPError as refused:
+                check("an unsigned report is turned away", refused.code == 401)
+            run_jobs()
+            after = session()
+            check("the recording is saved", after["recording_status"] == "saved")
+            lesson = local_db.rows("select l.*, m.title as module from public.lessons l join public.modules m on m.id = l.module_id where l.id = %s", [after["lesson_id"]])
+            check("as a draft lesson in Live recordings", bool(lesson) and lesson[0]["module"] == "Live recordings" and lesson[0]["published_at"] is None)
+            check("named after the session", bool(lesson) and lesson[0]["title"] == "Gold at the London open")
+            fetched = [video for video in fake_video_host.videos.values() if "recordings" in str(video.get("fetched_from"))]
+            check("the video host fetched the file from a signed address", len(fetched) == 1)
+            check("the lesson has that video", bool(lesson) and lesson[0]["video_id"] in fake_video_host.videos)
+            check("the file is removed a day later", local_db.value("select count(*) from private.outbox where kind = 'files_delete' and payload->'paths' ? %s and run_after > now() + interval '23 hours'", [path]) == 1)
 
             print("The mentor goes live from the phone")
             mentor = Phone(p, PHONES, "live-mentor-", problems, ignore=EXPECTED_NOISE, media=True)

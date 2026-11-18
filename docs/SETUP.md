@@ -367,8 +367,9 @@ an address such as `live.yourdomain.com`.
 docker run --rm -it -v ${PWD}:/output livekit/generate
 ```
 
-Answer its questions: your address (`live.yourdomain.com`), the latest version, no egress for
-now, and "Startup Shell Script". It makes a folder with the settings, and prints an API key and
+Answer its questions: your address (`live.yourdomain.com`), the latest version, **yes to egress**
+(LiveKit's recorder, which keeps sessions as lessons), and "Startup Shell Script". With the
+recorder on the same machine, take 4 CPUs and 8 GB of memory. It makes a folder with the settings, and prints an API key and
 an API secret. Keep both: they go to Vercel below. The secret signs every pass into a room, so
 it never goes in a chat or an email.
 
@@ -394,9 +395,22 @@ then `sudo systemctl restart livekit-docker`.
 Production: `LIVEKIT_URL` as `wss://live.yourdomain.com`, `LIVEKIT_API_KEY` and
 `LIVEKIT_API_SECRET` (tick "Sensitive" on the secret). Redeploy.
 
+**Recordings.** Sessions are recorded into Supabase's file store, through its S3 door, and
+then handed to the video host as a draft lesson. In Supabase: Storage, Settings, S3 Connection.
+Switch on the S3 connection, note the endpoint and region it shows, and make an access key. In
+Vercel add `RECORDINGS_S3_ENDPOINT`, `RECORDINGS_S3_REGION`, `RECORDINGS_S3_ACCESS_KEY` and
+`RECORDINGS_S3_SECRET` (tick "Sensitive" on the last two). Leave them out and sessions simply
+are not recorded.
+
+Know this before relying on it: **Supabase's free plan takes files of 50 MB at most**, and an
+hour of a session is far more. On the free plan most recordings will fail, and the app tells
+the mentor "The recording could not be saved". The Pro plan takes them, or this waits for the
+step that moves video to Floor's own storage (see STATUS).
+
 **Try it.** On a laptop, open `/mentor`, the Live tab, and go live. Allow the camera. On a phone
 with the installed app, signed in as a VIP member of the same space, the Feed shows "Live now":
 tap "Join session" and you should see and hear the laptop. Share your screen from the laptop
-and the phone shows it.
+and the phone shows it. End the session: with recordings set up, a few minutes later a draft
+lesson with the session's title appears in Learn, under "Live recordings".
 
 Live video does not play in Expo Go. It needs the app built in step 6, or the web app.

@@ -68,13 +68,17 @@ Working today:
   `/mentor` (camera, microphone, and the screen to go through a chart) or from the phone (camera
   and microphone). Members watch and hear it on the phone, and can switch to sound only to save
   data. Only the broadcaster can be seen or heard. Live video needs the installed app or the web
-  app: it does not play in Expo Go, where the sample's short film stands in for it.
+  app: it does not play in Expo Go, where the sample's short film stands in for it. A session
+  the mentor wants kept is recorded, and becomes a draft lesson in Learn under "Live recordings"
+  once it is over; everyone in the room is told it is recorded. Supabase's free plan takes
+  files of 50 MB at most, so recordings of any length need the Pro plan until video moves to
+  Floor's own storage.
 
 - **The sample space**: with `mobile/.env` empty the app runs on a made-up community held in
   memory. Every screen above works in it with nothing set up, seen as the mentor, as a VIP member
   or as someone who has not paid. It is how the build is looked at in Expo Go today. See below.
 
-Checked: 216 database tests, 265 logic tests (176 phone, 89 web and server), 47 tests of the sample
+Checked: 218 database tests, 265 logic tests (176 phone, 89 web and server), 47 tests of the sample
 space, and thirteen walk-throughs in Chrome. One of them runs a live session with real video through LiveKit. One opens every screen of the sample space as
 each of its three viewers. Nine run against a real Postgres with Floor's migrations, with the mentor, a VIP
 member and a free member each on their own phone. The Community walk-through has four people in one
@@ -213,7 +217,7 @@ Later, when the build reaches them: storage for lesson video on Floor's own serv
 - [x] Class schedule with reminders
 - [x] Live room: who may enter, the session's chat, ending a session (video comes with the next item)
 - [x] Live room video: broadcasting from the phone, and from the laptop with screen share
-- [ ] Recordings saved into Learn
+- [x] Recordings saved into Learn
 - [x] Data saver: sound only in live sessions, a small size for lessons
 
 ### 4. Plan change of 18 Nov: no stores, no cards, low running costs
@@ -222,7 +226,7 @@ Later, when the build reaches them: storage for lesson video on Floor's own serv
 - [ ] Now that no store rules apply: the app shows the way to VIP and takes invite codes
 - [ ] iPhone: Floor as a web app on the home screen, with alerts
 - [ ] Android: the app as a download from Floor's own site, updating itself
-- [ ] Live video and lesson video on Floor's own servers
+- [ ] Live video and lesson video on Floor's own servers, recordings with them (no 50 MB limit)
 - [ ] The mentor pays Floor $50 a month
 
 ### Launch

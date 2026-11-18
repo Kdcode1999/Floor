@@ -217,6 +217,11 @@ function Room({ sessionId, pass, session, onChanged, onRetry }: RoomProps) {
           {mark && !over ? <Watermark text={mark} /> : null}
         </View>
         )}
+        {pass.recorded && !over ? (
+          <AppText size={13} line={18} color={theme.text3} style={styles.line}>
+            This session is recorded and may be kept as a lesson.
+          </AppText>
+        ) : null}
         {over || !pass.sampleFilm ? null : <SampleNote text="a short film stands in for the mentor's camera and screen." />}
         {takenOver ? (
           <AppText size={13} line={18} color={theme.text2} style={styles.line}>

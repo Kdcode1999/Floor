@@ -69,6 +69,7 @@ const ROUTES: Record<string, Route> = {
       isHost: pass.is_host,
       isStaff: pass.is_staff,
       viewerName: pass.viewer_name,
+      recorded: pass.record,
       sampleFilm: assetUri("lesson"),
     };
   },

@@ -435,6 +435,12 @@ Kingsley's calls. These replace the earlier entries they contradict, which stay 
   choice is remembered on the phone.
 - **Live video does not play in Expo Go**, which lacks the parts it needs. There the room says so,
   and the sample space shows a short film instead.
+- **A recording is what members saw and heard, kept as one file.** LiveKit's recorder writes it to
+  a private file store. When it is finished, a queued job has the video host fetch it, makes a
+  draft lesson in "Live recordings" with the session's title and notes, and removes the file a
+  day later. The mentor publishes it like any lesson. Everyone in the room is told it is recorded.
+- **A recording that cannot start does not stop the session.** It goes ahead, and staff are told
+  afterwards that no recording was saved.
 - **Walk-throughs use LiveKit's real server**, built from its source and run on the machine
   that runs the checks, with Chrome's made-up camera and microphone.
 

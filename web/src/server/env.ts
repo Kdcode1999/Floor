@@ -72,6 +72,23 @@ export const LIVEKIT = {
 
 export const liveConfigured = LIVEKIT.url !== "" && LIVEKIT.apiKey !== "" && LIVEKIT.apiSecret !== "";
 
+/**
+ * Where live sessions are recorded: Supabase's file store, through its S3 door (Storage,
+ * Settings, S3 Connection). The recorder writes each session to the private `recordings`
+ * store, and the file is removed once the video host has it. Leave these empty and sessions
+ * are not recorded.
+ */
+export const RECORDINGS = {
+  /** Such as https://abcdefgh.supabase.co/storage/v1/s3 */
+  endpoint: (process.env.RECORDINGS_S3_ENDPOINT ?? "").trim(),
+  region: process.env.RECORDINGS_S3_REGION ?? "",
+  accessKey: process.env.RECORDINGS_S3_ACCESS_KEY ?? "",
+  secret: process.env.RECORDINGS_S3_SECRET ?? "",
+  bucket: "recordings",
+};
+
+export const recordingConfigured = RECORDINGS.endpoint !== "" && RECORDINGS.region !== "" && RECORDINGS.accessKey !== "" && RECORDINGS.secret !== "";
+
 /** The same server's address for Floor's own server to call: https:// in place of wss://. */
 export const livekitApi = () => LIVEKIT.url.replace(/^ws(s?):\/\//, "http$1://");
 

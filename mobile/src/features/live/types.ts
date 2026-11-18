@@ -37,6 +37,8 @@ export interface RoomPass {
   /** True for the person broadcasting. */
   isHost: boolean;
   isStaff: boolean;
+  /** True while the session is being recorded, which everyone in the room is told. */
+  recorded: boolean;
   /** The name shown faintly over the video. */
   viewerName: string;
   /** Where the video service is and the key to this one room. Null in the sample space. */

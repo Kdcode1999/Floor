@@ -303,6 +303,43 @@ describe("classes and the live room", () => {
     expect((await db.query("select id from public.modules where space_id = $1 and title = 'Live recordings'", [space])).rows).toHaveLength(1);
   });
 
+  it("queues a finished recording for the video host, and makes the lesson once the host has it", async () => {
+    await clear();
+    const live = await start(kay, { title: "London open, recorded" });
+    const path = `${space}/${live}.mp4`;
+    await asServer(db, (tx) => tx.query("select public.live_recording($1, 'recording', 'EG_one')", [live]));
+    await end(kay, live);
+
+    // A report about some other recording of the room changes nothing.
+    await asServer(db, (tx) => tx.query("select public.live_recording_saved($1, 'EG_other', $2)", [live, path]));
+    expect(await waiting("recording")).toHaveLength(0);
+
+    await asServer(db, (tx) => tx.query("select public.live_recording_saved($1, 'EG_one', $2)", [live, path]));
+    expect(await row(live)).toMatchObject({ recording_status: "saving", recording_path: path });
+    expect((await waiting("recording")).map((job) => job.payload)).toEqual([{ session_id: live }]);
+
+    const lesson = await asServer(db, (tx) => call<string>(tx, "select public.live_recording_handed($1, 'bunny', 'vid-123')", [live]));
+    const made = (await db.query<Row>("select title, source, published_at, video_provider, video_id, video_status from public.lessons where id = $1", [lesson])).rows[0];
+    expect(made).toEqual({ title: "London open, recorded", source: "recording", published_at: null, video_provider: "bunny", video_id: "vid-123", video_status: "processing" });
+    expect(await row(live)).toMatchObject({ recording_status: "saved", recording_path: null, lesson_id: lesson });
+
+    // The file is removed a day later, once the video host certainly has its own copy.
+    const removal = (await waiting("files_delete")).at(-1);
+    expect(removal?.payload).toEqual({ bucket: "recordings", paths: [path] });
+    expect(removal!.run_after.getTime()).toBeGreaterThan(Date.now() + 23 * HOUR);
+
+    // Told again, it does nothing twice.
+    await asServer(db, (tx) => tx.query("select public.live_recording_saved($1, 'EG_one', $2)", [live, path]));
+    expect(await waiting("recording")).toHaveLength(1);
+  });
+
+  it("takes a recording when the server had none on record", async () => {
+    const live = await start(kay, { title: "Recorded without a start" });
+    await end(kay, live);
+    await asServer(db, (tx) => tx.query("select public.live_recording_saved($1, 'EG_late', $2)", [live, `${space}/${live}.mp4`]));
+    expect(await row(live)).toMatchObject({ recording_status: "saving", egress_id: "EG_late" });
+  });
+
   it("keeps the server's own functions to the server", async () => {
     const any = (await schedule(kay))[0].id;
     for (const sql of [
@@ -310,6 +347,8 @@ describe("classes and the live room", () => {
       "select public.live_recording($1, 'saved')",
       "select public.live_recording_lesson($1)",
       "select * from public.live_for_alert($1)",
+      "select public.live_recording_saved($1, 'EG', 'x.mp4')",
+      "select public.live_recording_handed($1, 'bunny', 'v')",
     ]) {
       await expect(as(db, kay, (tx) => tx.query(sql, [any]))).rejects.toThrow(/permission denied/);
     }
