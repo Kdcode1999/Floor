@@ -18,7 +18,9 @@ export type Hold =
   /** The person's spaces could not be loaded. */
   | "space_trouble"
   | "none"
-  | "choose";
+  | "choose"
+  /** The one space the person belongs to has been suspended by Floor. */
+  | "suspended";
 
 export function stageFor(auth: AuthStatus, space: SpaceStatus): Stage {
   if (auth === "signed_out" || auth === "signing_in") return "sign-in";
@@ -30,6 +32,6 @@ export function holdFor(auth: AuthStatus, space: SpaceStatus): Hold {
   if (auth === "elsewhere" || auth === "device_limit" || auth === "trouble") return auth;
   if (auth !== "ready") return "loading";
   if (space === "trouble") return "space_trouble";
-  if (space === "none" || space === "choose") return space;
+  if (space === "none" || space === "choose" || space === "suspended") return space;
   return "loading";
 }

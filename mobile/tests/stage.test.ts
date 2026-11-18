@@ -10,7 +10,7 @@ describe("stageFor", () => {
 
   it("opens the app only when the login is good and a space is open", () => {
     expect(stageFor("ready", "ready")).toBe("app");
-    for (const space of ["idle", "loading", "trouble", "none", "choose"] as const) {
+    for (const space of ["idle", "loading", "trouble", "none", "choose", "suspended"] as const) {
       expect(stageFor("ready", space)).toBe("hold");
     }
   });
@@ -33,6 +33,10 @@ describe("holdFor", () => {
     expect(holdFor("ready", "none")).toBe("none");
     expect(holdFor("ready", "choose")).toBe("choose");
     expect(holdFor("ready", "trouble")).toBe("space_trouble");
+  });
+
+  it("says so when the person's one space has been suspended", () => {
+    expect(holdFor("ready", "suspended")).toBe("suspended");
   });
 
   it("waits while things load", () => {

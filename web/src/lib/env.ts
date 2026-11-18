@@ -18,3 +18,9 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/+$/,
 /** Store pages for the phone app. Empty until the app is in the stores. */
 export const APP_STORE_URL = process.env.NEXT_PUBLIC_APP_STORE_URL ?? "";
 export const PLAY_STORE_URL = process.env.NEXT_PUBLIC_PLAY_STORE_URL ?? "";
+
+/**
+ * Where people write to Floor itself: about a suspended space, their data, or anything a mentor
+ * cannot settle. Empty until it is set, and pages then leave the address out.
+ */
+export const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "";

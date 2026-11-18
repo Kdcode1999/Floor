@@ -119,6 +119,7 @@ describe("files shared with the phone app", () => {
     ["src/lib/initials.ts", "../mobile/src/lib/initials.ts"],
     ["src/features/learn/logic.ts", "../mobile/src/features/learn/logic.ts"],
     ["src/features/learn/types.ts", "../mobile/src/features/learn/types.ts"],
+    ["src/features/account/logic.ts", "../mobile/src/features/account/logic.ts"],
   ]) {
     it(`${web} matches the phone app's copy`, () => {
       expect(readFileSync(web, "utf8")).toBe(readFileSync(phone, "utf8"));

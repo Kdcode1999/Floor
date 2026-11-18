@@ -269,6 +269,34 @@ Newest at the bottom. Each entry says what was decided and why, so nobody has to
 - **A refund does not end VIP by itself.** Refunds happen in the processor's dashboard, between the
   mentor and the member. The mentor ends VIP under Members.
 
+- **A report goes to Floor, never to the mentor.** The mentor cannot see that they were reported
+  or by whom. Floor's own page shows the name the reporter goes by and never their email: Floor
+  judges the space, not the reporter. One open report per member per space.
+- **Floor's own team is a list in the database** (`platform_admins`), added to by hand. Its page is
+  `/admin` on the web. The database lets nobody else read a report or suspend a space, whatever
+  the page does.
+- **Suspending a space needs a note for its mentor.** Members can no longer open the space, nobody
+  can join or pay, and its join page says it is not available. The mentor and admins can still get
+  in, where they read Floor's note and where to answer. Restoring puts everything back as it was.
+  A join page is kept for a few minutes to stay fast, so it can outlive a suspension by that long.
+  Nothing on it works in that time: the database refuses.
+- **A member is told why a suspended space will not open.** It stays on their list, marked. It does
+  not just vanish.
+- **An account can be deleted in the app and on the web** (`/account`), by anyone signed in, even
+  someone who is in no space or whose space is suspended. It happens at once. Files and videos are
+  removed by queued jobs, a moment later.
+- **A mentor's account takes their space with it**, with every post, lesson, video and member's
+  place in it. They have to type the space's name to do it. There is no waiting period in v1:
+  members of a space that is deleted lose it that day. A waiting period is the first thing to
+  add if this is ever misused.
+- **Floor cannot refund what a member paid a mentor**, and says so on the delete screen. It never
+  held the money.
+- **The address people write to Floor at is a setting** (`SUPPORT_EMAIL`), not written into the
+  apps. With none set, screens leave it out.
+- **Made-up keys in tests are put together from parts.** A test needs a key with the right shape.
+  Written out whole, it reads as a leaked secret to the tool that guards the repo, which then
+  refuses the push. That guard stays on.
+
 ## Open
 
 - The service behind the live room. To be chosen when Live is built, on current prices.

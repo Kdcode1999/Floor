@@ -12,6 +12,7 @@ import { TextLink } from "@/components/TextLink";
 import { ActionTile } from "@/features/manage/ActionTile";
 import { approveRequest, declineRequest, loadRequests, type RequestItem } from "@/features/manage/api";
 import { RequestCard } from "@/features/manage/RequestCard";
+import { SuspendedNote } from "@/features/safety/SuspendedNote";
 import { sampleRequests } from "@/features/manage/sample";
 import { SettingsRow } from "@/features/manage/SettingsRow";
 import { timeAgo } from "@/lib/format";
@@ -58,6 +59,7 @@ export default function ManageScreen() {
 
   return (
     <Screen header={<SpaceHeader />} gap={16}>
+      <SuspendedNote />
       <View style={styles.tiles}>
         <ActionTile icon="plus" label="New post" onPress={() => router.push("/compose")} />
         <ActionTile icon="live" label="Go live" primary />

@@ -39,6 +39,18 @@ const handlers: Record<string, Handler> = {
     if (age < STILL_OPEN_MS) throw new Error("The payment has not gone through yet");
   },
 
+  /**
+   * An account or a space was deleted. The rows that pointed at its files went with it. The
+   * files themselves are removed here, through the file store's own door.
+   */
+  files_delete: async (job) => {
+    const bucket = job.payload.bucket;
+    const paths = Array.isArray(job.payload.paths) ? job.payload.paths.filter((path): path is string => typeof path === "string") : [];
+    if (typeof bucket !== "string" || paths.length === 0) return;
+    const { error } = await asServer().storage.from(bucket).remove(paths);
+    if (error) throw new Error(error.message);
+  },
+
   /** A lesson was deleted, so its video is removed from the video host. */
   video_delete: async (job) => {
     if (!videoConfigured) throw new Error("The video host is not set up");

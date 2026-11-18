@@ -14,6 +14,7 @@ import { LiveCard } from "@/features/feed/LiveCard";
 import { LockedCard } from "@/features/feed/LockedCard";
 import { OfferCard } from "@/features/feed/OfferCard";
 import { LessonCard, PostCard } from "@/features/feed/PostCard";
+import { SuspendedNote } from "@/features/safety/SuspendedNote";
 import { sampleLesson, sampleLive, samplePosts } from "@/features/feed/sample";
 import { SetupCard } from "@/features/feed/SetupCard";
 import type { FeedPost } from "@/features/feed/types";
@@ -77,6 +78,7 @@ export default function FeedScreen() {
 
   return (
     <Screen header={<SpaceHeader />} onRefresh={reload} refreshing={first.refreshing}>
+      <SuspendedNote />
       <AlertsCard />
       {first.loading ? (
         <Loading />

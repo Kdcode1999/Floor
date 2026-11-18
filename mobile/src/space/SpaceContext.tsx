@@ -8,7 +8,9 @@ import { supabase } from "@/lib/supabase";
 import { ThemeProvider } from "@/theme/ThemeContext";
 import { DEFAULT_THEME, themeFor, type ThemeName } from "@/theme/themes";
 
-export type Role = "mentor" | "admin" | "member";
+import { canOpen, type Role } from "./access";
+
+export type { Role } from "./access";
 
 /** The mentor's space as the app needs it. Mirrors the `spaces` table. */
 export interface Space {
@@ -21,6 +23,8 @@ export interface Space {
   blockCapture: boolean;
   /** The mentor's switch: the viewer's name is shown on paid video. */
   watermark: boolean;
+  /** True while Floor has the space suspended. Only its staff can be looking at it then. */
+  suspended: boolean;
 }
 
 /** What a mentor can change about the space's look. */
@@ -51,6 +55,8 @@ export interface SpaceEntry {
   logoPath: string | null;
   blockCapture: boolean;
   watermark: boolean;
+  /** True while Floor has the space suspended. Members cannot open it then. Its staff can. */
+  suspended: boolean;
   role: Role;
   vipUntil: string | null;
   /** The name the person goes by. */
@@ -67,6 +73,8 @@ export type SpaceStatus =
   | "none"
   /** A member of several spaces, and none is picked yet. */
   | "choose"
+  /** A member of one space, which Floor has suspended. */
+  | "suspended"
   | "ready";
 
 interface SpaceContextValue {
@@ -109,6 +117,7 @@ const SAMPLE: SpaceEntry = {
   logoPath: null,
   blockCapture: false,
   watermark: false,
+  suspended: false,
   role: "mentor",
   vipUntil: null,
   displayName: "You",
@@ -122,6 +131,7 @@ const BLANK: SpaceEntry = {
   logoPath: null,
   blockCapture: false,
   watermark: false,
+  suspended: false,
   role: "member",
   vipUntil: null,
   displayName: "",
@@ -142,24 +152,25 @@ interface SpaceRow {
   display_name: string;
 }
 
-/** The spaces a person belongs to and may open, in the order they joined them. */
+/**
+ * The spaces a person belongs to, in the order they joined them. A space Floor has suspended
+ * stays on the list, marked, so the app can say why it will not open.
+ */
 async function loadEntries(client: SupabaseClient): Promise<SpaceEntry[]> {
   const { data, error } = await client.rpc("my_spaces");
   if (error) throw new Error(error.message);
-  return ((data ?? []) as SpaceRow[])
-    // A space Floor has suspended is closed to its members. Its staff can still open it.
-    .filter((row) => row.status === "active" || row.role !== "member")
-    .map((row) => ({
-      id: row.id,
-      name: row.name,
-      theme: themeFor(row.theme).name,
-      logoPath: row.logo_path,
-      blockCapture: row.block_capture,
-      watermark: row.watermark,
-      role: row.role,
-      vipUntil: row.vip_until,
-      displayName: row.display_name,
-    }));
+  return ((data ?? []) as SpaceRow[]).map((row) => ({
+    id: row.id,
+    name: row.name,
+    theme: themeFor(row.theme).name,
+    logoPath: row.logo_path,
+    blockCapture: row.block_capture,
+    watermark: row.watermark,
+    suspended: row.status === "suspended",
+    role: row.role,
+    vipUntil: row.vip_until,
+    displayName: row.display_name,
+  }));
 }
 
 interface Loaded {
@@ -223,8 +234,10 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
     else if (mine.detail) status = "trouble";
     else if (entries.length === 0) status = "none";
     else {
-      entry = entries.length === 1 ? entries[0] : (entries.find((each) => each.id === chosenId) ?? null);
-      status = entry ? "ready" : "choose";
+      const picked = entries.length === 1 ? entries[0] : (entries.find((each) => each.id === chosenId) ?? null);
+      // A member cannot open a space Floor has suspended. Its staff can.
+      entry = picked && canOpen(picked) ? picked : null;
+      status = entry ? "ready" : entries.length === 1 ? "suspended" : "choose";
     }
 
     const shown = entry ?? BLANK;
@@ -242,6 +255,7 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
         logo: shown.logoPath === null ? null : auth.sample ? shown.logoPath : logoUrl(shown.logoPath),
         blockCapture: shown.blockCapture,
         watermark: shown.watermark,
+        suspended: shown.suspended,
       },
       viewer: { role: shown.role, vip, vipUntil: shown.vipUntil, name: shown.displayName },
       isStaff,

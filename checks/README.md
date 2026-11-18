@@ -35,6 +35,7 @@ From `mobile/` or `web/`, one at a time (they share ports):
 | `phone_learn.py` | Learn and Protection: upload, watch, progress | the real database, server routes, video host stand-in |
 | `web_mentor.py` | The mentor's laptop page: course and video upload | the real database, server routes, video host stand-in |
 | `phone_alerts.py` | Alerts: who is told when a setup is posted, a member's switches, signing out | the real database, server routes, notification stand-in |
+| `web_safety.py` | Reporting a space, Floor suspending and restoring it, and deleting an account | the real database, server routes, and the phone app |
 | `web_pay.py` | Card payments: the mentor connects, members pay, and what happens when it goes wrong | the real database, server routes, processor stand-ins, and the phone app at the end |
 
 ```bash

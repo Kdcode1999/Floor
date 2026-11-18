@@ -17,6 +17,12 @@ export const backendConfigured = SUPABASE_URL !== "" && SUPABASE_KEY !== "";
 /** Where the web app lives, with no slash at the end. Join links are built from it. */
 export const SITE_URL = (process.env.EXPO_PUBLIC_SITE_URL ?? "").replace(/\/+$/, "");
 
+/**
+ * Where people write to Floor itself: about a suspended space, their data, or anything a mentor
+ * cannot settle. Empty until it is set, and screens then leave the address out.
+ */
+export const SUPPORT_EMAIL = process.env.EXPO_PUBLIC_SUPPORT_EMAIL ?? "";
+
 /** A space's join link: the address a mentor shares. */
 export function joinLink(slug: string): string {
   return `${SITE_URL || "https://your-floor-address"}/${slug}`;

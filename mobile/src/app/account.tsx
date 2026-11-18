@@ -7,6 +7,7 @@ import { BackHeader } from "@/components/BackHeader";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Screen } from "@/components/Screen";
+import { TextLink } from "@/components/TextLink";
 import { useSpace, type Viewer } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
 
@@ -51,6 +52,11 @@ export default function AccountScreen() {
             <Button label="Start your own space" kind="ghost" onPress={() => router.push("/create")} />
           )}
           <Button label="Sign out" kind="ghost" onPress={auth.signOut} />
+          <View style={styles.quiet}>
+            {/* Staff do not report their own space. Anyone can delete their account. */}
+            {viewer.role === "member" ? <TextLink label="Report this space" onPress={() => router.push("/report")} /> : null}
+            <TextLink label="Delete account" onPress={() => router.push("/delete-account")} />
+          </View>
         </View>
       )}
     </Screen>
@@ -76,5 +82,6 @@ const styles = StyleSheet.create({
   line: { gap: 2, paddingVertical: 12 },
   divider: { height: 1 },
   actions: { gap: 10, paddingTop: 4 },
+  quiet: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", paddingTop: 4 },
   note: { paddingHorizontal: 10 },
 });

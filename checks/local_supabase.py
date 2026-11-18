@@ -234,10 +234,19 @@ class Api(http.server.BaseHTTPRequestHandler):
         if path == "/logout":
             self._raw()
             return self._reply(204)
-        if path.startswith("/admin/users/") and self.command == "DELETE":
+        if path.startswith("/admin/users/") and self.command in ("GET", "DELETE"):
+            # Only the secret key may read or delete an account this way. The library reads
+            # the account first and then deletes it, so both are answered.
             if (self._claims() or {}).get("role") != "service_role":
                 return self._reply(403, {"code": 403, "error_code": "not_admin", "msg": "User not allowed"})
-            local_db.run("delete from auth.users where id = %s", [path.removeprefix("/admin/users/")])
+            user_id = path.removeprefix("/admin/users/")
+            found = local_db.rows("select * from auth.users where id::text = %s", [user_id])
+            if not found:
+                return self._reply(404, {"code": 404, "error_code": "user_not_found", "msg": "User not found"})
+            if self.command == "GET":
+                return self._reply(200, _user(found[0]))
+            self._raw()
+            local_db.run("delete from auth.users where id::text = %s", [user_id])
             return self._reply(200, {})
         self._reply(404, {"message": f"The local backend does not know {url.path}"})
 

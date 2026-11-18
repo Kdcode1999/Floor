@@ -10,11 +10,14 @@ import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Icon } from "@/components/Icon";
 import { Screen } from "@/components/Screen";
-import { logoUrl, missingSettings } from "@/lib/env";
+import { TextLink } from "@/components/TextLink";
+import { suspendedForMember } from "@/features/safety/logic";
+import { logoUrl, missingSettings, SUPPORT_EMAIL } from "@/lib/env";
+import { canOpen } from "@/space/access";
 import { useSpace, type SpaceEntry } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
 
-const WORDS: Record<Exclude<Hold, "loading" | "choose">, { title: string; text: string }> = {
+const WORDS: Record<Exclude<Hold, "loading" | "choose" | "suspended">, { title: string; text: string }> = {
   elsewhere: {
     title: "Signed in on another phone",
     text: "Floor works on one phone at a time, and your account is now open on another one.",
@@ -77,6 +80,12 @@ export default function HoldScreen() {
     }
   };
   const signOut = <Button label="Sign out" kind="ghost" onPress={auth.signOut} />;
+  // Anyone signed in can delete their account, whatever else is stopping them.
+  const deleteAccount = (
+    <View style={styles.quiet}>
+      <TextLink label="Delete account" onPress={() => router.push("/delete-account")} />
+    </View>
+  );
 
   if (hold === "choose") {
     return (
@@ -90,10 +99,24 @@ export default function HoldScreen() {
           </AppText>
         </View>
         {space.entries.map((entry) => (
-          <SpaceRow key={entry.id} entry={entry} onPress={() => space.choose(entry.id)} />
+          <SpaceRow key={entry.id} entry={entry} onPress={canOpen(entry) ? () => space.choose(entry.id) : undefined} />
         ))}
-        <View style={styles.below}>{signOut}</View>
+        <View style={styles.below}>
+          {signOut}
+          {deleteAccount}
+        </View>
       </Screen>
+    );
+  }
+
+  if (hold === "suspended") {
+    const closed = suspendedForMember(space.entries[0]?.name ?? "This space", SUPPORT_EMAIL);
+    return (
+      <Notice title={closed.title} text={closed.text}>
+        <Button label="Check again" onPress={space.reload} />
+        {signOut}
+        {deleteAccount}
+      </Notice>
     );
   }
 
@@ -112,6 +135,7 @@ export default function HoldScreen() {
         <Button label="Start your own space" kind="ghost" onPress={() => router.push("/create")} />
       ) : null}
       {signOut}
+      {deleteAccount}
     </Notice>
   );
 }
@@ -154,17 +178,22 @@ function Notice({ title, text, detail, children }: NoticeProps) {
   );
 }
 
-function SpaceRow({ entry, onPress }: { entry: SpaceEntry; onPress: () => void }) {
+/** One of the person's spaces. Without `onPress` it cannot be opened: Floor has suspended it. */
+function SpaceRow({ entry, onPress }: { entry: SpaceEntry; onPress?: () => void }) {
   const theme = useTheme();
-  const place = entry.role === "mentor" ? "Your space" : entry.role === "admin" ? "You're an admin" : "Member";
+  const role = entry.role === "mentor" ? "Your space" : entry.role === "admin" ? "You're an admin" : "Member";
+  const place = onPress ? (entry.suspended ? `${role} · Suspended by Floor` : role) : "Closed for now: suspended by Floor";
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${entry.name}. ${place}`}
+      aria-disabled={!onPress}
+      disabled={!onPress}
       onPress={onPress}
       style={({ pressed }) => [
         styles.row,
         { backgroundColor: theme.card.background, borderColor: theme.card.border, boxShadow: theme.card.shadow },
+        !onPress && styles.closed,
         pressed && styles.pressed,
       ]}>
       <Avatar name={entry.name} image={entry.logoPath ? logoUrl(entry.logoPath) : null} size={44} />
@@ -176,12 +205,14 @@ function SpaceRow({ entry, onPress }: { entry: SpaceEntry; onPress: () => void }
           {place}
         </AppText>
       </View>
-      <Icon name="chevronRight" size={18} color={theme.text} />
+      {onPress ? <Icon name="chevronRight" size={18} color={theme.text} /> : null}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  quiet: { alignItems: "center" },
+  closed: { opacity: 0.6 },
   waiting: { paddingTop: 160, alignItems: "center" },
   top: { gap: 4, paddingTop: 44, paddingHorizontal: 6 },
   card: { gap: 20, padding: 22 },

@@ -59,12 +59,14 @@ With `mobile/.env` empty the app runs on a sample space, so screens can be looke
 | `features/join/` | Sign-in, joining, paying with proof, invite codes, all in the visitor's browser |
 | `app/mentor/`, `features/mentor/` | The mentor's laptop page: the course and video upload, and connecting a card processor |
 | `features/pay/` | Card payments' plain logic, shared by the pages and the server |
+| `app/account/`, `features/account/` | A person's own account on the web: deleting it |
+| `app/admin/`, `features/admin/` | Floor's own page: reports, suspending and restoring a space |
 | `features/session/` | Sign-in by emailed code for the pages staff use |
 | `app/api/`, `server/` | Floor's server. See below |
 | `components/`, `theme/` | The same look as the phone app, as CSS |
 
-Files both apps need (the themes, the sign-in messages, Learn's logic) are kept in both. A test in
-`web/` fails when the copies differ.
+Files both apps need (the themes, the sign-in messages, Learn's logic, the wording for deleting
+an account) are kept in both. A test in `web/` fails when the copies differ.
 
 ### Floor's server (`web/src/app/api`, `web/src/server`)
 
@@ -75,6 +77,7 @@ Files both apps need (the themes, the sign-in messages, Learn's logic) are kept 
 | `POST /api/video/play` | someone who may watch | Answers with a signed address for the video |
 | `POST /api/video/webhook` | the video host | Hears that a video changed, then asks the host itself |
 | `POST /api/jobs/run` | any signed-in app, and Vercel's timer | Does the jobs waiting in the queue |
+| `POST /api/account/delete` | anyone signed in | Deletes their account, and their space if they run one |
 | `POST /api/pay/connect` | the mentor | Tries their processor key, encrypts it and stores it |
 | `POST /api/pay/start` | a member | Starts a card payment and answers with the processor's page for it |
 | `POST /api/pay/confirm` | the page a member returns to, no login | Asks the processor what became of a payment, and adds the VIP days if it went through |
@@ -102,8 +105,9 @@ need to know about processors, such as which currencies each charges, is in
 | --- | --- | --- |
 | `alert` | `create_post` for a setup, `publish_lesson`, `settle_payment`, `note_payment_problem` | The server words the alert, asks the database who gets it (`alert_recipients`) and sends it |
 | `push_receipts` | the server, 30 minutes after an alert | Asks which phones took the alert and forgets the ones that are gone |
-| `video_delete` | `delete_lesson` | Removes the video from the video host |
+| `video_delete` | `delete_lesson`, `erase_account` | Removes the video from the video host |
 | `payment_check` | `start_payment`, for ten minutes later | Asks the processor about a payment nobody has confirmed yet |
+| `files_delete` | `erase_account` | Removes files from the file store after an account or space is deleted |
 
 Every job carries `actor`: who caused it. An alert leaves that person out.
 
@@ -119,6 +123,13 @@ Every job carries `actor`: who caused it. An alert leaves that person out.
 - `private.outbox` is the queue of jobs for Floor's server (alerts, Telegram, clean-up). Functions
   add to it with `private.enqueue`. The server takes jobs with `claim_outbox` and reports back with
   `finish_outbox`, both open to the secret key only.
+- `reports` and `suspensions` are Floor's own. A member writes a report through `report_space`.
+  Only Floor's team (`platform_admins`) reads reports or changes a space's status, through
+  `admin_reports`, `suspend_space` and `restore_space`. A space's staff can read the note Floor
+  left them, and nothing else.
+- Deleting an account is two steps on the server: `erase_account` deletes the space the person
+  owns and queues the removal of files and videos, then Supabase deletes the account, which
+  takes with it every row that points at it.
 - `payments` is one row per try at paying by card. A member reads their own, staff read their
   space's. Only `start_payment` (as the member) and `settle_payment` (secret key) write to it.
 - `private.payment_accounts` holds each mentor's processor key, encrypted by the server. No app
@@ -138,6 +149,8 @@ Every job carries `actor`: who caused it. An alert leaves that person out.
 | Lessons and their video | no | yes | yes |
 | The queue, members, invite codes | no | no | yes |
 | Card payments | their own | their own | the space's |
+| Reports about the space | their own | their own | no |
+| Floor's note when suspended | no | no | yes |
 | The card processor's key | no | no | no: only Floor's server, encrypted |
 
 A member also needs the account's one claimed login (`private.has_access`). Staff do not: a

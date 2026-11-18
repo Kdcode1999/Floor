@@ -278,3 +278,33 @@ Things worth knowing:
 - If a member cannot start a payment (the mentor changed their key, say), the mentor gets an alert
   and `/mentor` says why, in the processor's own words.
 - Stripe is not connected yet. `docs/DECISIONS.md` says why and what it would take.
+
+## 9. Floor's own team, and where people write to
+
+**Put yourself on the team.** Floor's own page for reports and suspension is `/admin` on the web.
+Only people on Floor's team can use it, and the team is a list in the database. Sign in to Floor
+once with the email you want to use for this. Then, in the Supabase dashboard, open the SQL
+Editor and run this, with that email in place of the one shown:
+
+```sql
+insert into public.platform_admins (user_id)
+select id from auth.users where email = 'you@example.com';
+```
+
+Open `https://YOUR-SITE/admin` and sign in. To take someone off the team, delete their row.
+
+What you can do there: read the reports members send, suspend a space with a note that its
+mentor reads in the app, restore it, and close reports once you have dealt with them.
+
+**Choose the address people write to.** A suspended mentor, or anyone with a question Floor has
+to answer, needs somewhere to write. Use an address made for this, not your personal one: every
+member can see it.
+
+- In Vercel: `NEXT_PUBLIC_SUPPORT_EMAIL`
+- In `mobile/.env`, and later in the app's build settings: `EXPO_PUBLIC_SUPPORT_EMAIL`
+
+Until it is set, the screens that would show it leave it out.
+
+**Deleting an account.** Both stores require that people can delete their account. In the app it
+is under Account. On the web it is `https://YOUR-SITE/account`: Google Play asks for that address
+when you list the app.

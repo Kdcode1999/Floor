@@ -100,6 +100,7 @@ function GuardedStack() {
           <Stack.Screen name="picture" options={{ animation: "fade" }} />
           <Stack.Screen name="lesson" />
           <Stack.Screen name="alerts" />
+          <Stack.Screen name="report" />
         </Stack.Protected>
         <Stack.Protected guard={stage === "sign-in"}>
           <Stack.Screen name="sign-in" />
@@ -112,6 +113,7 @@ function GuardedStack() {
         <Stack.Protected guard={stage !== "sign-in"}>
           <Stack.Screen name="create" />
           <Stack.Screen name="mentor-terms" />
+          <Stack.Screen name="delete-account" />
         </Stack.Protected>
       </Stack>
     </>

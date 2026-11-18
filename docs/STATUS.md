@@ -37,12 +37,17 @@ Working today:
 - **Card payments**: the mentor connects their own Paystack or Flutterwave account on the web at
   `/mentor`. A member pays by card on the join page and is VIP at once, with nothing to approve.
   The mentor is alerted and sees who paid in the app. Floor never holds the money.
+- **Reports and suspension**: a member reports their space from the app. Floor's own team reads
+  reports on the web at `/admin`, and can suspend a space with a note to its mentor, and restore
+  it. A suspended space is closed to members and to the public, and the app says why.
+- **Deleting an account**: in the app, and on the web at `/account`. A mentor's account takes
+  their space with it. Files and videos are removed with it.
 
 With `mobile/.env` empty the app still opens on the sample space, with no sign-in, so the screens can be
 looked at without any setup.
 
-Checked: 144 database tests, 172 logic tests (114 phone, 58 web and server), and nine walk-throughs in
-Chrome. Six of them run against a real Postgres with Floor's migrations, with the mentor, a VIP member
+Checked: 157 database tests, 187 logic tests (122 phone, 65 web and server), and ten walk-throughs in
+Chrome. Seven of them run against a real Postgres with Floor's migrations, with the mentor, a VIP member
 and a free member each on their own phone. The Learn walk-through uploads a real video through the
 server to a stand-in for the video host, which checks every signature the way the real host does, and
 plays it back. The Alerts walk-through posts a setup in the app and checks who the server tells,
@@ -76,6 +81,7 @@ Each step is written out in `docs/SETUP.md`.
       (`npx expo start --go`), without alerts on Android
 - [ ] A Firebase project, so Android phones can get alerts (SETUP step 7)
 - [ ] Card payments: one secret in Vercel, then try a test payment (SETUP step 8)
+- [ ] Put yourself on Floor's own team, and choose the address people write to (SETUP step 9)
 
 Later, when the build reaches them: a live video service, a Telegram bot token, the Apple and Google
 developer accounts.
@@ -108,7 +114,8 @@ developer accounts.
 - [x] Database, server and mobile: Alerts (push)
 - [x] Mobile: the app's store id, build profiles, permission wording
 - [x] Database, server, web and mobile: card payments that unlock VIP by themselves
-- [ ] Report a space (mobile), suspend a space (Floor's own admin page)
+- [x] Report a space (mobile), suspend a space (Floor's own page at `/admin`)
+- [x] Delete an account, in the app and on the web
 
 ### 2. Community
 - [ ] Groups and chat
