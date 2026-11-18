@@ -82,6 +82,30 @@ from Supabase's live connection, which the checks cannot use. Without it a phone
 seconds, so chat works either way. The first real card payment should be a test one (SETUP step 8): it is the first
 time Floor's reading of Paystack's and Flutterwave's rules meets the real services.
 
+## See what is built, on your phone
+
+The code is written in the cloud and pushed to GitHub. Expo shows the copy on your computer, so
+that copy has to be brought up to date first. In PowerShell, one line at a time:
+
+```powershell
+cd $HOME\Projects\Floor
+git pull
+cd web
+npm install
+npx supabase db push
+cd ..\mobile
+npm install
+npx expo start --go -c
+```
+
+- `db push` asks for the database password. Type it there. It adds the tables for everything
+  built since the last push. Until it has run, the new screens show an error instead.
+- `--go` opens the app in Expo Go. Without it Expo now expects Floor's own build (SETUP step 6).
+- In Expo Go you can use the Feed, Learn, Chat and every Manage screen. Alerts need Floor's own
+  build. Video lessons, card payments and Telegram teasers also need their SETUP steps.
+
+Do this again whenever you want to see what has been added since.
+
 ## Needed from Kingsley
 
 Each step is written out in `docs/SETUP.md`.

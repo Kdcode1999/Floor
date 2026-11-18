@@ -20,7 +20,8 @@ For a quick look at the screens without a build, Expo Go still works:
 npx expo start --go
 ```
 
-Expo Go does not carry everything the app uses. On Android it gets no alerts.
+Expo Go does not carry everything the app uses. It gets no alerts, and the app says so there
+instead of loading that part.
 
 With no `.env` file the app opens on a sample space, seen as its mentor, with no sign-in. Once `.env`
 is filled in it opens on sign-in and shows the person's real space. `../docs/SETUP.md` has the steps.
