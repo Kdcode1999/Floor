@@ -57,6 +57,19 @@ describe("alerts", () => {
     await saveToken(gone, "ExponentPushToken[gone-phone]");
   });
 
+  it("take a web app's address, which is longer, and give it out like any other", async () => {
+    const subscription = JSON.stringify({
+      endpoint: `https://web.push.apple.com/${"Q".repeat(160)}`,
+      keys: { p256dh: "B".repeat(87), auth: "a".repeat(22) },
+    });
+    expect(subscription.length).toBeGreaterThan(300);
+    await saveToken(free, subscription, "web");
+    expect(await recipients("setup", false)).toContain(subscription);
+    await expect(saveToken(free, "x".repeat(2001), "web")).rejects.toThrow(/push_tokens_token/);
+    await expect(saveToken(free, "ExponentPushToken[free-phone]", "windows")).rejects.toThrow(/push_tokens_platform/);
+    await saveToken(free, "ExponentPushToken[free-phone]");
+  });
+
   it("cannot be read or written except through the functions", async () => {
     await expect(as(db, vee, (tx) => tx.query("select * from public.push_tokens"))).rejects.toThrow(/permission denied/);
     await expect(as(db, vee, (tx) => tx.query("select * from public.alert_recipients($1, 'setup')", [space]))).rejects.toThrow(/permission denied/);

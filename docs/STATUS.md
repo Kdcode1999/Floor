@@ -76,12 +76,17 @@ Working today:
   transfer or USDT, sends a screenshot as proof to the mentor's queue, says when one is waiting
   or was turned down and why, and takes an invite code, which turns VIP on at once.
 
+- **Floor for iPhone, as a web app**: the same app, built for the web, on its own address. In
+  Safari the Feed explains how to add it to the Home Screen; from there it runs full screen and
+  gets alerts, which Floor's server sends by the Web Push standard. The join page links to it.
+  A web app cannot block screenshots, so on iPhone paid video is protected by the viewer's name.
+
 - **The sample space**: with `mobile/.env` empty the app runs on a made-up community held in
   memory. Every screen above works in it with nothing set up, seen as the mentor, as a VIP member
   or as someone who has not paid. It is how the build is looked at in Expo Go today. See below.
 
-Checked: 202 database tests, 240 logic tests (172 phone, 68 web and server), 48 tests of the sample
-space, and thirteen walk-throughs in Chrome. One of them runs a live session with real video through LiveKit. One opens every screen of the sample space as
+Checked: 203 database tests, 243 logic tests (172 phone, 71 web and server), 48 tests of the sample
+space, and fourteen walk-throughs in Chrome. One of them runs a live session with real video through LiveKit. One opens every screen of the sample space as
 each of its three viewers. Nine run against a real Postgres with Floor's migrations, with the mentor, a VIP
 member and a free member each on their own phone. The Community walk-through has four people in one
 group at once: what one writes shows on the others' phones, and a link, a number, a mute, a report and
@@ -170,6 +175,7 @@ Each step is written out in `docs/SETUP.md`.
 - [ ] Put yourself on Floor's own team, and choose the address people write to (SETUP step 9)
 - [ ] Make Floor's Telegram bot and give its token to Vercel (SETUP step 10)
 - [ ] Rent a machine for live video and start Floor's LiveKit server on it (SETUP step 11)
+- [ ] Put the iPhone web app on its own address, with a key pair for its alerts (SETUP step 12)
 
 Later, when the build reaches them: storage for lesson video on Floor's own servers, and a way to collect the $50 a month. No Apple or Google developer accounts are needed.
 
@@ -222,7 +228,7 @@ Later, when the build reaches them: storage for lesson video on Floor's own serv
 - [x] Take card payments out: the mentor's Paystack and Flutterwave, the card checkout, the
       payments list. Transfer, USDT, broker link and invite code stay
 - [x] Now that no store rules apply: the app shows the way to VIP and takes invite codes
-- [ ] iPhone: Floor as a web app on the home screen, with alerts
+- [x] iPhone: Floor as a web app on the home screen, with alerts
 - [ ] Android: the app as a download from Floor's own site, updating itself
 - [ ] Live video and lesson video on Floor's own servers, recordings with them (no 50 MB limit)
 - [ ] The mentor pays Floor $50 a month

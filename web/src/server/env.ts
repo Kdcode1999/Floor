@@ -32,6 +32,19 @@ export const PUSH = {
   accessToken: process.env.EXPO_ACCESS_TOKEN ?? "",
 };
 
+/**
+ * Alerts to the iPhone web app, by the Web Push standard. A key pair of Floor's own: the public
+ * half also goes to the app (EXPO_PUBLIC_VAPID_PUBLIC_KEY), which hands it to the browser. The
+ * subject is an address push services can write to about problems, such as mailto:you@domain.
+ */
+export const WEB_PUSH = {
+  publicKey: process.env.VAPID_PUBLIC_KEY ?? "",
+  privateKey: process.env.VAPID_PRIVATE_KEY ?? "",
+  subject: process.env.VAPID_SUBJECT ?? "",
+};
+
+export const webPushConfigured = WEB_PUSH.publicKey !== "" && WEB_PUSH.privateKey !== "" && WEB_PUSH.subject !== "";
+
 /** Floor's Telegram bot, which posts notices in mentors' channels. */
 export const TELEGRAM = {
   /** Where Telegram's API lives. Only the walk-throughs point this somewhere else. */

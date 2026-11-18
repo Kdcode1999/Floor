@@ -23,6 +23,12 @@ export const SITE_URL = (process.env.EXPO_PUBLIC_SITE_URL ?? "").replace(/\/+$/,
  */
 export const SUPPORT_EMAIL = process.env.EXPO_PUBLIC_SUPPORT_EMAIL ?? "";
 
+/**
+ * The public half of Floor's key for alerts to the web app. A browser needs it to subscribe.
+ * Empty until set, and the web app then says alerts are not available.
+ */
+export const VAPID_PUBLIC_KEY = process.env.EXPO_PUBLIC_VAPID_PUBLIC_KEY ?? "";
+
 /** A space's join link: the address a mentor shares. */
 export function joinLink(slug: string): string {
   return `${SITE_URL || "https://your-floor-address"}/${slug}`;

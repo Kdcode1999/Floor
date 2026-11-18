@@ -4,6 +4,7 @@ import { alertWords, inPieces } from "./alertWords";
 import { PUSH } from "./env";
 import type { Job } from "./jobs";
 import { asServer } from "./supabase";
+import { isWebAddress, sendWebAlerts } from "./webPush";
 
 // Sending alerts to phones through Expo's notification service, which passes them on to Apple
 // and Google. The service answers each message with a ticket. A while later it can say, for
@@ -70,13 +71,16 @@ export async function sendAlert(job: Job): Promise<void> {
     p_except: actor,
   });
   if (asked.error) throw new Error(asked.error.message);
-  const tokens = ((asked.data ?? []) as { token: string }[]).map((row) => row.token);
-  if (tokens.length === 0) return;
+  const all = ((asked.data ?? []) as { token: string }[]).map((row) => row.token);
+  if (all.length === 0) return;
+  // The iPhone web app's addresses go straight to the browser's push service.
+  const tokens = all.filter((token) => !isWebAddress(token));
+  const web = await sendWebAlerts(all.filter(isWebAddress), words);
 
-  const dead: string[] = [];
+  const dead: string[] = [...web.dead];
   const tickets: Record<string, string> = {};
-  let sent = 0;
-  let lastProblem: unknown = null;
+  let sent = web.sent;
+  let lastProblem: unknown = web.failed > 0 ? new Error("The web push service refused an alert") : null;
   for (const piece of inPieces(tokens, 100)) {
     const messages = piece.map((to) => ({
       to,
@@ -100,7 +104,7 @@ export async function sendAlert(job: Job): Promise<void> {
   }
   // If nothing went out at all the job is tried again later. If some of it went out it is not:
   // a second try would alert the same people twice.
-  if (sent === 0) throw lastProblem instanceof Error ? lastProblem : new Error("No alert could be sent");
+  if (sent === 0 && (tokens.length > 0 || web.failed > 0)) throw lastProblem instanceof Error ? lastProblem : new Error("No alert could be sent");
 
   if (dead.length > 0) await database.rpc("forget_push_tokens", { p_tokens: dead });
   if (Object.keys(tickets).length > 0) {

@@ -29,6 +29,7 @@ From `mobile/` or `web/`, one at a time (they share ports):
 | --- | --- | --- |
 | `phone_sample.py` | The sample space: every screen built so far, seen as its mentor, a VIP member and someone who has not paid, and the three themes. Also the live room, the schedule and a class added and a session ended | nothing: the sample's own stand-in for the backend, inside the app |
 | `phone_vip.py` | Getting VIP in the app: the price and how to pay, a screenshot sent as proof, a turned-down proof explained, a wrong and a right invite code | the real database |
+| `phone_webapp.py` | Floor as the iPhone web app: the Home Screen files, Safari's card, turning alerts on from the Home Screen, and an alert decrypted as the iPhone would read it | the real database and server, a stand-in for Apple's push service, and its own build of the app |
 | `web_live.py` | Live with real video: the mentor broadcasts from the laptop with camera, microphone and screen, a VIP member watches and chats on the phone and switches to sound only, a free member is kept out, the session ends; a finished recording becomes a draft lesson; then the mentor broadcasts from the phone | LiveKit's open-source server, run here (`live_server.py` says how to build it), and the local backend |
 | `phone_sign_in.py` | Sign-in, starting a space, a second phone taking over | the scripted stand-in |
 | `web_join.py` | The join page: sign-in, joining, proof, invite codes | the scripted stand-in |
@@ -55,6 +56,7 @@ A script exits with an error if any check fails.
 | `local_supabase.py` | Supabase's sign-in, table API, functions and file storage | Requests run as the signed-in person under the real rules. Sign-in takes any email and the code `123456` |
 | `fake_video_host.py` | The video host | Checks upload tickets and playback addresses with its own copy of the host's rules, and serves a real short film in pieces |
 | `fake_push.py` | The notification service | Keeps every alert it is sent. Answers "this phone no longer has the app" for addresses with `gone` in them. A browser cannot get a phone's address, so walk-throughs put addresses in the database directly |
+| `fake_web_push.py` | Apple's push service, for the web app | Takes HTTPS only, with a certificate made for the run. Decrypts each message with the subscription's own key, the way the browser would, and keeps who signed it |
 | `fake_telegram.py` | Telegram's Bot API | Refuses a wrong token, a bad webhook secret and an empty message. Keeps what the bot posted and took down. Plays Telegram's other part too: it calls Floor's webhook with the registered secret, or with a wrong one on request, and can refuse a chat the way Telegram does when the bot was removed |
 | `stand_in.py` | Supabase, scripted | Answers whatever a walk-through tells it to. For cases a real database will not produce on demand |
 

@@ -15,9 +15,13 @@ export function logoUrl(path: string): string {
 /** Where the web app lives, for links people share. No slash at the end. */
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/+$/, "");
 
-/** Store pages for the phone app. Empty until the app is in the stores. */
-export const APP_STORE_URL = process.env.NEXT_PUBLIC_APP_STORE_URL ?? "";
-export const PLAY_STORE_URL = process.env.NEXT_PUBLIC_PLAY_STORE_URL ?? "";
+/**
+ * Where people get Floor on their phone. There are no store pages: iPhone uses the web app,
+ * added to the home screen, and Android downloads the app from Floor's own site. Each is
+ * empty until it is set, and the join page leaves that button out.
+ */
+export const APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/+$/, "");
+export const ANDROID_URL = process.env.NEXT_PUBLIC_ANDROID_URL ?? "";
 
 /**
  * Where people write to Floor itself: about a suspended space, their data, or anything a mentor

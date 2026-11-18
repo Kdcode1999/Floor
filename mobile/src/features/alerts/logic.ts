@@ -9,6 +9,8 @@ export type AlertState =
   | "not_asked"
   /** The person said no. Only the phone's own settings can change that now. */
   | "refused"
+  /** An iPhone in Safari: alerts come once Floor is added to the home screen. */
+  | "needs_home_screen"
   | "on";
 
 /** What travels with an alert. */
@@ -44,5 +46,6 @@ export function stateLine(state: AlertState): string {
   if (state === "on") return "Alerts are on for this phone.";
   if (state === "refused") return "Alerts are switched off for Floor in your phone's settings.";
   if (state === "not_asked") return "Alerts are off. Turn them on to hear about new setups the moment they are posted.";
+  if (state === "needs_home_screen") return "On iPhone, alerts work once Floor is on your Home Screen. In Safari, tap Share, then Add to Home Screen, and open Floor from there.";
   return "Alerts are not available in this copy of the app.";
 }

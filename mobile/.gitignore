@@ -50,6 +50,7 @@ example
 
 # web build made against the stand-in backend, for checks/sign_in.py
 dist-stand-in/
+dist-webapp/
 
 # python leftovers from checks/
 __pycache__/

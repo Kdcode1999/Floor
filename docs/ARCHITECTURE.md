@@ -244,3 +244,16 @@ In the phone app, `features/live/useLiveRoom.ts` joins the room with `livekit-cl
 through `@livekit/react-native` (loaded only in the installed app, `features/live/native.ts`) and in
 a browser directly. `VideoSurface.tsx` and `VideoSurface.web.tsx` draw a track on each. The
 laptop page's broadcaster is `web/src/features/mentor/Live.tsx`.
+
+## The iPhone web app
+
+`mobile/` builds for the web too (`npx expo export --platform web`), and that build is Floor on
+iPhone, hosted as its own Vercel project (`mobile/vercel.json`). `mobile/public/` holds what only
+the web build has: the page with its Home Screen tags, the manifest, the icons, and `sw.js`, the
+service worker, which shows alerts and opens the right screen when one is tapped.
+
+Files ending in `.web.tsx` or `.web.ts` take the place of their phone versions in that build:
+`features/alerts/push.web.ts` subscribes to Web Push and gives Floor the subscription as its
+address (`push_tokens.platform = 'web'`), and `InstallCard.web.tsx` explains the Home Screen in
+Safari. On the server, `server/webPush.ts` sends to those addresses and `server/push.ts` sends
+the rest through Expo's service.

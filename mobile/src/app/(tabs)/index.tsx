@@ -8,6 +8,7 @@ import { Screen } from "@/components/Screen";
 import { SpaceHeader } from "@/components/SpaceHeader";
 import { TextLink } from "@/components/TextLink";
 import { AlertsCard } from "@/features/alerts/AlertsCard";
+import { InstallCard } from "@/features/alerts/InstallCard";
 import { loadFeed, PAGE } from "@/features/feed/api";
 import { LockedCard } from "@/features/feed/LockedCard";
 import { OfferCard } from "@/features/feed/OfferCard";
@@ -82,6 +83,7 @@ export default function FeedScreen() {
     <Screen header={<SpaceHeader />} onRefresh={reload} refreshing={first.refreshing}>
       <SampleStrip />
       <SuspendedNote />
+      <InstallCard />
       <AlertsCard />
       {live ? (
         <LiveCard

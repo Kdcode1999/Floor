@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { Button, Card, Field } from "@/components/ui";
-import { APP_STORE_URL, PLAY_STORE_URL, SITE_URL } from "@/lib/env";
+import { ANDROID_URL, APP_URL, SITE_URL } from "@/lib/env";
 
 import { days, declinedLine, formatDay, isVip, latestRequests, type AccessRequest, type PublicSpace, type RequestKind } from "./logic";
 import type { Join } from "./useJoin";
@@ -58,16 +58,21 @@ export function MemberView({ space, price, join }: MemberViewProps) {
         <p className="body">
           Open the Floor app on your phone and sign in with <span className="strong">{join.email}</span>.
         </p>
-        {APP_STORE_URL || PLAY_STORE_URL ? (
+        {APP_URL || ANDROID_URL ? (
           <div className="stack">
-            {APP_STORE_URL ? (
-              <a className="btn btn-ghost" href={APP_STORE_URL}>
-                Get it for iPhone
-              </a>
+            {APP_URL ? (
+              <>
+                <a className="btn btn-ghost" href={APP_URL}>
+                  Open Floor on iPhone
+                </a>
+                <p className="small">
+                  In Safari, tap Share, then Add to Home Screen. Floor then opens like an app and can send you alerts.
+                </p>
+              </>
             ) : null}
-            {PLAY_STORE_URL ? (
-              <a className="btn btn-ghost" href={PLAY_STORE_URL}>
-                Get it for Android
+            {ANDROID_URL ? (
+              <a className="btn btn-ghost" href={ANDROID_URL}>
+                Get Floor for Android
               </a>
             ) : null}
           </div>

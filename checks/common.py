@@ -125,7 +125,15 @@ def _elsewhere(address: str) -> bool:
     return parts.scheme in ("http", "https", "ws", "wss") and parts.hostname not in ("127.0.0.1", "localhost")
 
 
-def open_phone(p: Playwright, problems: list[str], ignore: tuple[str, ...] = (), laptop: bool = False, media: bool = False):
+def open_phone(
+    p: Playwright,
+    problems: list[str],
+    ignore: tuple[str, ...] = (),
+    laptop: bool = False,
+    media: bool = False,
+    user_agent: str | None = None,
+    init_script: str | None = None,
+):
     """Opens Chrome at phone size, or at laptop size for the pages a mentor uses on one.
     Browser errors and warnings are collected into `problems`. With `media`, the browser has a
     made-up camera and microphone, says yes when a page asks for them, and plays sound unasked."""
@@ -146,8 +154,13 @@ def open_phone(p: Playwright, problems: list[str], ignore: tuple[str, ...] = (),
         context = browser.new_context(viewport={"width": 1280, "height": 800})
     else:
         context = browser.new_context(
-            viewport={"width": 390, "height": 844}, device_scale_factor=2, has_touch=True, is_mobile=True
+            viewport={"width": 390, "height": 844}, device_scale_factor=2, has_touch=True, is_mobile=True,
+            **({"user_agent": user_agent} if user_agent else {}),
         )
+    # Runs in every page before the app does: how a check makes Chrome look like an iPhone's
+    # home-screen app, for one.
+    if init_script:
+        context.add_init_script(init_script)
     # Nothing a check opens may leave this machine. A page from somewhere else (YouTube's player
     # inside a post) would make the result depend on the network and on that site's own messages,
     # so it is answered here with an empty page.
@@ -173,8 +186,18 @@ def clear_pictures(prefix: str) -> None:
 class Phone:
     """One person's phone: Chrome at phone size, and the few moves every walk-through makes."""
 
-    def __init__(self, p: Playwright, base: str, prefix: str, problems: list[str], ignore: tuple[str, ...] = (), media: bool = False):
-        self.browser, self.page = open_phone(p, problems, ignore, media=media)
+    def __init__(
+        self,
+        p: Playwright,
+        base: str,
+        prefix: str,
+        problems: list[str],
+        ignore: tuple[str, ...] = (),
+        media: bool = False,
+        user_agent: str | None = None,
+        init_script: str | None = None,
+    ):
+        self.browser, self.page = open_phone(p, problems, ignore, media=media, user_agent=user_agent, init_script=init_script)
         self.base = base
         self.prefix = prefix
 

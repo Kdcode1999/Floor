@@ -364,3 +364,52 @@ and the phone shows it. End the session: with recordings set up, a few minutes l
 lesson with the session's title appears in Learn, under "Live recordings".
 
 Live video does not play in Expo Go. It needs the app built in step 6, or the web app.
+
+## 12. Floor for iPhone: the web app
+
+iPhone users get Floor as a web app they add to their Home Screen. It is the phone app itself,
+built for the web, on an address of its own such as `app.yourdomain.com`. No App Store, no
+review, no cut.
+
+**Make a key pair for alerts.** In a terminal, in the `web` folder:
+
+```
+npx web-push generate-vapid-keys
+```
+
+It prints a public key and a private key. The private key signs every alert Floor sends to an
+iPhone: it goes only into Vercel, never into a chat or an email.
+
+**Give the keys to Floor's server.** In the Vercel project you made in step 4, Settings,
+Environment Variables, for Production: `VAPID_PUBLIC_KEY` (the public key), `VAPID_PRIVATE_KEY`
+(the private key, tick "Sensitive") and `VAPID_SUBJECT` (`mailto:` and an address you read, such
+as `mailto:alerts@yourdomain.com`).
+
+**Make a second Vercel project for the app.** In Vercel: Add New, Project, the same `Floor`
+repository. Set Root Directory to `mobile` and leave the framework as "Other": the build
+command and output are already in `mobile/vercel.json`. Before deploying, add these Environment
+Variables:
+
+| Name | Value |
+| --- | --- |
+| `EXPO_PUBLIC_SUPABASE_URL` | the same as in `mobile/.env` |
+| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | the same as in `mobile/.env` |
+| `EXPO_PUBLIC_SITE_URL` | the web app's address from step 4, with no slash at the end |
+| `EXPO_PUBLIC_SUPPORT_EMAIL` | where people write to Floor |
+| `EXPO_PUBLIC_VAPID_PUBLIC_KEY` | the public key from above |
+
+Deploy. Under Settings, Domains, give it its address, such as `app.yourdomain.com`.
+
+**Point the join page at it.** Back in the first Vercel project, add `NEXT_PUBLIC_APP_URL` with
+the app's address and redeploy. Members who join on the web then get an "Open Floor on iPhone"
+button.
+
+**Try it on an iPhone** (iOS 16.4 or later):
+
+1. In Safari, open the app's address and sign in. The Feed shows "Put Floor on your Home Screen".
+2. Tap Share, then Add to Home Screen. Open Floor from the new icon: it runs full screen.
+3. Tap "Turn on alerts" and allow them.
+4. From another phone or the laptop, post a setup as the mentor. The iPhone gets the alert.
+
+What a web app cannot do on iPhone: stop screenshots and screen recording. Paid video there is
+protected by the viewer's name on it.

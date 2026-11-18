@@ -426,6 +426,17 @@ Kingsley's calls. These replace the earlier entries they contradict, which stay 
   shows the mentor's price and how to pay them, takes a screenshot as proof for the mentor's
   queue, and takes an invite code. This replaces the earlier rule that the app had no upgrade
   button. The join page keeps the same ways in, for people who start on the web.
+- **The iPhone web app is the phone app itself, built for the web.** One codebase: the screens,
+  the rules and the sample are the same. It lives on its own address as a second Vercel project,
+  separate from the join page, so neither build waits for the other.
+- **Alerts to the web app go by the Web Push standard, from Floor's own server.** A key pair of
+  Floor's own signs them, and each is encrypted for the one browser it is for. No outside
+  notification service is involved, and nothing is paid per message. Expo's service still
+  carries the Android app's alerts.
+- **The web app caches nothing.** Its service worker only shows alerts. Every open loads the
+  newest build, so nobody is stuck on an old one.
+- **Safari is told plainly how to add Floor to the Home Screen**, because it offers no button
+  that does it, and alerts on iPhone only work from there.
 - **The mentor pays Floor a flat $50 a month.** It is the only money Floor takes. How it is
   collected is decided when that piece is built.
 
