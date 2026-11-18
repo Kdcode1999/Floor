@@ -14,31 +14,49 @@ import { OfferCard } from "@/features/feed/OfferCard";
 import { LessonCard, PostCard } from "@/features/feed/PostCard";
 import { SetupCard } from "@/features/feed/SetupCard";
 import type { FeedPost } from "@/features/feed/types";
+import { loadSchedule } from "@/features/live/api";
+import { ClassCard } from "@/features/live/ClassCard";
+import { LiveCard } from "@/features/live/LiveCard";
+import { liveNow, upcoming } from "@/features/live/logic";
 import { SuspendedNote } from "@/features/safety/SuspendedNote";
 import { SampleStrip } from "@/features/sample/SampleStrip";
 import { database } from "@/lib/database";
 import { timeAgo } from "@/lib/format";
 import { useLoad } from "@/lib/useLoad";
+import { useNow } from "@/lib/useNow";
 import { useSpace } from "@/space/SpaceContext";
 
-/** The Feed: pinned offers, then what the mentor has shared, newest first. */
+/** The Feed: the live session or the next class, pinned offers, then what the mentor has shared, newest first. */
 export default function FeedScreen() {
+  const router = useRouter();
   const { space, isStaff } = useSpace();
+  const now = useNow();
 
   const first = useLoad(space.id ? () => loadFeed(database, space.id) : null, `feed:${space.id}`);
+  // What is on and what is coming. If this cannot be read the Feed still shows, without it.
+  const classes = useLoad(space.id ? () => loadSchedule(database, space.id) : null, `classes:${space.id}`);
   /** Pages of older posts, loaded one at a time with "Show older posts". */
   const [older, setOlder] = useState<{ space: string; posts: FeedPost[]; end: boolean }>({ space: "", posts: [], end: false });
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [olderError, setOlderError] = useState<string | null>(null);
 
   // Look again whenever the person comes back to the Feed.
-  const { reload } = first;
+  const reloadFeed = first.reload;
+  const reloadClasses = classes.reload;
+  const reload = () => {
+    reloadFeed();
+    reloadClasses();
+  };
   useFocusEffect(
     useCallback(() => {
-      reload();
+      reloadFeed();
+      reloadClasses();
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []),
   );
+
+  const live = liveNow(classes.data ?? []);
+  const next = live ? null : (upcoming(classes.data ?? [], now)[0] ?? null);
 
   const page = first.data ?? [];
   const extra = older.space === space.id ? older.posts.filter((post) => !page.some((each) => each.id === post.id)) : [];
@@ -65,6 +83,16 @@ export default function FeedScreen() {
       <SampleStrip />
       <SuspendedNote />
       <AlertsCard />
+      {live ? (
+        <LiveCard
+          session={live}
+          now={now}
+          action={isStaff ? "Open the room" : "Join session"}
+          onJoin={() => router.push({ pathname: "/live", params: { id: live.id } })}
+        />
+      ) : next ? (
+        <ClassCard item={next} now={now} label="Next class" onPress={() => router.push("/classes")} />
+      ) : null}
       {first.loading ? (
         <Loading />
       ) : first.error ? (

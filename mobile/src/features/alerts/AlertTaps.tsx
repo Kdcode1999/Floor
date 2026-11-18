@@ -1,4 +1,4 @@
-import { useRouter, type Href } from "expo-router";
+import { useRouter } from "expo-router";
 import { useEffect, useRef } from "react";
 
 import { useSpace } from "@/space/SpaceContext";
@@ -39,7 +39,7 @@ function Taps({ notifications }: { notifications: NonNullable<typeof Notificatio
     }
     handled.current = id;
     // A screen inside Manage opens with Mentor home underneath it, so Back has somewhere to go.
-    router.push(routeFor(data) as Href, { withAnchor: true });
+    router.push(routeFor(data), { withAnchor: true });
   }, [response, status, space.id, entries, choose, router]);
 
   return null;

@@ -5,7 +5,7 @@ import { hasLink, hasPhone } from "../src/features/chat/logic";
 import { createBackend, SAMPLE_ANSWERS } from "../src/sample/backend";
 import { CONNECTS_AFTER_MS } from "../src/sample/functions/telegram";
 import { PEOPLE, SPACE } from "../src/sample/people";
-import { createWorld, GROUPS, LESSONS, POSTS, REPORTED_MESSAGE } from "../src/sample/seed";
+import { createWorld, GROUPS, LESSONS, POSTS, REPORTED_MESSAGE, SESSIONS } from "../src/sample/seed";
 import { SAMPLE_PEOPLE } from "../src/sample/session";
 import { toBase64 } from "../src/sample/storage";
 
@@ -641,5 +641,78 @@ describe("files", () => {
     const { as } = sample();
     expect((await refusal(as("kay").rpc("no_such_function")))?.code).toBe("PGRST202");
     expect((await as("kay").from("no_such_table").select("id")).error?.code).toBe("42P01");
+  });
+});
+
+// --- Live --------------------------------------------------------------------------------------
+
+describe("live", () => {
+  it("shows the live session and the classes to every member, locked for a free one", async () => {
+    const { as } = sample();
+    const forVee = await rows(as("vee").rpc("live_schedule", { p_space: SPACE }));
+    expect(forVee.map((each) => each.id)).toEqual([SESSIONS.live, SESSIONS.tomorrow, SESSIONS.later]);
+    expect(forVee[0].state).toBe("live");
+    expect(forVee.every((each) => each.locked === false && each.recording_status === null)).toBe(true);
+    const forNew = await rows(as("newcomer").rpc("live_schedule", { p_space: SPACE }));
+    expect(forNew.every((each) => each.locked === true && each.about === null)).toBe(true);
+    const forKay = await rows(as("kay").rpc("live_schedule", { p_space: SPACE }));
+    expect(forKay.map((each) => each.id)).toContain(SESSIONS.past);
+  });
+
+  it("opens the room for VIP and staff only, with its own chat", async () => {
+    const { as } = sample();
+    const pass = (await as("vee").server("/api/live/join", { session: SESSIONS.live })) as { ok: boolean; data: Record<string, unknown> };
+    expect(pass.ok).toBe(true);
+    expect(pass.data.groupId).toBe(GROUPS.live);
+    expect(pass.data.sampleFilm).toBe("asset://lesson");
+    expect(await as("newcomer").server("/api/live/join", { session: SESSIONS.live })).toEqual({ ok: false, code: "not_allowed" });
+    const said = await rows(as("vee").rpc("chat_page", { p_group: GROUPS.live }));
+    expect(said.length).toBeGreaterThan(3);
+  });
+
+  it("keeps the session's chat out of the list of groups", async () => {
+    const { as } = sample();
+    const groups = await rows(as("kay").rpc("my_groups", { p_space: SPACE }));
+    expect(groups.map((each) => each.id)).not.toContain(GROUPS.live);
+    expect((await refusal(as("kay").rpc("delete_group", { p_group: GROUPS.live })))?.code).toBe("42501");
+  });
+
+  it("lets staff schedule, change and cancel, and nobody else", async () => {
+    const { as, clock } = sample();
+    const at = new Date(clock.now + 2 * DAY).toISOString();
+    expect((await refusal(as("vee").rpc("save_class", { p_space: SPACE, p_title: "Mine", p_starts_at: at })))?.code).toBe("42501");
+    const { data: id } = await as("kay").rpc("save_class", { p_space: SPACE, p_title: "Q&A", p_starts_at: at });
+    expect(typeof id).toBe("string");
+    expect((await refusal(as("kay").rpc("save_class", { p_space: SPACE, p_title: "Past", p_starts_at: new Date(clock.now - DAY).toISOString() })))?.message).toBe("bad_time");
+    await as("kay").rpc("save_class", { p_space: SPACE, p_title: "Q&A, moved", p_starts_at: at, p_session: id });
+    expect((await rows(as("vee").rpc("live_schedule", { p_space: SPACE }))).find((each) => each.id === id)?.title).toBe("Q&A, moved");
+    await as("kay").rpc("cancel_class", { p_session: id });
+    expect((await rows(as("vee").rpc("live_schedule", { p_space: SPACE }))).some((each) => each.id === id)).toBe(false);
+  });
+
+  it("allows one session at a time, and ending it closes the chat and makes a draft lesson", async () => {
+    const { as, world } = sample();
+    expect((await refusal(as("kay").rpc("live_start", { p_space: SPACE, p_title: "Another" })))?.message).toBe("already_live");
+    expect(await as("vee").server("/api/live/end", { session: SESSIONS.live })).toEqual({ ok: false, code: "not_allowed" });
+    expect((await as("kay").server("/api/live/end", { session: SESSIONS.live })).ok).toBe(true);
+    const row = world.live_sessions.find((each) => each.id === SESSIONS.live);
+    expect(row?.status).toBe("ended");
+    expect(row?.recording_status).toBe("saved");
+    const lesson = world.lessons.find((each) => each.id === row?.lesson_id);
+    expect(lesson?.published_at).toBeNull();
+    expect(world.modules.find((each) => each.id === lesson?.module_id)?.title).toBe("Live recordings");
+    expect(world.groups.find((each) => each.id === GROUPS.live)?.posting).toBe("staff");
+    expect(await as("vee").server("/api/live/join", { session: SESSIONS.live })).toEqual({ ok: false, code: "not_live" });
+  });
+
+  it("starts a scheduled class with a chat of its own, and hands the broadcast over", async () => {
+    const { as, world } = sample();
+    await as("kay").server("/api/live/end", { session: SESSIONS.live });
+    const { data: id } = await as("kay").rpc("live_start", { p_space: SPACE, p_session: SESSIONS.tomorrow });
+    expect(id).toBe(SESSIONS.tomorrow);
+    expect(world.groups.some((each) => each.session_id === id)).toBe(true);
+    expect((await as("kay").rpc("live_heartbeat", { p_session: id })).data).toBe("live");
+    await as("tobi").rpc("live_start", { p_space: SPACE, p_session: id });
+    expect((await as("kay").rpc("live_heartbeat", { p_session: id })).data).toBe("taken_over");
   });
 });

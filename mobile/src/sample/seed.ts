@@ -14,6 +14,7 @@ import {
   settings,
   type GroupRow,
   type LessonRow,
+  type LiveRow,
   type MessageRow,
   type PostRow,
   type SampleAsset,
@@ -29,6 +30,17 @@ export const GROUPS = {
   vip: fixedId(0x202),
   announcements: fixedId(0x203),
   meetup: fixedId(0x204),
+  /** The chat of the session that is live. It is reached from the live room, not from Chat. */
+  live: fixedId(0x205),
+} as const;
+
+export const SESSIONS = {
+  /** On right now, with an admin broadcasting. */
+  live: fixedId(0x601),
+  tomorrow: fixedId(0x602),
+  later: fixedId(0x603),
+  /** Over, two days ago. */
+  past: fixedId(0x604),
 } as const;
 
 export const MODULES = { foundations: fixedId(0x301), london: fixedId(0x302) } as const;
@@ -325,6 +337,7 @@ export function createWorld(now: number): World {
     position,
     created_at: ago(40 * DAY),
     last_message_at: null,
+    session_id: null,
   });
   world.groups.push(
     group(GROUPS.general, 0, "General", "Open to everyone in the space.", "everyone", "all"),
@@ -393,6 +406,60 @@ export function createWorld(now: number): World {
   say(GROUPS.meetup, "kay", 5 * DAY, "For everyone coming to the Lagos meetup. The date and the place will be posted here.");
   say(GROUPS.meetup, "vee", 5 * DAY - HOUR, "Count me in.");
   say(GROUPS.meetup, "chidi", 5 * DAY - 2 * HOUR, "I will be there.");
+
+  // --- Live -----------------------------------------------------------------------------------
+  // One session is on, so the live room can be seen. It stays on until someone ends it.
+  const session = (id: string, title: string, about: string | null, startsAt: string, more: Partial<LiveRow> = {}): LiveRow => ({
+    id,
+    space_id: SPACE,
+    title,
+    about,
+    starts_at: startsAt,
+    status: "scheduled",
+    started_at: null,
+    ended_at: null,
+    host_id: null,
+    host_seen_at: null,
+    record: true,
+    recording_status: "none",
+    lesson_id: null,
+    created_at: ago(6 * DAY),
+    ...more,
+  });
+  /** A time of day some days from now, on the clock the chat above talks about. */
+  const dayAt = (daysAhead: number, hour: number) => {
+    const day = new Date(now + daysAhead * DAY);
+    return iso(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), hour));
+  };
+  world.live_sessions.push(
+    session(SESSIONS.live, "Trade review: this week's setups", "Tobi goes through the week's setups and takes your questions.", ago(12 * MINUTE), {
+      status: "live",
+      started_at: ago(12 * MINUTE),
+      host_id: PEOPLE.tobi,
+      host_seen_at: ago(0),
+    }),
+    session(SESSIONS.tomorrow, "London open, live", "The London open as it happens. The setup will be in the Feed before we start.", dayAt(1, 8)),
+    session(SESSIONS.later, "Q&A: risk and position size", "Bring your questions on stops, size and what to risk on a trade.", dayAt(3, 18)),
+    session(SESSIONS.past, "London open, live", null, ago(2 * DAY + 3 * HOUR), {
+      status: "ended",
+      started_at: ago(2 * DAY + 3 * HOUR),
+      ended_at: ago(2 * DAY + 3 * HOUR - 52 * MINUTE),
+      host_id: PEOPLE.kay,
+      host_seen_at: ago(2 * DAY + 3 * HOUR - 52 * MINUTE),
+      record: false,
+    }),
+  );
+  world.groups.push({
+    ...group(GROUPS.live, 0, "Live: Trade review: this week's setups", "", "vip", "all"),
+    about: null,
+    created_at: ago(12 * MINUTE),
+    session_id: SESSIONS.live,
+  });
+  say(GROUPS.live, "tobi", 11 * MINUTE, "We are live. Questions go here as we go.");
+  say(GROUPS.live, "chidi", 9 * MINUTE, "Audio is clear on my side.");
+  const again = say(GROUPS.live, "ada", 6 * MINUTE, "Can you show the gold entry again?");
+  say(GROUPS.live, "tobi", 5 * MINUTE, "Yes, going back to it now.", { reply_to: again });
+  say(GROUPS.live, "vee", 2 * MINUTE, "The stop placement makes sense now.");
 
   // What each of the three has read, so each finds something new waiting.
   const read = (key: keyof typeof PEOPLE, groupId: string, time: number) =>

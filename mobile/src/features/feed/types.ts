@@ -40,13 +40,6 @@ export interface FeedPost {
   edited: boolean;
 }
 
-/** The mentor is live right now. Always shown first. */
-export interface LiveItem {
-  id: string;
-  title: string;
-  note: string;
-}
-
 /** A new lesson was added to Learn. */
 export interface LessonItem {
   id: string;

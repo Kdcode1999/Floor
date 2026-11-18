@@ -57,7 +57,7 @@ export default function ManageScreen() {
       <SuspendedNote />
       <View style={styles.tiles}>
         <ActionTile icon="plus" label="New post" onPress={() => router.push("/compose")} />
-        <ActionTile icon="live" label="Go live" primary />
+        <ActionTile icon="live" label="Go live" primary onPress={() => router.push("/manage/live")} />
         <ActionTile icon="lesson" label="Add lesson" onPress={() => router.push("/manage/learn")} />
       </View>
 

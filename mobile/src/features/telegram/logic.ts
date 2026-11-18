@@ -18,13 +18,14 @@ export interface TeaserStatus {
   lastError: string | null;
 }
 
-export type TeaserSwitch = "setups" | "posts" | "lessons";
+export type TeaserSwitch = "setups" | "posts" | "lessons" | "live";
 
 /** The kinds of notice a mentor can switch on and off, with what each one gives away. */
 export const TEASER_SWITCHES: { key: TeaserSwitch; label: string; detail: string }[] = [
   { key: "setups", label: "New setups", detail: "Says a setup was posted and names the pair. The entry, stop and targets stay in the app." },
   { key: "posts", label: "New posts", detail: "The first lines of a post for everyone. For a VIP post, its title and nothing more." },
   { key: "lessons", label: "New lessons", detail: "The lesson's title." },
+  { key: "live", label: "Going live", detail: "Says you are live and gives the session's title. Watching happens in the app, with VIP." },
 ];
 
 /** The line the mentor posts in their channel. */

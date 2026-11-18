@@ -40,12 +40,29 @@ export async function sendAlert(job: Job): Promise<void> {
   const found = await database.from("spaces").select("id, name").eq("id", job.space_id).limit(1);
   if (found.error) throw new Error(found.error.message);
   const space = (found.data ?? [])[0] as { id: string; name: string } | undefined;
-  // The space is gone, or the job is of a kind nobody is told about: nothing to send.
-  const words = space ? alertWords(job.payload, space) : null;
+  if (!space) return;
+
+  // An alert about a class or a live session is checked when its turn comes: a reminder waits
+  // in the queue for days, and the class may have moved or been cancelled since. The title is
+  // read now too, so it is the one the class has today.
+  let payload = job.payload;
+  if (payload.type === "class" || payload.type === "live") {
+    const still = await database.rpc("live_for_alert", {
+      p_session: payload.session_id,
+      p_starts_at: payload.type === "class" ? payload.starts_at : null,
+    });
+    if (still.error) throw new Error(still.error.message);
+    const session = ((still.data ?? []) as { title: string }[])[0];
+    if (!session) return;
+    payload = { ...payload, title: session.title };
+  }
+
+  // The job is of a kind nobody is told about: nothing to send.
+  const words = alertWords(payload, space);
   if (!words) return;
 
   // Whoever posted it is not told: they know.
-  const actor = typeof job.payload.actor === "string" ? job.payload.actor : null;
+  const actor = typeof payload.actor === "string" ? payload.actor : null;
   const asked = await database.rpc("alert_recipients", {
     p_space: job.space_id,
     p_type: words.kind,

@@ -35,7 +35,7 @@ describe("connecting a Telegram channel", () => {
 
 describe("what a mentor is told about their teasers", () => {
   it("offers a switch for each kind of notice, saying what it gives away", () => {
-    expect(TEASER_SWITCHES.map((each) => each.key)).toEqual(["setups", "posts", "lessons"]);
+    expect(TEASER_SWITCHES.map((each) => each.key)).toEqual(["setups", "posts", "lessons", "live"]);
     expect(TEASER_SWITCHES[0].detail).toContain("stay in the app");
     expect(TEASER_SWITCHES[1].detail).toContain("its title and nothing more");
   });

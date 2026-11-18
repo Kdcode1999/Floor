@@ -53,10 +53,11 @@ export function alertWords(payload: Record<string, unknown>, space: { id: string
     };
   }
   if (type === "class") {
-    // No time in the words: every member is in their own time zone, and the app shows it in theirs.
+    // A reminder, sent a quarter of an hour before a class. No time in the words: every member
+    // is in their own time zone, and the app shows it in theirs.
     return {
       title: space.name,
-      body: `New class: ${text(payload.title)}. Open Floor to see when.`,
+      body: `Starting soon: ${text(payload.title)}`,
       vipOnly: payload.audience !== "everyone",
       kind: "live",
       data: { type, space: space.id, id: text(payload.session_id) },

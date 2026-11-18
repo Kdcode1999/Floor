@@ -48,6 +48,14 @@ async function sourceFor(payload: Record<string, unknown>): Promise<TeaserSource
     const lesson = (found.data ?? [])[0] as { title: string; published_at: string | null } | undefined;
     return lesson?.published_at ? { type: "lesson", title: lesson.title } : null;
   }
+
+  if (type === "live" && typeof payload.session_id === "string") {
+    // Only while it is still on: a notice that arrives after the session is over helps nobody.
+    const found = await database.rpc("live_for_alert", { p_session: payload.session_id, p_starts_at: null });
+    if (found.error) throw new Error(found.error.message);
+    const session = ((found.data ?? []) as { title: string }[])[0];
+    return session ? { type: "live", title: session.title } : null;
+  }
   return null;
 }
 

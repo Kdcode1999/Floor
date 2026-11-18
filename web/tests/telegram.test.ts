@@ -58,6 +58,10 @@ describe("a notice in the mentor's Telegram channel", () => {
     expect(words.teaserFor({ type: "lesson", title: " Reading a chart " }, space, SITE)).toBe(`New lesson: Reading a chart\n\nWatch it inside, with VIP.\n\n${WHERE}`);
   });
 
+  it("says the mentor is live, by the session's title", () => {
+    expect(words.teaserFor({ type: "live", title: " London session " }, space, SITE)).toBe(`Live now: London session\n\nWatch it inside, with VIP.\n\n${WHERE}`);
+  });
+
   it("has a test line the mentor can ask for", () => {
     expect(words.teaserFor({ type: "test" }, space, `${SITE}/`)).toBe(`This is a test from Floor. Notices for Gold Desk will be posted here.\n\n${WHERE}`);
   });
@@ -73,6 +77,7 @@ describe("a notice in the mentor's Telegram channel", () => {
     expect(words.switchFor("setup")).toBe("tease_setups");
     expect(words.switchFor("post")).toBe("tease_posts");
     expect(words.switchFor("lesson")).toBe("tease_lessons");
+    expect(words.switchFor("live")).toBe("tease_live");
     expect(words.switchFor("test")).toBeNull();
   });
 });

@@ -70,6 +70,14 @@ function removeMessages(ctx: Ctx, groupId: string): void {
   ctx.world.message_reports = ctx.world.message_reports.filter((each) => !gone.has(each.message_id));
 }
 
+/** Takes a group away with everything said in it. */
+export function removeGroup(ctx: Ctx, groupId: string): void {
+  removeMessages(ctx, groupId);
+  ctx.world.group_members = ctx.world.group_members.filter((each) => each.group_id !== groupId);
+  ctx.world.group_reads = ctx.world.group_reads.filter((each) => each.group_id !== groupId);
+  ctx.world.groups = ctx.world.groups.filter((each) => each.id !== groupId);
+}
+
 export const chatFunctions = {
   // --- Reading -------------------------------------------------------------------------------
 
@@ -81,7 +89,8 @@ export const chatFunctions = {
     const joined = membershipOf(ctx, args.p_space)?.joined_at ?? null;
 
     return ctx.world.groups
-      .filter((group) => group.space_id === args.p_space)
+      // A live session's chat is reached from its room, never from this list.
+      .filter((group) => group.space_id === args.p_space && group.session_id === null)
       .sort((a, b) => a.position - b.position || a.created_at.localeCompare(b.created_at))
       .map((group) => ({ group, open: canReadGroup(ctx, group.id) }))
       .filter(({ group, open }) => open || group.audience === "vip")
@@ -308,7 +317,8 @@ export const chatFunctions = {
       if (posting !== "all" && posting !== "staff") throw failedCheck("groups", "groups_posting");
       return { name, about, audience, posting } as const;
     };
-    const mine = ctx.world.groups.filter((each) => each.space_id === args.p_space);
+    // A live session's group does not count towards the thirty, and is not changed here.
+    const mine = ctx.world.groups.filter((each) => each.space_id === args.p_space && each.session_id === null);
     if (args.p_group != null) {
       const found = mine.find((each) => each.id === args.p_group);
       if (!found) throw new Refusal("group_not_found");
@@ -323,6 +333,7 @@ export const chatFunctions = {
       position: mine.length === 0 ? 0 : Math.max(...mine.map((each) => each.position)) + 1,
       created_at: iso(ctx.now),
       last_message_at: null,
+      session_id: null,
     };
     ctx.world.groups.push(made);
     return made.id;
@@ -331,11 +342,9 @@ export const chatFunctions = {
   /** Deletes a group with everything said in it. Only the mentor may. */
   delete_group(ctx: Ctx, args: { p_group: string }) {
     const group = groupById(ctx, args.p_group);
-    if (!group || !isMentor(ctx, group.space_id)) throw notAllowed();
-    removeMessages(ctx, group.id);
-    ctx.world.group_members = ctx.world.group_members.filter((each) => each.group_id !== group.id);
-    ctx.world.group_reads = ctx.world.group_reads.filter((each) => each.group_id !== group.id);
-    ctx.world.groups = ctx.world.groups.filter((each) => each.id !== group.id);
+    // A live session's group goes with its session, not by hand.
+    if (!group || group.session_id !== null || !isMentor(ctx, group.space_id)) throw notAllowed();
+    removeGroup(ctx, group.id);
     return null;
   },
 

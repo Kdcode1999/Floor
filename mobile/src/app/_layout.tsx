@@ -100,6 +100,9 @@ function GuardedStack() {
           <Stack.Screen name="picture" options={{ animation: "fade" }} />
           <Stack.Screen name="lesson" />
           <Stack.Screen name="lesson-edit" />
+          <Stack.Screen name="live" />
+          <Stack.Screen name="classes" />
+          <Stack.Screen name="class-edit" />
           <Stack.Screen name="alerts" />
           <Stack.Screen name="report" />
           <Stack.Screen name="group" />

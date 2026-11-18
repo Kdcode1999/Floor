@@ -57,11 +57,21 @@ Working today:
   staff, carry a link or a number, or copy the name of the space, its mentor or an admin. The
   mentor and admins carry a badge no name can fake.
 
+- **Classes and the live room** (first part of Live): the mentor or an admin puts classes on a
+  schedule from the "Go live" tile, changes and cancels them, and VIP members are reminded 15
+  minutes before. Members see the next class at the top of the Feed and the whole schedule in
+  their own time. Going live puts a "Live now" card at the top of the Feed, alerts VIP members and,
+  if the mentor wants, tells the Telegram channel. The live room opens for VIP members and staff,
+  with a chat of its own under the video that the usual filter, mute, report and block all work in.
+  Free members see that a session is on and that it is for VIP. Ending a session closes its chat.
+  **The video itself comes next** (Live B): until then the room opens with its chat and says live
+  video is not switched on. In the sample space a short film stands in for the video.
+
 - **The sample space**: with `mobile/.env` empty the app runs on a made-up community held in
   memory. Every screen above works in it with nothing set up, seen as the mentor, as a VIP member
   or as someone who has not paid. It is how the build is looked at in Expo Go today. See below.
 
-Checked: 199 database tests, 249 logic tests (163 phone, 86 web and server), 41 tests of the sample
+Checked: 216 database tests, 263 logic tests (176 phone, 87 web and server), 47 tests of the sample
 space, and twelve walk-throughs in Chrome. One of them opens every screen of the sample space as
 each of its three viewers. Nine run against a real Postgres with Floor's migrations, with the mentor, a VIP
 member and a free member each on their own phone. The Community walk-through has four people in one
@@ -196,8 +206,9 @@ Later, when the build reaches them: a live video service, the Apple and Google d
 - [x] Telegram teaser bot
 
 ### 3. Live
-- [ ] Class schedule with reminders
-- [ ] Live room: video, laptop screen share, chat
+- [x] Class schedule with reminders
+- [x] Live room: who may enter, the session's chat, ending a session (video comes with the next item)
+- [ ] Live room video: broadcasting from the phone, and from the laptop with screen share
 - [ ] Recordings saved into Learn
 - [ ] Data saver
 

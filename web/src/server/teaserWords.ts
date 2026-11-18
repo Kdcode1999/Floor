@@ -14,13 +14,15 @@ export type TeaserSource =
   | { type: "setup"; audience: string; pair: string | null; side: string | null }
   | { type: "post"; audience: string; title: string | null; body: string | null }
   | { type: "lesson"; title: string }
+  | { type: "live"; title: string }
   | { type: "test" };
 
 /** Which of the mentor's switches a notice falls under. A test is always sent. */
-export function switchFor(type: string): "tease_setups" | "tease_posts" | "tease_lessons" | null {
+export function switchFor(type: string): "tease_setups" | "tease_posts" | "tease_lessons" | "tease_live" | null {
   if (type === "setup") return "tease_setups";
   if (type === "post") return "tease_posts";
   if (type === "lesson") return "tease_lessons";
+  if (type === "live") return "tease_live";
   return null;
 }
 
@@ -46,7 +48,7 @@ export function joinLink(site: string, slug: string): string {
 export function teaserFor(source: TeaserSource, space: TeaserSpace, site: string): string {
   const where = `${space.name} on Floor: ${joinLink(site, space.slug)}`;
   const lines = (...parts: (string | null)[]) => [...parts.filter((part): part is string => !!part), where].join("\n\n");
-  const vip = source.type !== "test" && source.type !== "lesson" && source.audience !== "everyone";
+  const vip = (source.type === "setup" || source.type === "post") && source.audience !== "everyone";
 
   if (source.type === "setup") {
     const pair = source.pair?.trim() || null;
@@ -63,6 +65,9 @@ export function teaserFor(source: TeaserSource, space: TeaserSpace, site: string
   }
   if (source.type === "lesson") {
     return lines(`New lesson: ${source.title.trim()}`, "Watch it inside, with VIP.");
+  }
+  if (source.type === "live") {
+    return lines(`Live now: ${source.title.trim()}`, "Watch it inside, with VIP.");
   }
   return lines(`This is a test from Floor. Notices for ${space.name} will be posted here.`);
 }

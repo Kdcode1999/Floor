@@ -65,13 +65,13 @@ const done = (error: { message: string; code?: string } | null): string | null =
 
 /** Saves which kinds of notice the bot posts. Resolves with a sentence to show if it failed, or null. */
 export async function saveSwitches(client: SupabaseClient, spaceId: string, status: TeaserStatus, change: Partial<Record<TeaserSwitch, boolean>>): Promise<string | null> {
-  const next = { setups: status.setups, posts: status.posts, lessons: status.lessons, ...change };
+  const next = { setups: status.setups, posts: status.posts, lessons: status.lessons, live: status.live, ...change };
   const { error } = await client.rpc("telegram_set", {
     p_space: spaceId,
     p_setups: next.setups,
     p_posts: next.posts,
     p_lessons: next.lessons,
-    p_live: status.live,
+    p_live: next.live,
   });
   return done(error);
 }

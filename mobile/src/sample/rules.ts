@@ -32,7 +32,8 @@ export interface Ctx {
   now: number;
 }
 
-export const HOUR = 3_600_000;
+export const MINUTE = 60_000;
+export const HOUR = 60 * MINUTE;
 export const DAY = 24 * HOUR;
 
 const after = (value: string | null, now: number) => value !== null && Date.parse(value) > now;

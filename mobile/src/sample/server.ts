@@ -5,6 +5,7 @@
 // No phone code.
 
 import { canOpenLesson } from "./functions/learn";
+import { liveFunctions } from "./functions/live";
 import { telegramFunctions } from "./functions/telegram";
 import { isStaff, Refusal, type Ctx } from "./rules";
 import type { SampleAsset } from "./world";
@@ -55,6 +56,26 @@ const ROUTES: Record<string, Route> = {
 
   "/api/account/delete": () => {
     throw new Refusal("sample");
+  },
+
+  // The real server asks the database whether the room opens for this person, then hands out
+  // a key to the video service. Here the film that comes with the app stands in for the stream.
+  "/api/live/join": (ctx, body, assetUri) => {
+    const pass = liveFunctions.live_join(ctx, { p_session: String(body.session ?? "") })[0];
+    return {
+      title: pass.title,
+      startedAt: pass.started_at,
+      groupId: pass.group_id,
+      isHost: pass.is_host,
+      isStaff: pass.is_staff,
+      viewerName: pass.viewer_name,
+      sampleFilm: assetUri("lesson"),
+    };
+  },
+
+  "/api/live/end": (ctx, body) => {
+    liveFunctions.live_end(ctx, { p_session: String(body.session ?? "") });
+    return { ok: true };
   },
 };
 

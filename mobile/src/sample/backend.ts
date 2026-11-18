@@ -13,6 +13,7 @@ import { accountFunctions } from "./functions/account";
 import { chatFunctions } from "./functions/chat";
 import { feedFunctions } from "./functions/feed";
 import { learnFunctions } from "./functions/learn";
+import { liveFunctions } from "./functions/live";
 import { manageFunctions } from "./functions/manage";
 import { telegramFunctions } from "./functions/telegram";
 import { Refusal, type Ctx } from "./rules";
@@ -30,6 +31,7 @@ const FUNCTIONS: Record<string, Handler> = {
   ...manageFunctions,
   ...chatFunctions,
   ...telegramFunctions,
+  ...liveFunctions,
 };
 
 /** What the sample backend can answer, by name. The test that guards against drift reads these. */

@@ -93,7 +93,7 @@ def main() -> None:
 
     # The film every sample lesson plays: a chart drawing itself, one candle at a time.
     rows = candles(48, 11)
-    caption = "Sample lesson film"
+    caption = "Sample film"
     chart((640, 360), rows, title=None, corner=caption).save(OUT / "lesson-poster.jpg", quality=80, optimize=True)
     with tempfile.TemporaryDirectory() as folder:
         frames = pathlib.Path(folder)

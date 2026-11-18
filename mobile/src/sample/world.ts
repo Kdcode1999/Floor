@@ -180,6 +180,8 @@ export interface GroupRow {
   position: number;
   created_at: string;
   last_message_at: string | null;
+  /** Set for the chat of a live session. Such a group never shows in the list of groups. */
+  session_id: string | null;
 }
 
 export interface GroupMemberRow {
@@ -239,6 +241,25 @@ export interface TelegramRow {
   last_error_at: string | null;
 }
 
+/** A class on the schedule, or a live session that is on or over. */
+export interface LiveRow {
+  id: string;
+  space_id: string;
+  title: string;
+  about: string | null;
+  starts_at: string;
+  status: "scheduled" | "live" | "ended" | "cancelled";
+  started_at: string | null;
+  ended_at: string | null;
+  host_id: string | null;
+  /** When the broadcaster's app last said it was still there. */
+  host_seen_at: string | null;
+  record: boolean;
+  recording_status: "none" | "recording" | "saving" | "saved" | "failed";
+  lesson_id: string | null;
+  created_at: string;
+}
+
 export interface SuspensionRow {
   space_id: string;
   note: string;
@@ -275,6 +296,7 @@ export interface World {
   blocks: BlockRow[];
   message_reports: MessageReportRow[];
   telegram_links: TelegramRow[];
+  live_sessions: LiveRow[];
   suspensions: SuspensionRow[];
   files: FileRow[];
 }
@@ -303,6 +325,7 @@ export function emptyWorld(): World {
     blocks: [],
     message_reports: [],
     telegram_links: [],
+    live_sessions: [],
     suspensions: [],
     files: [],
   };
@@ -358,7 +381,7 @@ export function settings(space: string): SettingsRow {
 
 /** The two groups every space starts with. */
 export function firstGroups(space: string, created: number): GroupRow[] {
-  const blank = { space_id: space, posting: "all" as const, created_at: iso(created), last_message_at: null };
+  const blank = { space_id: space, posting: "all" as const, created_at: iso(created), last_message_at: null, session_id: null };
   return [
     { ...blank, id: newId(), name: "General", about: "Open to everyone in the space.", audience: "everyone", position: 0 },
     { ...blank, id: newId(), name: "VIP room", about: "For VIP members.", audience: "vip", position: 1 },

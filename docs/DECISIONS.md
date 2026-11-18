@@ -381,6 +381,29 @@ Newest at the bottom. Each entry says what was decided and why, so nobody has to
   Learn and "Manage groups" on Chat open screens that live in Manage, and so does a tapped alert.
   Back from them now goes to Mentor home, which is what the button says.
 
+- **A class and a live session are one thing.** A class is put on the schedule, and becomes the
+  session when the mentor starts it. A mentor can also go live with nothing scheduled. One session
+  is live in a space at a time.
+- **Live is for VIP, like lessons.** Free members see that a class is coming and that the mentor
+  is live, and nothing more, so they know what VIP gets them.
+- **A session's chat is a group of its own, hidden from the list of groups.** Everything chat
+  already does (the filter, mute, report, block, delete) works in it with no new code. When the
+  session ends only staff can write in it, and it is thrown away a week later.
+- **A session is over when its broadcaster goes quiet for three minutes.** The broadcaster's app
+  says it is there every half minute. A laptop closed mid-session does not leave a session "live"
+  for ever. Starting the same session again from another phone or laptop takes the broadcast over.
+- **Reminders go 15 minutes before a class, to VIP members.** A class moved or cancelled after
+  its reminder was queued gets no stale reminder: the server checks the class again when the
+  reminder's turn comes.
+- **Times are typed, in the mentor's own time, and shown to each member in theirs.** The phone
+  has no time picker that works the same on Android, iPhone and the web, so the mentor picks a day
+  from the next four weeks and types the time ("7:30 pm" or "19:30"), and the form reads it back
+  in words before saving.
+- **Live video will run on LiveKit.** It is open source and can be run on Floor's own server
+  later, and LiveKit Cloud has a free tier to start on (5,000 participant-minutes a month), then
+  $50 a month for 150,000. It works in React Native and in the browser, which the laptop page
+  needs for screen share. Connecting it is the next piece.
+
 ## Open
 
 - The service behind the live room. To be chosen when Live is built, on current prices.

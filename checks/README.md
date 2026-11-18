@@ -27,7 +27,7 @@ From `mobile/` or `web/`, one at a time (they share ports):
 
 | Script | Walks | Runs on |
 | --- | --- | --- |
-| `phone_sample.py` | The sample space: every screen built so far, seen as its mentor, a VIP member and someone who has not paid, and the three themes | nothing: the sample's own stand-in for the backend, inside the app |
+| `phone_sample.py` | The sample space: every screen built so far, seen as its mentor, a VIP member and someone who has not paid, and the three themes. Also the live room, the schedule and a class added and a session ended | nothing: the sample's own stand-in for the backend, inside the app |
 | `phone_sign_in.py` | Sign-in, starting a space, a second phone taking over | the scripted stand-in |
 | `web_join.py` | The join page: sign-in, joining, proof, invite codes | the scripted stand-in |
 | `phone_mentor.py` | The mentor's tools: queue, price, codes, members, logo | the real database |

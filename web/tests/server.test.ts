@@ -127,10 +127,9 @@ describe("what an alert says", () => {
     });
   });
 
-  it("puts no clock time in an alert about a class, because members are in different time zones", () => {
+  it("reminds VIP members of a class with no clock time, because members are in different time zones", () => {
     const alert = words.alertWords({ type: "class", session_id: "s1", title: "London session", audience: "vip" }, space);
-    expect(alert?.body).toBe("New class: London session. Open Floor to see when.");
-    expect(alert?.kind).toBe("live");
+    expect(alert).toMatchObject({ body: "Starting soon: London session", kind: "live", vipOnly: true, data: { type: "class", id: "s1" } });
   });
 
   it("tells the mentor that a member paid by card, and whether VIP was given", () => {
