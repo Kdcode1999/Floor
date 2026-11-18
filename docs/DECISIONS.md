@@ -404,8 +404,28 @@ Newest at the bottom. Each entry says what was decided and why, so nobody has to
   $50 a month for 150,000. It works in React Native and in the browser, which the laptop page
   needs for screen share. Connecting it is the next piece.
 
+## Plan change, 18 Nov 2026
+
+Kingsley's calls. These replace the earlier entries they contradict, which stay above as history.
+
+- **Members pay the mentor by bank transfer or USDT, and nothing else.** Card payments through the
+  mentor's Paystack or Flutterwave account are taken out, though they were built. Floor touches no
+  member's money in any form, and there is nothing for a processor to hold or reverse.
+- **No app stores.** Android gets the app as a download (an APK) from Floor's own site. iPhone
+  gets Floor as a web app added to the home screen. Neither Apple nor Google takes a cut, and the
+  store rules that kept the app from showing a price, linking to the join page or taking an invite
+  code no longer apply. Apple's in-app payments and paying mentors out through Floor are ruled out.
+- **What iPhone loses as a web app.** A web page cannot stop screenshots or screen recording, so on
+  iPhone paid video is protected by the viewer's name on it, and nothing more. Alerts work once
+  Floor is added to the home screen (iOS 16.4 and later). Everything else works the same.
+- **Floor costs as little to run as it can, even if that means running its own servers.** Live
+  video runs on LiveKit's open-source server on a machine Floor rents, not on LiveKit Cloud. Lesson
+  video moves off Bunny to Floor's own storage and encoding. Supabase, Vercel and Expo's
+  notification service stay on their free tiers for as long as they last.
+- **The mentor pays Floor a flat $50 a month.** It is the only money Floor takes. How it is
+  collected is decided when that piece is built.
+
 ## Open
 
-- The service behind the live room. To be chosen when Live is built, on current prices.
-- How a mentor pays Floor its monthly fee. Nothing in the build order covers it yet. It has to happen on
-  the web, not inside the iPhone app.
+- How the $50 a month is collected (a processor in Floor's own name, USDT, or both), and what
+  happens to a space when it is not paid.

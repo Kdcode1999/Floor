@@ -34,7 +34,7 @@ Working today:
 - **Alerts**: a notification on the phone for a new setup and a new lesson, sent only to people
   who can open it. Each member switches each kind on or off, per space. The person who posted is
   not alerted.
-- **Card payments**: the mentor connects their own Paystack or Flutterwave account on the web at
+- **Card payments** (being taken out: members now pay only by transfer or USDT): the mentor connects their own Paystack or Flutterwave account on the web at
   `/mentor`. A member pays by card on the join page and is VIP at once, with nothing to approve.
   The mentor is alerted and sees who paid in the app. Floor never holds the money.
 - **Reports and suspension**: a member reports their space from the app. Floor's own team reads
@@ -161,11 +161,11 @@ Each step is written out in `docs/SETUP.md`.
       `mobile` first: the app has new parts. Expo Go still opens the app for a look at the screens
       (`npx expo start --go`), without alerts on Android
 - [ ] A Firebase project, so Android phones can get alerts (SETUP step 7)
-- [ ] Card payments: one secret in Vercel, then try a test payment (SETUP step 8)
+- [ ] ~~Card payments (SETUP step 8)~~: no longer needed, card payments are being taken out
 - [ ] Put yourself on Floor's own team, and choose the address people write to (SETUP step 9)
 - [ ] Make Floor's Telegram bot and give its token to Vercel (SETUP step 10)
 
-Later, when the build reaches them: a live video service, the Apple and Google developer accounts.
+Later, when the build reaches them: a server for live and lesson video (a rented machine), and a way to collect the $50 a month. No Apple or Google developer accounts are needed.
 
 ## Build order
 
@@ -212,9 +212,18 @@ Later, when the build reaches them: a live video service, the Apple and Google d
 - [ ] Recordings saved into Learn
 - [ ] Data saver
 
+### 4. Plan change of 18 Nov: no stores, no cards, low running costs
+- [ ] Take card payments out: the mentor's Paystack and Flutterwave, the card checkout, the
+      payments list. Transfer, USDT, broker link and invite code stay
+- [ ] Now that no store rules apply: the app shows the way to VIP and takes invite codes
+- [ ] iPhone: Floor as a web app on the home screen, with alerts
+- [ ] Android: the app as a download from Floor's own site, updating itself
+- [ ] Live video and lesson video on Floor's own servers
+- [ ] The mentor pays Floor $50 a month
+
 ### Launch
-- [ ] Store listings, privacy policy, Terms pages
+- [ ] Download page, privacy policy, Terms pages
 - [ ] A lawyer reviews the Mentor Terms, the member Terms and the privacy policy. The Mentor Terms in the
       app today are Floor's product rules in plain words, not a lawyer's document
-- [ ] Test builds on Android and iPhone
-- [ ] Submit to the stores
+- [ ] Test build of the Android app, and the iPhone web app on a real iPhone
+- [ ] Floor's download page goes live
