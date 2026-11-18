@@ -19,9 +19,10 @@ export function whatGoes(summary: AccountSummary): string[] {
     const count = summary.members ?? 0;
     const people = count === 0 ? "" : count === 1 ? " Its 1 member loses it." : ` Its ${count} members lose it.`;
     lines.push(`${summary.space_name}, the space you run, with every post, lesson, video and chat in it.${people}`);
-    lines.push("Your place in any other space, and anything you uploaded there.");
+    lines.push("Your place in any other space, with everything you wrote in its groups and anything you uploaded there.");
   } else {
     lines.push("Your place in every space you joined, with any VIP time you have left.");
+    lines.push("Everything you wrote in groups.");
     lines.push("Anything you uploaded, such as payment proofs.");
   }
   return lines;

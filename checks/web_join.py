@@ -155,7 +155,7 @@ def main() -> None:
             shot("3-name")
             field("Your name").fill("Admin")
             button("Continue").click()
-            check_visible("a name kept for staff is refused", page.get_by_text("That name can't be used"))
+            check_visible("a name kept for staff is refused", page.get_by_text("The mentor and admins get a badge instead.", exact=False))
             field("Your name").fill("Ada O.")
             button("Continue").click()
             check_visible("with a name they are in, as a free member", page.get_by_text("Free member"))

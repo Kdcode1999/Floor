@@ -37,6 +37,7 @@ From `mobile/` or `web/`, one at a time (they share ports):
 | `phone_alerts.py` | Alerts: who is told when a setup is posted, a member's switches, signing out | the real database, server routes, notification stand-in |
 | `web_safety.py` | Reporting a space, Floor suspending and restoring it, and deleting an account | the real database, server routes, and the phone app |
 | `web_pay.py` | Card payments: the mentor connects, members pay, and what happens when it goes wrong | the real database, server routes, processor stand-ins, and the phone app at the end |
+| `phone_chat.py` | Groups, with four people on their own phones: writing, the link and number filter, names, pictures, groups for staff and by invitation, report, block, mute, delete | the real database |
 
 ```bash
 python ../checks/phone_feed.py
@@ -59,4 +60,10 @@ A script exits with an error if any check fails.
 walk-throughs that need server routes. `quiet.py` is the web server they all run on.
 
 Nothing a check opens leaves this machine. A page from another site, such as YouTube's player in a
-post, is answered with an empty page, so no result depends on the network.
+post, is answered with an empty page, so no result depends on the network. To do that, every request
+a browser makes passes through the script. So a script never sleeps while it waits for the app: it
+waits with `common.pause`, which lets the browsers carry on.
+
+The phone app's web build has no live connection, so in `phone_chat.py` a phone learns of a new
+message by asking every few seconds. On a real phone the same question is asked the moment another
+phone says something changed.

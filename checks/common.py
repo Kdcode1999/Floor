@@ -11,7 +11,7 @@ import time
 import urllib.parse
 import urllib.request
 
-from playwright.sync_api import Locator, Playwright, expect
+from playwright.sync_api import Locator, Page, Playwright, expect
 from quiet import QuietServer
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -21,6 +21,23 @@ OUT = ROOT / "checks" / "out"
 
 failures: list[str] = []
 
+# Every page a walk-through has open. See `pause`.
+_pages: list[Page] = []
+
+
+def pause(seconds: float) -> None:
+    """Waits, while the browsers carry on.
+
+    Every request a browser makes is passed through this script first, to keep it on this
+    machine. A plain sleep would hold all of them up until the script next touched a page, so
+    the waiting is done by a page instead.
+    """
+    live = [page for page in _pages if not page.is_closed()]
+    if live:
+        live[0].wait_for_timeout(seconds * 1000)
+    else:
+        time.sleep(seconds)
+
 
 def check(what: str, ok: bool) -> None:
     print(("  ok    " if ok else "  FAIL  ") + what)
@@ -28,26 +45,26 @@ def check(what: str, ok: bool) -> None:
         failures.append(what)
 
 
-def check_visible(what: str, locator: Locator) -> None:
+def check_visible(what: str, locator: Locator, seconds: float = 4) -> None:
     """Passes once the element is on screen. Waits a moment for the app to catch up first."""
     try:
-        expect(locator).to_be_visible(timeout=4000)
+        expect(locator).to_be_visible(timeout=seconds * 1000)
         check(what, True)
     except AssertionError:
         check(what, False)
 
 
-def check_count(what: str, locator: Locator, count: int) -> None:
+def check_count(what: str, locator: Locator, count: int, seconds: float = 4) -> None:
     """Passes once there are exactly this many of the element. Waits a moment first."""
     try:
-        expect(locator).to_have_count(count, timeout=4000)
+        expect(locator).to_have_count(count, timeout=seconds * 1000)
         check(what, True)
     except AssertionError:
         check(what, False)
 
 
-def check_gone(what: str, locator: Locator) -> None:
-    check_count(what, locator, 0)
+def check_gone(what: str, locator: Locator, seconds: float = 4) -> None:
+    check_count(what, locator, 0, seconds)
 
 
 def check_ticked(what: str, locator: Locator, ticked: bool = True) -> None:
@@ -66,7 +83,7 @@ def check_soon(what: str, test, seconds: float = 5) -> None:
     while time.time() < end:
         if test():
             return check(what, True)
-        time.sleep(0.2)
+        pause(0.2)
     check(what, bool(test()))
 
 
@@ -128,6 +145,7 @@ def open_phone(p: Playwright, problems: list[str], ignore: tuple[str, ...] = (),
     # so it is answered here with an empty page.
     context.route(_elsewhere, lambda route: route.fulfill(status=200, content_type="text/html", body=""))
     page = context.new_page()
+    _pages.append(page)
 
     def on_console(message):
         if message.type in ("error", "warning") and not any(text in message.text for text in ignore):

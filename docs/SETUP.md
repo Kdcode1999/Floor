@@ -17,6 +17,11 @@ npx supabase db push --remote
 
 Run the last line again whenever a pull brings new files in `web/supabase/migrations`.
 
+Chat needs nothing more. When someone writes in a group, their phone tells the others to look, over
+Supabase's live connection (Realtime), which a new project has switched on. If it is ever switched
+off (Realtime, Settings, "Allow public access"), chat still works: each phone asks every few seconds
+instead of at once.
+
 ## 2. Connect the phone app to Supabase
 
 In the Supabase dashboard: Project Settings, then API Keys. Copy the Project URL and the

@@ -154,6 +154,17 @@ describe("what an alert says", () => {
     });
   });
 
+  it("tells the mentor and admins when a member reports a message", () => {
+    expect(words.alertWords({ type: "report", message_id: "m1", group: "General" }, space)).toEqual({
+      title: "Gold Desk",
+      body: "A member reported a message in General. Open Reported messages to look at it.",
+      vipOnly: true,
+      kind: "staff",
+      data: { type: "report", space: "space-1", id: "m1" },
+    });
+    expect(words.alertWords({ type: "report" }, space)?.body).toBe("A member reported a message. Open Reported messages to look at it.");
+  });
+
   it("stays silent about kinds it does not know", () => {
     expect(words.alertWords({ type: "something_else" }, space)).toBeNull();
     expect(words.alertWords({}, space)).toBeNull();

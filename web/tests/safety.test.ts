@@ -10,6 +10,7 @@ describe("what a person is told before deleting their account", () => {
     expect(whatGoes(member)).toEqual([
       "Your name, your email address and your sign-in.",
       "Your place in every space you joined, with any VIP time you have left.",
+      "Everything you wrote in groups.",
       "Anything you uploaded, such as payment proofs.",
     ]);
   });
@@ -18,6 +19,7 @@ describe("what a person is told before deleting their account", () => {
     const mentor = { ...member, space_id: "s1", space_name: "Gold Desk", members: 240 };
     expect(whatGoes(mentor)[1]).toBe("Gold Desk, the space you run, with every post, lesson, video and chat in it. Its 240 members lose it.");
     expect(whatGoes({ ...mentor, members: 1 })[1]).toContain("Its 1 member loses it.");
+    expect(whatGoes(mentor)[2]).toBe("Your place in any other space, with everything you wrote in its groups and anything you uploaded there.");
     expect(whatGoes({ ...mentor, members: 0 })[1]).toBe("Gold Desk, the space you run, with every post, lesson, video and chat in it.");
   });
 

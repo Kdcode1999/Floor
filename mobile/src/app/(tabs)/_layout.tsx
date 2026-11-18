@@ -2,6 +2,7 @@ import { TabList, Tabs, TabSlot, TabTrigger } from "expo-router/ui";
 import { StyleSheet } from "react-native";
 
 import { NavItem, NavPill } from "@/components/NavPill";
+import { UnreadProvider, useUnread } from "@/features/chat/UnreadContext";
 import { useSpace } from "@/space/SpaceContext";
 
 /**
@@ -11,7 +12,16 @@ import { useSpace } from "@/space/SpaceContext";
  * learn which tabs exist.
  */
 export default function TabsLayout() {
+  return (
+    <UnreadProvider>
+      <SpaceTabs />
+    </UnreadProvider>
+  );
+}
+
+function SpaceTabs() {
   const { isStaff } = useSpace();
+  const { unread } = useUnread();
 
   return (
     <Tabs>
@@ -25,7 +35,7 @@ export default function TabsLayout() {
             <NavItem icon="learn" label="Learn" compact={isStaff} />
           </TabTrigger>
           <TabTrigger name="chat" href="/chat" asChild>
-            <NavItem icon="chat" label="Chat" compact={isStaff} />
+            <NavItem icon="chat" label="Chat" compact={isStaff} dot={unread > 0 ? "Unread messages" : null} />
           </TabTrigger>
           {isStaff ? (
             <TabTrigger name="manage" href="/manage" asChild>

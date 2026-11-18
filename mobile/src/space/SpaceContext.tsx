@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { useAuth } from "@/auth/AuthContext";
+import { nameMessage } from "@/features/account/name";
 import { logoUrl } from "@/lib/env";
 import { secureStore } from "@/lib/secureStorage";
 import { supabase } from "@/lib/supabase";
@@ -97,6 +98,8 @@ interface SpaceContextValue {
   switchSpace: () => void;
   /** Saves a new name, theme or logo. Resolves with a message to show if it failed, or null. */
   updateSpace: (changes: LookChanges) => Promise<string | null>;
+  /** Saves the name the person goes by, in every space. Resolves with a message to show if it failed, or null. */
+  rename: (name: string) => Promise<string | null>;
   /** Saves the mentor's two protection switches. Resolves with a message to show if it failed, or null. */
   setProtection: (changes: { blockCapture?: boolean; watermark?: boolean }) => Promise<string | null>;
   /**
@@ -305,6 +308,19 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
             entries: current.entries.map((each) => (each.id === id ? { ...each, ...changes } : each)),
           },
         );
+        return null;
+      },
+
+      rename: async (name) => {
+        const displayName = name.trim().replace(/\s+/g, " ");
+        if (auth.sample || !supabase || !userId) {
+          setSample((current) => ({ ...current, displayName }));
+          return null;
+        }
+        const { error } = await supabase.from("profiles").update({ display_name: displayName }).eq("id", userId);
+        if (error) return nameMessage(error);
+        // A person has one name, whichever space they are in.
+        setLoaded((current) => current && { ...current, entries: current.entries.map((each) => ({ ...each, displayName })) });
         return null;
       },
 

@@ -186,7 +186,11 @@ export function proofMessage(failure: Failure): string {
 /** What to say when saving a name failed. */
 export function nameMessage(failure: Failure): string {
   const message = failure.message ?? "";
-  if (message.includes("profiles_display_name_reserved")) return "That name can't be used. Try another.";
+  if (message.includes("name_has_contact")) return "A name can't carry a link, an @name or a phone number.";
+  if (message.includes("name_taken")) return "That is the name of this space, its mentor or an admin. Choose another.";
+  if (message.includes("profiles_display_name_reserved")) {
+    return "Names can't use words like Admin, Mentor, Support or Official. The mentor and admins get a badge instead.";
+  }
   if (message.includes("profiles_display_name")) return "Use a name of 1 to 40 letters.";
   return "Your name couldn't be saved. Try again.";
 }

@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from "expo-router";
+import { Redirect, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 
@@ -9,6 +9,8 @@ import { Card } from "@/components/Card";
 import { Chips } from "@/components/Chips";
 import { ErrorLine, Loading, Trouble } from "@/components/LoadState";
 import { Screen } from "@/components/Screen";
+import { loadMute, muteMember } from "@/features/chat/api";
+import { MUTE_CHOICES, muteLine } from "@/features/chat/logic";
 import { banMember, endVip, grantVip, loadMember, setRole, unbanMember } from "@/features/manage/api";
 import { DAY_CHOICES, standing } from "@/features/manage/logic";
 import { days, formatDay } from "@/lib/format";
@@ -18,25 +20,34 @@ import { useLoad } from "@/lib/useLoad";
 import { useSpace } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
 
-/** One member: where they stand, and what the mentor or an admin can do about it. */
+/**
+ * One member: where they stand, and what the mentor or an admin can do about it. A full screen
+ * of its own, because it opens from the list of members, from a reported message and from a
+ * conversation, and has to go back to whichever it came from.
+ */
 export default function MemberScreen() {
   const theme = useTheme();
   const { id } = useLocalSearchParams<{ id?: string }>();
-  const { space, isMentor } = useSpace();
+  const { space, isMentor, isStaff } = useSpace();
   const client = supabase;
   const loaded = useLoad(client && id ? () => loadMember(client, space.id, id) : null, `member:${space.id}:${id}`);
+  const muted = useLoad(client && id ? () => loadMute(client, space.id, id) : null, `mute:${space.id}:${id}`);
   const act = useAction();
   const [length, setLength] = useState(30);
+  const [muteHours, setMuteHours] = useState(24);
   const [now] = useState(() => Date.now());
 
   const member = loaded.data;
-  const header = <BackHeader title={member?.name ?? "Member"} backLabel="Back to Members" fallback="/manage/members" />;
+  const header = <BackHeader title={member?.name ?? "Member"} backLabel="Back" fallback="/manage/members" />;
 
-  if (!client || loaded.loading) return <Screen header={header}><Loading /></Screen>;
-  if (loaded.error) return <Screen header={header}><Trouble detail={loaded.error} onRetry={loaded.reload} /></Screen>;
+  // Only the mentor and admins have this page. The database keeps what it does to them.
+  if (!isStaff) return <Redirect href="/" />;
+
+  if (!client || loaded.loading) return <Screen hasNav={false} header={header}><Loading /></Screen>;
+  if (loaded.error) return <Screen hasNav={false} header={header}><Trouble detail={loaded.error} onRetry={loaded.reload} /></Screen>;
   if (!member) {
     return (
-      <Screen header={header}>
+      <Screen hasNav={false} header={header}>
         <Card style={styles.card}>
           <AppText size={15} line={22} color={theme.text2}>
             This person is no longer in your space.
@@ -47,7 +58,12 @@ export default function MemberScreen() {
   }
 
   const where = standing(member, now);
-  const run = (name: string, action: () => Promise<string | null>) => act.run(name, action, loaded.reload);
+  const run = (name: string, action: () => Promise<string | null>) =>
+    act.run(name, action, () => {
+      loaded.reload();
+      muted.reload();
+    });
+  const mutedNow = muteLine(muted.data ?? null, now);
   const banned = member.status === "banned";
   const isMember = member.role === "member";
   const hasVip = where.kind === "vip" || where.kind === "expiring";
@@ -55,7 +71,7 @@ export default function MemberScreen() {
   const canBan = member.role === "member" || (member.role === "admin" && isMentor);
 
   return (
-    <Screen header={header}>
+    <Screen hasNav={false} header={header}>
       <Card style={styles.card}>
         <AppText accessibilityRole="header" size={22} line={28} weight="bold" tracking={-0.44}>
           {where.label}
@@ -87,6 +103,34 @@ export default function MemberScreen() {
               kind="ghost"
               busy={act.busy === "end"}
               onPress={() => run("end", () => endVip(client, space.id, member.userId))}
+            />
+          ) : null}
+        </Card>
+      ) : null}
+
+      {isMember && !banned ? (
+        <Card style={styles.card}>
+          <View style={styles.words}>
+            <AppText accessibilityRole="header" size={17} line={22} weight="semibold" tracking={-0.17}>
+              {mutedNow ?? "Mute in groups"}
+            </AppText>
+            <AppText size={13} line={18} color={theme.text2}>
+              A muted member can still read every group they are in, but cannot write until the mute ends.
+            </AppText>
+          </View>
+          <Chips label="How long to mute for" options={MUTE_CHOICES.map((choice) => ({ value: choice.hours, label: choice.label }))} value={muteHours} onChange={setMuteHours} />
+          <Button
+            label={mutedNow ? "Change the mute" : "Mute"}
+            kind="ghost"
+            busy={act.busy === "mute"}
+            onPress={() => run("mute", () => muteMember(client, space.id, member.userId, muteHours))}
+          />
+          {mutedNow ? (
+            <Button
+              label="Unmute now"
+              kind="ghost"
+              busy={act.busy === "unmute"}
+              onPress={() => run("unmute", () => muteMember(client, space.id, member.userId, 0))}
             />
           ) : null}
         </Card>

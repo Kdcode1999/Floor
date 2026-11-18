@@ -47,7 +47,13 @@ A screen loads with `useLoad(() => api.loadX(...), key)` and acts with `useActio
 resolves with a sentence to show when it failed, or null.
 
 Screens inside a tab live under `app/(tabs)/`. Screens that take the whole phone (writing a post,
-a picture, later a lesson or a live session) are files directly in `app/` and open over the tabs.
+a picture, a group's conversation, later a live session) are files directly in `app/` and open
+over the tabs. So is any screen that opens from more than one place, such as a member's page:
+Back then returns to wherever it was opened from.
+
+An open group is kept current by `features/chat/useConversation.ts`. It asks the database what
+changed since the newest thing it holds, at once when another phone nudges (`live.ts`), and every
+few seconds otherwise. How long it waits is `waitFor` in `features/chat/logic.ts`.
 
 With `mobile/.env` empty the app runs on a sample space, so screens can be looked at with no setup.
 
@@ -134,6 +140,12 @@ Every job carries `actor`: who caused it. An alert leaves that person out.
   space's. Only `start_payment` (as the member) and `settle_payment` (secret key) write to it.
 - `private.payment_accounts` holds each mentor's processor key, encrypted by the server. No app
   can reach the table. The mentor sees the key's last four characters through `payment_account`.
+- `groups`, `messages`, `group_members`, `group_reads`, `blocks` and `message_reports` are chat. The
+  apps never read them directly: `my_groups` lists what a person may see, `chat_page` and
+  `chat_changes` give the messages, `send_message` is the only way to write one. The link and
+  number filter is `private.has_link` and `private.has_phone`, and the same two also guard names.
+  `private.can_read_group` is the one rule for who opens a group, used by every function and by
+  the file store for pictures (`chat` bucket, `<space>/<group>/<file>`).
 - `push_tokens` holds each account's one address for alerts. Nothing reads it but functions: the
   app saves and removes its own (`save_push_token`, `remove_push_token`), the server asks who to
   alert (`alert_recipients`). A member's switches are three columns on their membership.
@@ -148,6 +160,10 @@ Every job carries `actor`: who caused it. An alert leaves that person out.
 | The course outline | yes, locked | yes | yes |
 | Lessons and their video | no | yes | yes |
 | The queue, members, invite codes | no | no | yes |
+| Groups for everyone | yes | yes | yes |
+| VIP groups | that they exist | yes | yes |
+| Groups by invitation | only if added | only if added | yes |
+| Reported messages | no | no | yes |
 | Card payments | their own | their own | the space's |
 | Reports about the space | their own | their own | no |
 | Floor's note when suspended | no | no | yes |
@@ -166,6 +182,9 @@ mentor uses the phone and a laptop at once.
 - `phone_*.py` and `web_*.py` walk the apps in Chrome at phone size, check each step on screen
   and in the database, and save a picture of every screen to `checks/out/`. Several people can be
   walked at once, each on their own phone.
+- Every request a walk-through's browser makes passes through the script first, so that nothing
+  leaves the machine. A script that waits must wait with `common.pause`, never a plain sleep, or
+  the browsers stand still with it.
 - `fake_video_host.py` stands in for the video host. It checks upload tickets and playback
   addresses with its own copy of the host's rules, and serves a real short film in pieces.
 - `fake_push.py` stands in for the notification service. It keeps every alert it is sent, and

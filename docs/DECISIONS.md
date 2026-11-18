@@ -297,6 +297,53 @@ Newest at the bottom. Each entry says what was decided and why, so nobody has to
   Written out whole, it reads as a leaked secret to the tool that guards the repo, which then
   refuses the push. That guard stays on.
 
+- **Groups, not one chat.** Every space starts with General (everyone) and VIP room (VIP). Staff add
+  up to 30, each for everyone, for VIP or by invitation, and each either open for members to write in
+  or for staff only. A free member sees that a VIP group exists, locked. A group by invitation is
+  hidden from everyone outside it.
+- **Only the mentor and admins post links, phone numbers and pictures.** A member who could would be
+  the "admin" who sends everyone a WhatsApp number. The database is what refuses. The app checks
+  first only so it can say why at once. Both run the same rules and are tested against one list of
+  cases (`mobile/tests/filterCases.ts`). A picture is staff-only because no filter can read one.
+  Prices are not phone numbers: a dot or a comma breaks a run of digits.
+- **A name cannot do what a message cannot.** It may not carry a link or a number, use a staff word
+  (Admin, Mentor, Support, Official and the like) anywhere in it, or match the name of the space, its
+  mentor or an admin once spaces, dots and capitals are taken out. Someone who joins under such a
+  name goes back to "Member". Look-alike letters are not caught: the badge beside staff names is
+  the real proof, and no name can produce it.
+- **Everyone chooses a name before they write.** An account starts as "Member". A mentor who opens
+  their space in the app has never been asked for a name, so the group asks first.
+- **A deleted message is emptied, not removed.** The row stays so every phone that showed it learns
+  it went, and shows "Message removed". Its picture is deleted from the file store.
+- **Who can delete what.** Anyone their own message. Staff any message, except that an admin cannot
+  delete the mentor's.
+- **Muting is by the clock and covers every group.** One hour, one day or one week, lifted by hand at
+  any time. A muted member still reads. Staff cannot be muted: the mentor takes an admin's role away.
+- **A message is reported to the space's staff. A space is reported to Floor.** A member who objects
+  to something the mentor or an admin wrote is sent to "Report this space", since the staff are who
+  they would be complaining to.
+- **Blocking hides another member's messages from you, in every group.** The mentor and admins cannot
+  be blocked. It is undone from Account.
+- **Messages in a group are stamped strictly one after another.** Whoever writes holds the group's
+  row until their message is in. So "everything after this one" misses nothing, and "read up to
+  here" is the stamp of the newest message, not the clock.
+- **How a phone hears about a new message.** It asks the database what changed since the last thing
+  it holds. When someone writes, their phone also sends a nudge over Supabase's live connection that
+  carries no content: "look now". A phone that gets it asks at once. One that does not still asks
+  every few seconds, and less often while a group is quiet. The nudge is not trusted with anything:
+  the database decides what each person sees, and a phone answers at most one nudge a second.
+- **No alerts for chat messages in v1.** A busy group would ring all day. The Chat tab carries a dot
+  when something is waiting, and each group its count. Alerts stay for what a member is paying for:
+  a setup, a lesson, a live session.
+- **The first report of a message alerts the mentor and admins.** Reports after it only add to the
+  count: a pile-on does not ring their phones again.
+- **Unread counts start when a person joins.** They can read what was said before, but it is not
+  counted as waiting for them.
+- **A person's messages go with their account.** The delete screen says so.
+- **Screens that open from more than one place are full screens of their own** (a member's page, a
+  group's settings). Back then returns to wherever they were opened from. A screen inside the Manage
+  tab would have gone back to the tab instead.
+
 ## Open
 
 - The service behind the live room. To be chosen when Live is built, on current prices.

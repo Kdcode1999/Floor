@@ -6,8 +6,11 @@ export interface AlertWords {
   body: string;
   /** True when only people who could open it are told: VIP members and staff. */
   vipOnly: boolean;
-  /** Which kind of alert this is, for each member's own switches. "payment" goes to the mentor alone. */
-  kind: "setup" | "lesson" | "live" | "payment";
+  /**
+   * Which kind of alert this is, for each member's own switches. "payment" goes to the mentor
+   * alone, and "staff" to the mentor and admins.
+   */
+  kind: "setup" | "lesson" | "live" | "payment" | "staff";
   /** Travels with the notification, so a tap opens the right screen. */
   data: { type: string; space: string; id: string };
 }
@@ -80,6 +83,16 @@ export function alertWords(payload: Record<string, unknown>, space: { id: string
       vipOnly: true,
       kind: "payment",
       data: { type, space: space.id, id: "" },
+    };
+  }
+  if (type === "report") {
+    const group = text(payload.group);
+    return {
+      title: space.name,
+      body: `A member reported a message${group ? ` in ${group}` : ""}. Open Reported messages to look at it.`,
+      vipOnly: true,
+      kind: "staff",
+      data: { type, space: space.id, id: text(payload.message_id) },
     };
   }
   return null;

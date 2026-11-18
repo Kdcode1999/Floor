@@ -25,6 +25,10 @@ describe("a tapped alert", () => {
     expect(routeFor({ type: "payment_problem", space: "s1" })).toEqual({ pathname: "/manage/payments" });
   });
 
+  it("opens the queue of reported messages for the staff's alert that one was reported", () => {
+    expect(routeFor({ type: "report", space: "s1", id: "m1" })).toEqual({ pathname: "/manage/reported" });
+  });
+
   it("says which space it came from", () => {
     expect(spaceOf({ space: "s1" })).toBe("s1");
     expect(spaceOf({ space: "" })).toBeNull();

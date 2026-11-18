@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Icon } from "@/components/Icon";
 import { Loading, Trouble } from "@/components/LoadState";
+import { pictureUrl as chatPictureUrl } from "@/features/chat/api";
 import { pictureUrl } from "@/features/feed/api";
 import { supabase } from "@/lib/supabase";
 import { useGoBack } from "@/lib/useGoBack";
@@ -15,16 +16,20 @@ import { useLoad } from "@/lib/useLoad";
 const MAX_ZOOM = 5;
 
 /**
- * A picture from a post, full screen. Pinch to zoom, drag to move around, double tap to zoom
+ * A picture from a post or a group, full screen. Pinch to zoom, drag to move around, double tap to zoom
  * in and out. Traders post charts, and a chart has to be read up close.
  */
 export default function PictureScreen() {
-  const { path, shape } = useLocalSearchParams<{ path?: string; shape?: string }>();
+  const { path, shape, store } = useLocalSearchParams<{ path?: string; shape?: string; store?: string }>();
   const goBack = useGoBack("/");
   const insets = useSafeAreaInsets();
   const display = useWindowDimensions();
   const client = supabase;
-  const url = useLoad(client && path ? () => pictureUrl(client, path) : null, `picture:${path}`);
+  // A picture is in the store for posts or the one for groups. Each has its own rule for who may see it.
+  const url = useLoad(
+    client && path ? () => (store === "chat" ? chatPictureUrl(client, path) : pictureUrl(client, path)) : null,
+    `picture:${store}:${path}`,
+  );
 
   // The picture's size on screen at rest: as large as fits.
   const ratio = Number(shape) > 0 ? Number(shape) : 1;

@@ -6,6 +6,7 @@ import {
   inviteMessage,
   isVip,
   latestRequests,
+  nameMessage,
   previewLine,
   priceLine,
   proofPath,
@@ -17,6 +18,16 @@ import {
 } from "@/features/join/logic";
 
 const member: Membership = { role: "member", status: "active", vip_until: null };
+
+describe("nameMessage", () => {
+  it("says what is wrong with a name the database refused", () => {
+    expect(nameMessage({ message: "name_has_contact" })).toMatch(/link, an @name or a phone number/);
+    expect(nameMessage({ message: "name_taken" })).toMatch(/its mentor or an admin/);
+    expect(nameMessage({ message: 'violates check constraint "profiles_display_name_reserved"' })).toMatch(/get a badge instead/);
+    expect(nameMessage({ message: 'violates check constraint "profiles_display_name_length"' })).toBe("Use a name of 1 to 40 letters.");
+    expect(nameMessage({ message: "fetch failed" })).toMatch(/couldn't be saved/);
+  });
+});
 
 describe("stepFor", () => {
   it("waits until it knows who is looking", () => {

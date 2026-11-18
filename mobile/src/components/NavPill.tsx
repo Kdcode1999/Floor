@@ -65,6 +65,8 @@ interface NavItemProps extends TabTriggerSlotProps {
   label: string;
   /** Four tabs need a little less room each than three. */
   compact?: boolean;
+  /** Shows a small dot on the icon and says why to screen readers: "Unread messages". */
+  dot?: string | null;
 }
 
 /** One tab in the pill. `isFocused`, `onPress` and `href` arrive from the tab trigger around it. */
@@ -72,6 +74,7 @@ export function NavItem({
   icon,
   label,
   compact = false,
+  dot = null,
   isFocused = false,
   // The trigger's own ref and style are not used: the pill decides how a tab looks.
   ref: _ref,
@@ -85,7 +88,7 @@ export function NavItem({
     <Pressable
       {...rest}
       accessibilityRole="tab"
-      accessibilityLabel={label}
+      accessibilityLabel={dot ? `${label}. ${dot}` : label}
       aria-selected={isFocused}
       style={({ pressed }) => [
         styles.item,
@@ -93,7 +96,10 @@ export function NavItem({
         isFocused && { backgroundColor: theme.nav.activeBackground },
         pressed && !isFocused && styles.pressed,
       ]}>
-      <Icon name={icon} size={18} color={color} />
+      <View>
+        <Icon name={icon} size={18} color={color} />
+        {dot ? <View style={[styles.dot, { backgroundColor: theme.primary.background, borderColor: theme.nav.solid }]} /> : null}
+      </View>
       <AppText
         size={compact ? 12 : 14}
         line={compact ? 16 : 18}
@@ -136,5 +142,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderRadius: 99,
   },
+  dot: { position: "absolute", top: -3, right: -4, width: 9, height: 9, borderRadius: 5, borderWidth: 1.5 },
   pressed: { opacity: 0.6 },
 });

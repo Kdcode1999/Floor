@@ -42,13 +42,25 @@ Working today:
   it. A suspended space is closed to members and to the public, and the app says why.
 - **Deleting an account**: in the app, and on the web at `/account`. A mentor's account takes
   their space with it. Files and videos are removed with it.
+- **Groups**: every space starts with a group for everyone and one for VIP. The mentor and admins
+  add more (30 at most), each for everyone, for VIP or by invitation, with members writing or
+  only staff. Members talk, answer a message and see what is unread. Only the mentor and admins
+  can post links, phone numbers and pictures, and the database is what refuses the rest. Staff
+  delete messages and mute members. A member reports a message to staff, who are alerted on
+  their phones, and blocks another member. The Chat tab shows a dot when something is waiting.
+  There are no private messages.
+- **Names**: everyone chooses the name others see before they write. A name cannot claim to be
+  staff, carry a link or a number, or copy the name of the space, its mentor or an admin. The
+  mentor and admins carry a badge no name can fake.
 
 With `mobile/.env` empty the app still opens on the sample space, with no sign-in, so the screens can be
 looked at without any setup.
 
-Checked: 157 database tests, 187 logic tests (122 phone, 65 web and server), and ten walk-throughs in
-Chrome. Seven of them run against a real Postgres with Floor's migrations, with the mentor, a VIP member
-and a free member each on their own phone. The Learn walk-through uploads a real video through the
+Checked: 186 database tests, 223 logic tests (156 phone, 67 web and server), and eleven walk-throughs
+in Chrome. Eight of them run against a real Postgres with Floor's migrations, with the mentor, a VIP
+member and a free member each on their own phone. The Community walk-through has four people in one
+group at once: what one writes shows on the others' phones, and a link, a number, a mute, a report and
+a block each do what they should on screen and in the database. The Learn walk-through uploads a real video through the
 server to a stand-in for the video host, which checks every signature the way the real host does, and
 plays it back. The Alerts walk-through posts a setup in the app and checks who the server tells,
 through a stand-in for the notification service. The card payments walk-through connects a processor,
@@ -58,7 +70,10 @@ production.
 
 Not yet checked anywhere: anything on a real phone since the first look, and anything against the
 real Supabase project, the real video host, a real notification or a real card processor. Those need
-`docs/SETUP.md`. The first real card payment should be a test one (SETUP step 8): it is the first
+`docs/SETUP.md`. In a group, two things can only be seen on a real phone: that the box to type in
+sits just above the keyboard, and that a message reaches the other phones at once. That speed comes
+from Supabase's live connection, which the checks cannot use. Without it a phone still asks every few
+seconds, so chat works either way. The first real card payment should be a test one (SETUP step 8): it is the first
 time Floor's reading of Paystack's and Flutterwave's rules meets the real services.
 
 ## Needed from Kingsley
@@ -118,9 +133,9 @@ developer accounts.
 - [x] Delete an account, in the app and on the web
 
 ### 2. Community
-- [ ] Groups and chat
-- [ ] Moderation, admin-only groups
-- [ ] Link and number filter
+- [x] Groups and chat
+- [x] Moderation, admin-only groups
+- [x] Link and number filter
 - [ ] Telegram teaser bot
 
 ### 3. Live

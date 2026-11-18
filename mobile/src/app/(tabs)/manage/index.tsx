@@ -9,6 +9,8 @@ import { Loading, Trouble } from "@/components/LoadState";
 import { Screen } from "@/components/Screen";
 import { SpaceHeader } from "@/components/SpaceHeader";
 import { TextLink } from "@/components/TextLink";
+import { loadReported } from "@/features/chat/api";
+import { reportedLine } from "@/features/chat/logic";
 import { ActionTile } from "@/features/manage/ActionTile";
 import { approveRequest, declineRequest, loadRequests, type RequestItem } from "@/features/manage/api";
 import { RequestCard } from "@/features/manage/RequestCard";
@@ -33,14 +35,17 @@ export default function ManageScreen() {
   const client = sample ? null : supabase;
 
   const queue = useLoad(client ? () => loadRequests(client, space.id) : null, `requests:${space.id}`);
+  const reported = useLoad(client ? () => loadReported(client, space.id) : null, `reported:${space.id}`);
   const [samples, setSamples] = useState(sampleRequests);
   const [now] = useState(() => Date.now());
 
   // Look again whenever the mentor comes back to this screen.
   const { reload } = queue;
+  const reloadReported = reported.reload;
   useFocusEffect(
     useCallback(() => {
       reload();
+      reloadReported();
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []),
   );
@@ -136,7 +141,18 @@ export default function ManageScreen() {
           divided
           onPress={client ? () => router.push("/manage/codes") : undefined}
         />
-        <SettingsRow title="Groups" detail="Create groups and choose who gets in" divided />
+        <SettingsRow
+          title="Groups"
+          detail="Create groups and choose who gets in"
+          divided
+          onPress={client ? () => router.push("/manage/groups") : undefined}
+        />
+        <SettingsRow
+          title="Reported messages"
+          detail={reportedLine(reported.data?.length ?? 0)}
+          divided
+          onPress={client ? () => router.push("/manage/reported") : undefined}
+        />
         {isMentor ? (
           <SettingsRow
             title="Protection"

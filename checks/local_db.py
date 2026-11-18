@@ -109,14 +109,25 @@ def value(sql: str, params: list | None = None):
     return next(iter(found[0].values())) if found else None
 
 
-def as_person(user_id: str, sql: str, params: list | None = None) -> list[dict]:
-    """Runs one statement as a signed-in person, under the database's rules, as the API would."""
-    claims = {"sub": user_id, "role": "authenticated", "session_id": str(uuid.uuid4())}
+def as_person(user_id: str, sql: str, params: list | None = None, session: str | None = None) -> list[dict]:
+    """Runs one statement as a signed-in person, under the database's rules, as the API would.
+
+    Without `session` this is a login of its own, which is enough for setting things up. What a
+    person may read is tied to the one phone they are signed in on: use `as_login` for that.
+    """
+    claims = {"sub": user_id, "role": "authenticated", "session_id": session or str(uuid.uuid4())}
     with psycopg.connect(dsn(), row_factory=dict_row) as conn:
         conn.execute("select set_config('request.jwt.claims', %s, true)", [json.dumps(claims)])
         conn.execute("set local role authenticated")
         cursor = conn.execute(sql, params)
         return cursor.fetchall() if cursor.description else []
+
+
+def as_login(user_id: str, sql: str, params: list | None = None) -> list[dict]:
+    """Runs one statement as a person, with the login their phone holds. This is what someone
+    could do by talking to the database directly instead of through the app."""
+    session = value("select active_session_id from public.account_security where user_id = %s", [user_id])
+    return as_person(user_id, sql, params, str(session))
 
 
 def stop() -> None:

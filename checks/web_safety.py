@@ -155,7 +155,8 @@ def main() -> None:
             check_visible("with Floor's own note", mentor.text(f"Floor's note: “{NOTE}”", exact=False))
             mentor.shot("1-suspended")
             mentor.page.get_by_role("tab", name="Manage").click()
-            check_visible("the note is on Manage too", mentor.text("Floor has suspended this space", exact=True))
+            # The Feed is still there behind the Manage tab, with its own copy of the note.
+            check_visible("the note is on Manage too", mentor.page.get_by_role("heading", name="Floor has suspended this space", exact=True))
             mentor.close()
 
             print("Floor restores the space and closes the report")

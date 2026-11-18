@@ -8,6 +8,7 @@ import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Screen } from "@/components/Screen";
 import { TextLink } from "@/components/TextLink";
+import { UNNAMED } from "@/features/chat/logic";
 import { useSpace, type Viewer } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
 
@@ -38,6 +39,8 @@ export default function AccountScreen() {
         <Line label="Signed in as" value={auth.sample ? "Nobody yet" : (auth.user?.email ?? "")} />
         <View style={[styles.divider, { backgroundColor: theme.divider }]} />
         <Line label={space.name} value={placeIn(viewer)} />
+        <View style={[styles.divider, { backgroundColor: theme.divider }]} />
+        <Line label="Your name in groups" value={viewer.name === UNNAMED ? "Not chosen yet" : viewer.name} />
       </Card>
 
       {auth.sample ? (
@@ -46,6 +49,7 @@ export default function AccountScreen() {
         </AppText>
       ) : (
         <View style={styles.actions}>
+          <Button label={viewer.name === UNNAMED ? "Choose your name" : "Change your name"} kind="ghost" onPress={() => router.push("/name")} />
           <Button label="Alerts" kind="ghost" onPress={() => router.push("/alerts")} />
           {entries.length > 1 ? <Button label="Switch space" kind="ghost" onPress={switchSpace} /> : null}
           {ownsSpace ? null : (
@@ -54,6 +58,7 @@ export default function AccountScreen() {
           <Button label="Sign out" kind="ghost" onPress={auth.signOut} />
           <View style={styles.quiet}>
             {/* Staff do not report their own space. Anyone can delete their account. */}
+            {viewer.role === "member" ? <TextLink label="Blocked people" onPress={() => router.push("/blocked")} /> : null}
             {viewer.role === "member" ? <TextLink label="Report this space" onPress={() => router.push("/report")} /> : null}
             <TextLink label="Delete account" onPress={() => router.push("/delete-account")} />
           </View>

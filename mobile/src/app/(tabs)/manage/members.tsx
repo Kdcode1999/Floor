@@ -54,7 +54,7 @@ export default function MembersScreen() {
   // The database sends them in the order a mentor wants: VIP about to end comes first.
   const sorted = (members.data ?? []).map((member) => ({ member, where: standing(member, now) }));
 
-  const open = (member: MemberItem) => router.push({ pathname: "/manage/member", params: { id: member.userId } });
+  const open = (member: MemberItem) => router.push({ pathname: "/member", params: { id: member.userId } });
 
   return (
     <Screen header={<BackHeader title="Members" backLabel="Back to Manage" fallback="/manage" />}>

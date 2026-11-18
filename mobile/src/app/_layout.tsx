@@ -101,6 +101,12 @@ function GuardedStack() {
           <Stack.Screen name="lesson" />
           <Stack.Screen name="alerts" />
           <Stack.Screen name="report" />
+          <Stack.Screen name="group" />
+          <Stack.Screen name="group-settings" />
+          <Stack.Screen name="group-members" />
+          <Stack.Screen name="member" />
+          <Stack.Screen name="name" />
+          <Stack.Screen name="blocked" />
         </Stack.Protected>
         <Stack.Protected guard={stage === "sign-in"}>
           <Stack.Screen name="sign-in" />

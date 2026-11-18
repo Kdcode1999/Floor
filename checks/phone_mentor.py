@@ -193,7 +193,7 @@ def main() -> None:
         check("and hides the rest", page.get_by_role("button", name="Zed", exact=False).count() == 0)
 
         page.get_by_role("button", name="Sam K.", exact=False).click()
-        check("a member opens", phone.at("/manage/member"))
+        check("a member opens", phone.at("/member"))
         check_visible("showing where they stand", page.get_by_role("heading", name="Free", exact=True))
         page.get_by_role("radio", name="30 days").click()
         phone.button("Give 30 days of VIP").click()
@@ -217,7 +217,7 @@ def main() -> None:
         phone.button("Let them back in").click()
         check_visible("and let back in, as a free member", page.get_by_role("heading", name="Free", exact=True))
         check("active again in the database", member("Sam K.")["status"] == "active")
-        phone.button("Back to Members").click()
+        phone.button("Back").click()
         phone.at("/manage/members")
         phone.button("Back to Manage").click()
         phone.at("/manage")
