@@ -81,12 +81,18 @@ Working today:
   gets alerts, which Floor's server sends by the Web Push standard. The join page links to it.
   A web app cannot block screenshots, so on iPhone paid video is protected by the viewer's name.
 
+- **Floor for Android, downloaded from Floor's site**: `/download` offers the current APK, with
+  how to install it from outside the Play Store. The app asks Floor's server which release is
+  current when it opens, shows "A new version of Floor is ready" at the top of the Feed when there
+  is one, and stops at "Update Floor to keep going" if its build is no longer allowed. The join
+  page links to `/download`.
+
 - **The sample space**: with `mobile/.env` empty the app runs on a made-up community held in
   memory. Every screen above works in it with nothing set up, seen as the mentor, as a VIP member
   or as someone who has not paid. It is how the build is looked at in Expo Go today. See below.
 
-Checked: 203 database tests, 243 logic tests (172 phone, 71 web and server), 48 tests of the sample
-space, and fourteen walk-throughs in Chrome. One of them runs a live session with real video through LiveKit. One opens every screen of the sample space as
+Checked: 203 database tests, 248 logic tests (175 phone, 73 web and server), 48 tests of the sample
+space, and fifteen walk-throughs in Chrome. One of them runs a live session with real video through LiveKit. One opens every screen of the sample space as
 each of its three viewers. Nine run against a real Postgres with Floor's migrations, with the mentor, a VIP
 member and a free member each on their own phone. The Community walk-through has four people in one
 group at once: what one writes shows on the others' phones, and a link, a number, a mute, a report and
@@ -176,8 +182,9 @@ Each step is written out in `docs/SETUP.md`.
 - [ ] Make Floor's Telegram bot and give its token to Vercel (SETUP step 10)
 - [ ] Rent a machine for live video and start Floor's LiveKit server on it (SETUP step 11)
 - [ ] Put the iPhone web app on its own address, with a key pair for its alerts (SETUP step 12)
+- [ ] A Cloudflare R2 bucket for the Android download, then the first release build (SETUP step 13)
 
-Later, when the build reaches them: storage for lesson video on Floor's own servers, and a way to collect the $50 a month. No Apple or Google developer accounts are needed.
+Later, when the build reaches them: storage for lesson video on Floor's own servers, and a way to collect the $50 a month. No Apple or Google developer accounts are needed: there are no store listings.
 
 ## Build order
 
@@ -229,7 +236,7 @@ Later, when the build reaches them: storage for lesson video on Floor's own serv
       payments list. Transfer, USDT, broker link and invite code stay
 - [x] Now that no store rules apply: the app shows the way to VIP and takes invite codes
 - [x] iPhone: Floor as a web app on the home screen, with alerts
-- [ ] Android: the app as a download from Floor's own site, updating itself
+- [x] Android: the app as a download from Floor's own site, updating itself
 - [ ] Live video and lesson video on Floor's own servers, recordings with them (no 50 MB limit)
 - [ ] The mentor pays Floor $50 a month
 

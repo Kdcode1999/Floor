@@ -3,9 +3,18 @@
 import { useState } from "react";
 
 import { Button, Card, Field } from "@/components/ui";
-import { ANDROID_URL, APP_URL, SITE_URL } from "@/lib/env";
+import { APP_URL, SITE_URL } from "@/lib/env";
 
-import { days, declinedLine, formatDay, isVip, latestRequests, type AccessRequest, type PublicSpace, type RequestKind } from "./logic";
+import {
+  days,
+  declinedLine,
+  formatDay,
+  isVip,
+  latestRequests,
+  type AccessRequest,
+  type PublicSpace,
+  type RequestKind,
+} from "./logic";
 import type { Join } from "./useJoin";
 
 interface MemberViewProps {
@@ -25,7 +34,9 @@ export function MemberView({ space, price, join }: MemberViewProps) {
   const vip = isVip(membership, now);
   const latest = latestRequests(join.requests);
   const settings = join.settings;
-  const canPay = Boolean(settings?.payment_instructions || settings?.payment_link);
+  const canPay = Boolean(
+    settings?.payment_instructions || settings?.payment_link,
+  );
   const canBroker = Boolean(settings?.broker_link);
 
   if (staff) {
@@ -33,7 +44,9 @@ export function MemberView({ space, price, join }: MemberViewProps) {
       <>
         <Card>
           <h2 className="h2">This is your join page</h2>
-          <p className="body">Share this link. People who open it can join {space.name}.</p>
+          <p className="body">
+            Share this link. People who open it can join {space.name}.
+          </p>
           <ShareLink slug={space.slug} />
         </Card>
         <SignedInAs join={join} />
@@ -47,7 +60,9 @@ export function MemberView({ space, price, join }: MemberViewProps) {
         {vip && membership.vip_until ? (
           <>
             <span className="pill">VIP</span>
-            <h2 className="h2">You&apos;re VIP until {formatDay(membership.vip_until)}</h2>
+            <h2 className="h2">
+              You&apos;re VIP until {formatDay(membership.vip_until)}
+            </h2>
           </>
         ) : (
           <>
@@ -56,27 +71,25 @@ export function MemberView({ space, price, join }: MemberViewProps) {
           </>
         )}
         <p className="body">
-          Open the Floor app on your phone and sign in with <span className="strong">{join.email}</span>.
+          Open the Floor app on your phone and sign in with{" "}
+          <span className="strong">{join.email}</span>.
         </p>
-        {APP_URL || ANDROID_URL ? (
-          <div className="stack">
-            {APP_URL ? (
-              <>
-                <a className="btn btn-ghost" href={APP_URL}>
-                  Open Floor on iPhone
-                </a>
-                <p className="small">
-                  In Safari, tap Share, then Add to Home Screen. Floor then opens like an app and can send you alerts.
-                </p>
-              </>
-            ) : null}
-            {ANDROID_URL ? (
-              <a className="btn btn-ghost" href={ANDROID_URL}>
-                Get Floor for Android
+        <div className="stack">
+          {APP_URL ? (
+            <>
+              <a className="btn btn-ghost" href={APP_URL}>
+                Open Floor on iPhone
               </a>
-            ) : null}
-          </div>
-        ) : null}
+              <p className="small">
+                In Safari, tap Share, then Add to Home Screen. Floor then opens
+                like an app and can send you alerts.
+              </p>
+            </>
+          ) : null}
+          <a className="btn btn-ghost" href="/download">
+            Get Floor for Android
+          </a>
+        </div>
       </Card>
 
       <h2 className="h3" style={{ padding: "8px 6px 0" }}>
@@ -87,9 +100,16 @@ export function MemberView({ space, price, join }: MemberViewProps) {
         <Card>
           <h3 className="h2">Pay {space.name}</h3>
           {price ? <p className="body strong">{price}</p> : null}
-          {settings?.payment_instructions ? <p className="body pre">{settings.payment_instructions}</p> : null}
+          {settings?.payment_instructions ? (
+            <p className="body pre">{settings.payment_instructions}</p>
+          ) : null}
           {settings?.payment_link ? (
-            <a className="btn btn-ghost" href={settings.payment_link} target="_blank" rel="noopener noreferrer">
+            <a
+              className="btn btn-ghost"
+              href={settings.payment_link}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Open the payment page
             </a>
           ) : null}
@@ -102,7 +122,9 @@ export function MemberView({ space, price, join }: MemberViewProps) {
             noteLabel="Note for your mentor"
             notePlaceholder="Transfer from Ada O."
           />
-          <p className="small">You pay {space.name} directly. Floor never holds your money.</p>
+          <p className="small">
+            You pay {space.name} directly. Floor never holds your money.
+          </p>
         </Card>
       ) : null}
 
@@ -110,10 +132,16 @@ export function MemberView({ space, price, join }: MemberViewProps) {
         <Card>
           <h3 className="h2">Free VIP with a broker account</h3>
           <p className="body">
-            Open an account with {space.broker_name ?? "the mentor's broker"} through this link, then send proof. You
-            get {days(settings.broker_vip_days)} of VIP.
+            Open an account with {space.broker_name ?? "the mentor's broker"}{" "}
+            through this link, then send proof. You get{" "}
+            {days(settings.broker_vip_days)} of VIP.
           </p>
-          <a className="btn btn-ghost" href={settings.broker_link} target="_blank" rel="noopener noreferrer">
+          <a
+            className="btn btn-ghost"
+            href={settings.broker_link}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Open the broker&apos;s page
           </a>
           <ProofForm
@@ -125,7 +153,10 @@ export function MemberView({ space, price, join }: MemberViewProps) {
             noteLabel="Your account number"
             notePlaceholder="4830 2291"
           />
-          <p className="small">{space.name} may be paid by the broker for accounts opened through this link.</p>
+          <p className="small">
+            {space.name} may be paid by the broker for accounts opened through
+            this link.
+          </p>
         </Card>
       ) : null}
 
@@ -135,7 +166,9 @@ export function MemberView({ space, price, join }: MemberViewProps) {
       </Card>
 
       {!canPay && !canBroker ? (
-        <p className="small center">{space.name} has not set up payment here yet. Ask them how to get VIP.</p>
+        <p className="small center">
+          {space.name} has not set up payment here yet. Ask them how to get VIP.
+        </p>
       ) : null}
 
       <SignedInAs join={join} />
@@ -164,7 +197,8 @@ function ShareLink({ slug }: { slug: string }) {
         onClick={async () => {
           await navigator.clipboard.writeText(link);
           setCopied(true);
-        }}>
+        }}
+      >
         {copied ? "Copied" : "Copy link"}
       </Button>
     </>
@@ -183,7 +217,15 @@ interface ProofFormProps {
 }
 
 /** Upload a proof and send it to the mentor's queue. Shows where the last one stands. */
-function ProofForm({ kind, latest, spaceName, join, fileLabel, noteLabel, notePlaceholder }: ProofFormProps) {
+function ProofForm({
+  kind,
+  latest,
+  spaceName,
+  join,
+  fileLabel,
+  noteLabel,
+  notePlaceholder,
+}: ProofFormProps) {
   const [file, setFile] = useState<File | null>(null);
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -193,7 +235,9 @@ function ProofForm({ kind, latest, spaceName, join, fileLabel, noteLabel, notePl
     return (
       <div className="stack" role="status">
         <p className="body strong">Sent on {formatDay(latest.created_at)}</p>
-        <p className="body">Waiting for {spaceName} to check it. This page updates when they do.</p>
+        <p className="body">
+          Waiting for {spaceName} to check it. This page updates when they do.
+        </p>
       </div>
     );
   }
@@ -212,13 +256,14 @@ function ProofForm({ kind, latest, spaceName, join, fileLabel, noteLabel, notePl
 
   return (
     <form
-        noValidate
+      noValidate
       className="stack"
       style={{ gap: 14 }}
       onSubmit={(event) => {
         event.preventDefault();
         void send();
-      }}>
+      }}
+    >
       {latest?.status === "declined" ? (
         <p className="error" role="status">
           {declinedLine(latest)}
@@ -280,13 +325,14 @@ function InviteForm({ join }: { join: Join }) {
 
   return (
     <form
-        noValidate
+      noValidate
       className="stack"
       style={{ gap: 14 }}
       onSubmit={(event) => {
         event.preventDefault();
         void use();
-      }}>
+      }}
+    >
       <Field
         label="Invite code"
         autoCapitalize="characters"

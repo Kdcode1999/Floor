@@ -437,6 +437,14 @@ Kingsley's calls. These replace the earlier entries they contradict, which stay 
   newest build, so nobody is stuck on an old one.
 - **Safari is told plainly how to add Floor to the Home Screen**, because it offers no button
   that does it, and alerts on iPhone only work from there.
+- **The Android download lives in Cloudflare R2.** Downloads cost nothing there, which matters
+  when every member downloads the app and every update. Each release is a new file with its
+  version in the name, so a phone halfway through a download is never cut off.
+- **Every Android release is a full APK, offered inside the app.** The app asks Floor's server
+  which release is current when it opens. It never installs anything by itself: it offers the
+  download, and Android asks the person. Expo's over-the-air updates are left out for now: they
+  would add a service and a cost, and a full download of a few tens of MB once in a while is
+  fine. A release can also be made required, for the rare change old builds cannot work with.
 - **The mentor pays Floor a flat $50 a month.** It is the only money Floor takes. How it is
   collected is decided when that piece is built.
 

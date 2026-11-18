@@ -15,6 +15,8 @@ import { AuthProvider, useAuth } from "@/auth/AuthContext";
 import { holdFor, stageFor } from "@/auth/stage";
 import { CaptureGuard } from "@/components/CaptureGuard";
 import { AlertTaps } from "@/features/alerts/AlertTaps";
+import { RequiredUpdate } from "@/features/updates/RequiredUpdate";
+import { useUpdate } from "@/features/updates/useUpdate";
 import { setUpAlerts } from "@/features/alerts/push";
 import { missingSettings } from "@/lib/env";
 import { SpaceProvider, useSpace } from "@/space/SpaceContext";
@@ -67,6 +69,7 @@ function GuardedStack() {
   const theme = useTheme();
   const auth = useAuth();
   const space = useSpace();
+  const update = useUpdate();
 
   // A release build without its settings stops at the hold screen, which says so.
   const stage = missingSettings ? "hold" : stageFor(auth.status, space.status);
@@ -86,6 +89,16 @@ function GuardedStack() {
   useEffect(() => {
     SystemUI.setBackgroundColorAsync(theme.background).catch(() => {});
   }, [theme.background]);
+
+  // An Android build Floor no longer supports stops here, and says how to update.
+  if (update.state === "required" && update.release) {
+    return (
+      <>
+        <StatusBar style={theme.dark ? "light" : "dark"} />
+        <RequiredUpdate release={update.release} />
+      </>
+    );
+  }
 
   return (
     <>

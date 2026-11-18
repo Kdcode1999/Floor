@@ -162,17 +162,7 @@ gets no alerts there.
    shows a QR code. Scan it with the phone, download the file and open it. Android asks once
    whether to allow installing from your browser.
 
-4. **iPhone.** This needs the Apple Developer Program (99 dollars a year), which the App Store
-   needs anyway. Register the phone, then build:
-
-   ```powershell
-   npx eas-cli@latest device:create
-   npx eas-cli@latest build --profile development --platform ios
-   ```
-
-   Sign in with your Apple ID when asked, and let Expo create what it offers to create. Answer
-   **yes** when it asks whether to set up push notifications. Install from the QR code. The phone
-   also needs Developer Mode on: Settings, Privacy & Security, Developer Mode.
+4. **iPhone** needs no build and no Apple account: iPhone users get Floor as a web app (step 12).
 
 5. Start the app as before, and open **Floor** on the phone instead of Expo Go:
 
@@ -187,8 +177,9 @@ A new build is only needed when a pull changes `mobile/package.json` or `mobile/
 `docs/STATUS.md` will say so when it happens. Everything else reaches the phone through
 `npx expo start`.
 
-The app's id in both stores is `ai.pikin.floor`. It can never change after the first store
-release. If you want another, tell Claude before you build.
+The Android app's id is `ai.pikin.floor`. Phones that installed it only take updates with the
+same id, so it can never change after the first release. If you want another, tell Claude
+before you build.
 
 ## 7. Alerts
 
@@ -413,3 +404,57 @@ button.
 
 What a web app cannot do on iPhone: stop screenshots and screen recording. Paid video there is
 protected by the viewer's name on it.
+
+## 13. Floor for Android: the download
+
+Android users download the app from Floor's own site (`/download` on the web app), not the Play
+Store. The file lives in Cloudflare R2, which charges nothing for downloads.
+
+**Make a place for the file, once.**
+
+1. Make a free Cloudflare account. In the dashboard open R2, and create a bucket called
+   `floor-downloads`.
+2. In the bucket's Settings, under Public access, connect a custom domain such as
+   `downloads.yourdomain.com` (or allow the `r2.dev` address while trying it).
+
+**Give the release build its settings, once.** The app reads them when it is built. In the
+`mobile` folder:
+
+```powershell
+npx eas-cli@latest env:create --environment production --name EXPO_PUBLIC_SUPABASE_URL --value <your project URL> --visibility plaintext
+npx eas-cli@latest env:create --environment production --name EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY --value <your publishable key> --visibility plaintext
+npx eas-cli@latest env:create --environment production --name EXPO_PUBLIC_SITE_URL --value <the web app's address> --visibility plaintext
+npx eas-cli@latest env:create --environment production --name EXPO_PUBLIC_SUPPORT_EMAIL --value <where people write to Floor> --visibility plaintext
+```
+
+**Each release.**
+
+1. Build it (about 15 minutes, on Expo's servers):
+
+   ```powershell
+   npx eas-cli@latest build --profile production --platform android
+   ```
+
+   It ends with a link to the build. Download the `.apk` from there, and note its **Version code**
+   on the build's page (it goes up by one each build).
+2. Upload the file to the bucket with a name that says the version, such as `floor-1.0.0-1.apk`.
+   Never replace an old file: phones may be downloading it.
+3. In Vercel (the web app's project), Settings, Environment Variables, for Production:
+
+   | Name | Value |
+   | --- | --- |
+   | `ANDROID_APK_URL` | the file's public address, such as `https://downloads.yourdomain.com/floor-1.0.0-1.apk` |
+   | `ANDROID_VERSION_NAME` | the version in `mobile/app.json`, such as `1.0.0` |
+   | `ANDROID_VERSION_CODE` | the build's Version code |
+   | `ANDROID_NOTES` | a line about what is new, or leave it empty |
+   | `ANDROID_MIN_VERSION_CODE` | leave empty, unless older builds must stop working (see below) |
+
+   Redeploy. `/download` now offers it, and every installed Floor shows "A new version of Floor is
+   ready" at the top of the Feed the next time it opens.
+
+**Making everyone update.** If an old build must not be used any more (a change the old app cannot
+work with), set `ANDROID_MIN_VERSION_CODE` to the first build that may still be used. Older apps
+then show only "Update Floor to keep going", with the download. Use it rarely.
+
+**Try it.** On an Android phone, open `<web app address>/download`, tap the button and install.
+Android asks once whether to allow installing apps from the browser.

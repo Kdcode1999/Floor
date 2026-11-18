@@ -400,3 +400,16 @@ textarea.input {
   margin: 0;
   padding-left: 20px;
 }
+
+/* Numbered steps on the download page. */
+.steps {
+  margin: 0;
+  padding-left: 22px;
+  list-style: decimal;
+}
+.steps li + li {
+  margin-top: 8px;
+}
+.steps li::marker {
+  color: var(--text2);
+}
