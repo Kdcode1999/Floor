@@ -143,6 +143,7 @@ export function learnMessage(failure: Failure): string {
   if (code === "bad_order") return "The course changed while you were sorting it. Go back and try again.";
   if (code === "video_not_set_up" || code === "not_set_up") return "Video is not set up for this copy of Floor yet.";
   if (code === "video_host_unavailable") return "The video service did not answer. Try again in a moment.";
+  if (code === "sample") return "A video cannot be uploaded in the sample space. The rest of a lesson works here.";
   if (code === "signed_out") return "You've been signed out. Sign in again.";
   if (code === "offline") return "No connection. Check your internet and try again.";
   if ((failure.message ?? "").includes("modules_title") || (failure.message ?? "").includes("lessons_title")) return "Give it a title.";
