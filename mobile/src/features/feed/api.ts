@@ -139,7 +139,10 @@ export async function createPost(client: SupabaseClient, spaceId: string, post: 
     p_embed_url: post.embed.trim() || null,
   });
   if (error && picture) void client.storage.from("posts").remove([picture.path]).then(undefined, () => {});
-  return error ? feedMessage(error) : null;
+  if (error) return feedMessage(error);
+  // A new post may have a notice waiting for the mentor's Telegram channel. Have the server post it now.
+  kickJobs();
+  return null;
 }
 
 export async function createSetup(client: SupabaseClient, spaceId: string, form: SetupForm, forEveryone: boolean): Promise<string | null> {

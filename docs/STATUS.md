@@ -49,6 +49,10 @@ Working today:
   delete messages and mute members. A member reports a message to staff, who are alerted on
   their phones, and blocks another member. The Chat tab shows a dot when something is waiting.
   There are no private messages.
+- **Telegram teasers**: the mentor adds Floor's bot to their Telegram channel and posts a code in
+  it. From then on the bot announces a new setup, post or lesson there, with the join link. A VIP
+  setup is named by its pair and nothing else. The mentor chooses what is announced, can send a
+  test, and is told in the app if the bot was removed or may not post.
 - **Names**: everyone chooses the name others see before they write. A name cannot claim to be
   staff, carry a link or a number, or copy the name of the space, its mentor or an admin. The
   mentor and admins carry a badge no name can fake.
@@ -56,8 +60,8 @@ Working today:
 With `mobile/.env` empty the app still opens on the sample space, with no sign-in, so the screens can be
 looked at without any setup.
 
-Checked: 186 database tests, 223 logic tests (156 phone, 67 web and server), and eleven walk-throughs
-in Chrome. Eight of them run against a real Postgres with Floor's migrations, with the mentor, a VIP
+Checked: 199 database tests, 249 logic tests (163 phone, 86 web and server), and twelve walk-throughs
+in Chrome. Nine of them run against a real Postgres with Floor's migrations, with the mentor, a VIP
 member and a free member each on their own phone. The Community walk-through has four people in one
 group at once: what one writes shows on the others' phones, and a link, a number, a mute, a report and
 a block each do what they should on screen and in the database. The Learn walk-through uploads a real video through the
@@ -65,11 +69,13 @@ server to a stand-in for the video host, which checks every signature the way th
 plays it back. The Alerts walk-through posts a setup in the app and checks who the server tells,
 through a stand-in for the notification service. The card payments walk-through connects a processor,
 pays on its page, and tries a wrong key, a forged webhook and an underpayment, against stand-ins for
-Paystack and Flutterwave. The phone app builds for Android and iPhone and the web app builds for
+Paystack and Flutterwave. The Telegram walk-through connects a channel through a stand-in for
+Telegram, reads every notice the bot posts, and tries a call that only pretends to be Telegram's. The phone app builds for Android and iPhone and the web app builds for
 production.
 
 Not yet checked anywhere: anything on a real phone since the first look, and anything against the
-real Supabase project, the real video host, a real notification or a real card processor. Those need
+real Supabase project, the real video host, a real notification, a real card processor or the real
+Telegram. Those need
 `docs/SETUP.md`. In a group, two things can only be seen on a real phone: that the box to type in
 sits just above the keyboard, and that a message reaches the other phones at once. That speed comes
 from Supabase's live connection, which the checks cannot use. Without it a phone still asks every few
@@ -97,9 +103,9 @@ Each step is written out in `docs/SETUP.md`.
 - [ ] A Firebase project, so Android phones can get alerts (SETUP step 7)
 - [ ] Card payments: one secret in Vercel, then try a test payment (SETUP step 8)
 - [ ] Put yourself on Floor's own team, and choose the address people write to (SETUP step 9)
+- [ ] Make Floor's Telegram bot and give its token to Vercel (SETUP step 10)
 
-Later, when the build reaches them: a live video service, a Telegram bot token, the Apple and Google
-developer accounts.
+Later, when the build reaches them: a live video service, the Apple and Google developer accounts.
 
 ## Build order
 
@@ -136,7 +142,7 @@ developer accounts.
 - [x] Groups and chat
 - [x] Moderation, admin-only groups
 - [x] Link and number filter
-- [ ] Telegram teaser bot
+- [x] Telegram teaser bot
 
 ### 3. Live
 - [ ] Class schedule with reminders

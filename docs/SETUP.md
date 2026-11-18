@@ -313,3 +313,40 @@ Until it is set, the screens that would show it leave it out.
 **Deleting an account.** Both stores require that people can delete their account. In the app it
 is under Account. On the web it is `https://YOUR-SITE/account`: Google Play asks for that address
 when you list the app.
+
+## 10. The Telegram bot
+
+Floor has one bot of its own. A mentor adds it to the Telegram channel their audience is already
+in, and it posts a short notice there when they post in their space, with their join link. You
+make the bot once. Every mentor then connects their own channel from the app.
+
+**Make the bot.**
+
+1. In Telegram, open a chat with `@BotFather`. Check the blue tick: there are copies.
+2. Send `/newbot`. Give it a name people will see, such as `Floor`, and a username that ends in
+   `bot`, such as `FloorTeasersBot`.
+3. BotFather answers with a token: a number, a colon and a long run of letters. Whoever holds
+   it can post as the bot. Don't paste it in a chat or an email.
+
+**Give the token to Floor's server.** In Vercel, open the project, Settings, Environment
+Variables, and add `TELEGRAM_BOT_TOKEN` with the token as its value, for Production. Tick
+"Sensitive". Then redeploy, so the server picks it up.
+
+That is all the setup there is. The first time a mentor opens Manage, Telegram teasers, the
+server tells Telegram where to send what the bot sees. Nothing is registered by hand.
+
+**Try it.**
+
+1. In Telegram, make a channel of your own to test with. In its settings, open Administrators,
+   Add Admin, and add your bot. Leave "Post messages" switched on.
+2. In the Floor app, as the mentor of a space: Manage, Telegram teasers. Copy the line it shows
+   and post it in the channel. The bot takes the line down and says the channel is connected.
+3. Press "Send a test" in the app. A line from the bot appears in the channel.
+4. Post a trade setup for VIP in the app. The channel gets "New VIP setup" with the pair and
+   your join link, and none of the prices.
+
+**If the token ever gets out**, send `/revoke` to `@BotFather`, choose the bot, and put the new
+token in Vercel in place of the old one. Mentors do not have to connect again.
+
+Optional, also with `@BotFather`: `/setuserpic` gives the bot Floor's logo, and `/setdescription`
+sets what people read when they open it.

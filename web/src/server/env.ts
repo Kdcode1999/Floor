@@ -49,6 +49,16 @@ export const PAYMENTS_ALLOW_TEST_KEYS = process.env.PAYMENTS_ALLOW_TEST_KEYS ===
 export const PAYSTACK_API = (process.env.PAYSTACK_API_URL ?? "https://api.paystack.co").replace(/\/+$/, "");
 export const FLUTTERWAVE_API = (process.env.FLUTTERWAVE_API_URL ?? "https://api.flutterwave.com").replace(/\/+$/, "");
 
+/** Floor's Telegram bot, which posts notices in mentors' channels. */
+export const TELEGRAM = {
+  /** Where Telegram's API lives. Only the walk-throughs point this somewhere else. */
+  api: (process.env.TELEGRAM_API_URL ?? "https://api.telegram.org").replace(/\/+$/, ""),
+  /** The bot's token, from @BotFather. Whoever holds it can post as the bot. */
+  token: process.env.TELEGRAM_BOT_TOKEN ?? "",
+};
+
+export const telegramConfigured = TELEGRAM.token !== "";
+
 /**
  * A long random word of our own. Vercel sends it with every run of the timer that sweeps the
  * job queue, which is how the route knows the call is Vercel's.

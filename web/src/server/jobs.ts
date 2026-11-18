@@ -5,6 +5,7 @@ import { videoConfigured } from "./env";
 import { confirmPayment, REFERENCE, vaultReady } from "./pay";
 import { checkReceipts, sendAlert } from "./push";
 import { asServer } from "./supabase";
+import { sendTeaser } from "./teasers";
 
 // The jobs the database queues for this server (see private.outbox in the migrations), and
 // what each kind means. A job that throws is tried again later, up to five times.
@@ -24,6 +25,8 @@ const handlers: Record<string, Handler> = {
   alert: sendAlert,
   /** Half an hour after an alert: learn which phones no longer have the app. */
   push_receipts: checkReceipts,
+  /** Something new in a space: post a notice in the Telegram channel it is connected to. */
+  telegram: sendTeaser,
 
   /**
    * A member started a card payment a while ago. If they paid and never came back to the

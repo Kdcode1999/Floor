@@ -88,6 +88,8 @@ an account) are kept in both. A test in `web/` fails when the copies differ.
 | `POST /api/pay/start` | a member | Starts a card payment and answers with the processor's page for it |
 | `POST /api/pay/confirm` | the page a member returns to, no login | Asks the processor what became of a payment, and adds the VIP days if it went through |
 | `POST /api/pay/hook/<processor>/<space>` | the mentor's processor | Checks the webhook's signature with that mentor's key, then does the same as confirm |
+| `POST /api/telegram/start` | the mentor | Answers with the bot's name and the code to post in their channel. Registers the webhook with Telegram if this copy of the server has not yet |
+| `POST /api/telegram/webhook` | Telegram | Checks the secret word, then acts on what the bot saw: a code posted in a chat connects it, being removed is noted |
 
 Every route follows the same steps: take the person's login from the request, ask the database
 *as that person* whether they may (a function such as `lesson_playback`), and only then use a
@@ -96,7 +98,9 @@ secret. `server/` cannot be imported from code that runs in a browser.
 The files in `server/`: `env.ts` (the secret settings), `supabase.ts` (the database as the person,
 or with the secret key), `http.ts` (reading requests, wording refusals), `bunny.ts` (everything
 asked of the video host), `jobs.ts` (the queue's handlers), `push.ts` (everything asked of the
-notification service), `alertWords.ts` (what an alert says and who may get it).
+notification service), `alertWords.ts` (what an alert says and who may get it), `telegram.ts`
+(everything asked of Telegram, as Floor's bot), `teaserWords.ts` (what a notice says, and how the
+bot reads what it is told) and `teasers.ts` (posting a notice, and acting on an update).
 
 Card payments are in `server/pay/`: `processor.ts` (what Floor asks of any card processor),
 `paystack.ts` and `flutterwave.ts` (one file each, and the only places that know either
@@ -113,7 +117,8 @@ need to know about processors, such as which currencies each charges, is in
 | `push_receipts` | the server, 30 minutes after an alert | Asks which phones took the alert and forgets the ones that are gone |
 | `video_delete` | `delete_lesson`, `erase_account` | Removes the video from the video host |
 | `payment_check` | `start_payment`, for ten minutes later | Asks the processor about a payment nobody has confirmed yet |
-| `files_delete` | `erase_account` | Removes files from the file store after an account or space is deleted |
+| `files_delete` | `erase_account`, `delete_message`, `delete_group` | Removes files from the file store |
+| `telegram` | a new post or setup, a lesson being published, `telegram_test` | Words a notice from what a free member would see and posts it in the space's Telegram chat |
 
 Every job carries `actor`: who caused it. An alert leaves that person out.
 
@@ -146,6 +151,10 @@ Every job carries `actor`: who caused it. An alert leaves that person out.
   number filter is `private.has_link` and `private.has_phone`, and the same two also guard names.
   `private.can_read_group` is the one rule for who opens a group, used by every function and by
   the file store for pictures (`chat` bucket, `<space>/<group>/<file>`).
+- `telegram_links` ties a space to the Telegram chat Floor's bot posts in. Nothing reads it but
+  functions: the mentor's (`telegram_status`, `telegram_start`, `telegram_set`, `telegram_test`,
+  `telegram_disconnect`) and the server's (`telegram_connect`, `telegram_target`,
+  `telegram_result`, `telegram_left`). Triggers on `posts` and `lessons` queue the notices.
 - `push_tokens` holds each account's one address for alerts. Nothing reads it but functions: the
   app saves and removes its own (`save_push_token`, `remove_push_token`), the server asks who to
   alert (`alert_recipients`). A member's switches are three columns on their membership.
@@ -191,6 +200,8 @@ mentor uses the phone and a laptop at once.
   treats some addresses as phones that no longer have the app.
 - `fake_processors.py` stands in for Paystack and Flutterwave: the API calls Floor makes, a page
   to pay on, and webhooks signed the way each one signs.
+- `fake_telegram.py` stands in for Telegram: it answers the bot's calls, keeps what the bot
+  posted, and tells Floor's server what the bot saw, with the secret word the server registered.
 - `local_services.py` starts all of it together: the backend, the stand-ins and Floor's server.
 - Nothing a check opens leaves the machine. A page from another site is answered with an empty one.
 - `stand_in.py` is the older, scripted stand-in. It answers whatever a walk-through tells it to,

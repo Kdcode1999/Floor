@@ -344,6 +344,22 @@ Newest at the bottom. Each entry says what was decided and why, so nobody has to
   group's settings). Back then returns to wherever they were opened from. A screen inside the Manage
   tab would have gone back to the tab instead.
 
+- **One Telegram bot for all of Floor.** A mentor does not make a bot or handle a token. They add
+  Floor's bot to their channel as an admin and post a line with a code in it. A code lasts half an
+  hour and works once. Posting it is the proof that the channel is theirs: only someone who can post
+  there can do it.
+- **A notice never says more than a free member would see in the app.** A VIP setup is named by its
+  pair. A VIP post gives its title at most. A post for everyone gives its first lines. Offers are
+  not announced. The mentor switches each kind on or off.
+- **Only the mentor sets teasers up.** It is their audience and their channel.
+- **The server registers itself with Telegram**, the first time a mentor opens the screen. The word
+  Telegram sends with every call is worked out from the bot's token, so there is one secret to set
+  and none to keep in step.
+- **When Telegram refuses a notice for good, the mentor is told why** (the bot was removed, or may
+  not post) and the notice is dropped. When Telegram asks for a pause, the notice waits in the queue
+  and goes out later.
+- **A Telegram chat serves one space.** If a second space connects the same chat, the first loses it.
+
 ## Open
 
 - The service behind the live room. To be chosen when Live is built, on current prices.

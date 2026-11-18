@@ -161,6 +161,14 @@ export default function ManageScreen() {
             onPress={() => router.push("/manage/protection")}
           />
         ) : null}
+        {isMentor ? (
+          <SettingsRow
+            title="Telegram teasers"
+            detail="Announce what you post in your channel"
+            divided
+            onPress={client ? () => router.push("/manage/telegram") : undefined}
+          />
+        ) : null}
         <SettingsRow
           title="Members"
           detail="Who is VIP and who is expiring"
