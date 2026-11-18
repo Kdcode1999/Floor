@@ -25,14 +25,24 @@ Working today:
   cannot be changed after posting: the mentor adds an update or closes it. The join page previews
   the newest posts.
 
+- **Learn**: the mentor builds a course of modules and lessons, in the app or on a laptop at
+  `/mentor`, uploads each lesson's video, and publishes it. VIP members watch in the app, with
+  their progress kept and a data saver. Free members see the course locked. New lessons show in
+  the Feed.
+- **Protection**: no screenshots or screen recording for members, and the viewer's name over paid
+  video. The mentor can switch either off.
+
 With `mobile/.env` empty the app still opens on the sample space, with no sign-in, so the screens can be
 looked at without any setup.
 
-Checked: 85 database tests, 123 logic tests (93 phone, 30 web), and five walk-throughs in Chrome at
-phone size. Two of them run the app against a real Postgres with Floor's migrations, with the mentor,
-a VIP member and a free member each on their own phone, so what they prove is true of the real rules.
-The phone app builds for Android and iPhone and the web app builds for production. Nothing has run
-against the real Supabase project yet: that needs `docs/SETUP.md`.
+Checked: 115 database tests, 137 logic tests (105 phone, 32 web and server), and seven walk-throughs in
+Chrome. Four of them run against a real Postgres with Floor's migrations, with the mentor, a VIP member
+and a free member each on their own phone. The Learn walk-through uploads a real video through the
+server to a stand-in for the video host, which checks every signature the way the real host does, and
+plays it back. The phone app builds for Android and iPhone and the web app builds for production.
+
+Not yet checked anywhere: anything on a real phone since the first look, and anything against the
+real Supabase project or the real video host. Those need `docs/SETUP.md`.
 
 ## Needed from Kingsley
 
@@ -47,9 +57,11 @@ Each step is written out in `docs/SETUP.md`.
 - [ ] Give the project its own email sender and change the two email templates, so sign-in emails carry
       a code (SETUP step 3). Sign-in cannot work on the real project before this
 - [ ] Fill in `web/.env.local` the same way
+- [ ] Put the web app on Vercel (SETUP step 4). The phone app needs it for video
+- [ ] Open a Bunny Stream library for lesson video (SETUP step 5)
 
-Later, when the build reaches them: an Expo account (EAS), a video host, a live video service, the card
-processors, a Telegram bot token, the Apple and Google developer accounts.
+Later, when the build reaches them: an Expo account (EAS), a live video service, the card processors, a
+Telegram bot token, the Apple and Google developer accounts.
 
 ## Build order
 
@@ -73,8 +85,9 @@ processors, a Telegram bot token, the Apple and Google developer accounts.
 - [x] Mobile: approval queue, invite codes and Members
 - [x] Walk-throughs run against a real Postgres with the real rules
 - [x] Database and mobile: Feed (posts, setups, embeds, Offers), and a preview on the join page
-- [ ] Database and mobile: Learn (modules, lessons, hosted video)
-- [ ] Mobile: Protection (capture blocking, name on video)
+- [x] Database, server, mobile and web: Learn (modules, lessons, hosted video, progress)
+- [x] Mobile: Protection (capture blocking, name on video)
+- [x] Floor's server: routes for video, and the job queue
 - [ ] Alerts (push)
 - [ ] Card payments that unlock VIP by themselves
 - [ ] Report a space (mobile), suspend a space (Floor's own admin page)

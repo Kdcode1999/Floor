@@ -11,7 +11,7 @@ Needs Python with Playwright, psycopg and Pillow, Google Chrome, and PostgreSQL 
 From `mobile/` (bash shown; the values only matter while building):
 
     EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:8095 EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=stand-in \\
-      EXPO_PUBLIC_SITE_URL=https://floor.example npx expo export --platform web --output-dir dist-stand-in
+      EXPO_PUBLIC_SITE_URL=http://127.0.0.1:8096 npx expo export --platform web --output-dir dist-stand-in
     python ../checks/phone_feed.py
 
 Pictures land in `checks/out/`, named `feed-*`. The script exits with an error if a check fails.

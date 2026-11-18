@@ -17,6 +17,10 @@ export interface Space {
   theme: ThemeName;
   /** The address of the space's logo picture. Null when it has none. */
   logo: string | null;
+  /** The mentor's switch: no screenshots or screen recording for members. */
+  blockCapture: boolean;
+  /** The mentor's switch: the viewer's name is shown on paid video. */
+  watermark: boolean;
 }
 
 /** What a mentor can change about the space's look. */
@@ -34,6 +38,8 @@ export interface Viewer {
   vip: boolean;
   /** When their VIP ends, as the database gave it. Null when they never had VIP. */
   vipUntil: string | null;
+  /** The name they go by in this app. */
+  name: string;
 }
 
 /** One space the signed-in person belongs to, with their place in it. */
@@ -43,8 +49,12 @@ export interface SpaceEntry {
   theme: ThemeName;
   /** Where the logo is in the "logos" store. On the sample space, a picture on this phone. */
   logoPath: string | null;
+  blockCapture: boolean;
+  watermark: boolean;
   role: Role;
   vipUntil: string | null;
+  /** The name the person goes by. */
+  displayName: string;
 }
 
 export type SpaceStatus =
@@ -79,6 +89,8 @@ interface SpaceContextValue {
   switchSpace: () => void;
   /** Saves a new name, theme or logo. Resolves with a message to show if it failed, or null. */
   updateSpace: (changes: LookChanges) => Promise<string | null>;
+  /** Saves the mentor's two protection switches. Resolves with a message to show if it failed, or null. */
+  setProtection: (changes: { blockCapture?: boolean; watermark?: boolean }) => Promise<string | null>;
   /**
    * Shows a theme across the whole app without saving it, so a mentor can try one on.
    * Pass null to go back to the saved theme.
@@ -90,10 +102,30 @@ const SpaceContext = createContext<SpaceContextValue | null>(null);
 
 // Shown when mobile/.env is not filled in, so the screens can be looked at before any setup.
 // Change the role to "member" to see the app the way a member does.
-const SAMPLE: SpaceEntry = { id: "sample", name: "Your Academy", theme: DEFAULT_THEME, logoPath: null, role: "mentor", vipUntil: null };
+const SAMPLE: SpaceEntry = {
+  id: "sample",
+  name: "Your Academy",
+  theme: DEFAULT_THEME,
+  logoPath: null,
+  blockCapture: false,
+  watermark: false,
+  role: "mentor",
+  vipUntil: null,
+  displayName: "You",
+};
 
 // Stands in until a space is known: Floor's own name and look.
-const BLANK: SpaceEntry = { id: "", name: "Floor", theme: DEFAULT_THEME, logoPath: null, role: "member", vipUntil: null };
+const BLANK: SpaceEntry = {
+  id: "",
+  name: "Floor",
+  theme: DEFAULT_THEME,
+  logoPath: null,
+  blockCapture: false,
+  watermark: false,
+  role: "member",
+  vipUntil: null,
+  displayName: "",
+};
 
 const CHOSEN_KEY = "floor-space";
 
@@ -105,6 +137,9 @@ interface SpaceRow {
   status: "active" | "suspended";
   role: Role;
   vip_until: string | null;
+  block_capture: boolean;
+  watermark: boolean;
+  display_name: string;
 }
 
 /** The spaces a person belongs to and may open, in the order they joined them. */
@@ -119,8 +154,11 @@ async function loadEntries(client: SupabaseClient): Promise<SpaceEntry[]> {
       name: row.name,
       theme: themeFor(row.theme).name,
       logoPath: row.logo_path,
+      blockCapture: row.block_capture,
+      watermark: row.watermark,
       role: row.role,
       vipUntil: row.vip_until,
+      displayName: row.display_name,
     }));
 }
 
@@ -202,8 +240,10 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
         name: shown.name,
         theme: shown.theme,
         logo: shown.logoPath === null ? null : auth.sample ? shown.logoPath : logoUrl(shown.logoPath),
+        blockCapture: shown.blockCapture,
+        watermark: shown.watermark,
       },
-      viewer: { role: shown.role, vip, vipUntil: shown.vipUntil },
+      viewer: { role: shown.role, vip, vipUntil: shown.vipUntil, name: shown.displayName },
       isStaff,
       isMentor: shown.role === "mentor",
 
@@ -244,6 +284,28 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
         if (changes.logoPath !== undefined && entry.logoPath && entry.logoPath !== changes.logoPath) {
           void supabase.storage.from("logos").remove([entry.logoPath]).then(undefined, () => {});
         }
+        const id = entry.id;
+        setLoaded((current) =>
+          current && {
+            ...current,
+            entries: current.entries.map((each) => (each.id === id ? { ...each, ...changes } : each)),
+          },
+        );
+        return null;
+      },
+
+      setProtection: async (changes) => {
+        if (!entry) return "There is no space to change.";
+        if (auth.sample || !supabase) {
+          setSample((current) => ({ ...current, ...changes }));
+          return null;
+        }
+        const row: Record<string, boolean> = {};
+        if (changes.blockCapture !== undefined) row.block_capture = changes.blockCapture;
+        if (changes.watermark !== undefined) row.watermark = changes.watermark;
+        const { data, error } = await supabase.from("space_settings").update(row).eq("space_id", entry.id).select("space_id");
+        if (error) return "Couldn't save. Try again.";
+        if (!data || data.length === 0) return "Only the mentor can change this.";
         const id = entry.id;
         setLoaded((current) =>
           current && {

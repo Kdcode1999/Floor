@@ -1,6 +1,11 @@
 """Ready-made people, spaces and pictures for the walk-throughs that run on the local backend."""
 
 import io
+import pathlib
+import shutil
+import subprocess
+import sys
+import tempfile
 
 from PIL import Image, ImageDraw
 
@@ -53,3 +58,28 @@ def proof(space_id: str, user_id: str, kind: str, note: str, name: str = "receip
     local_db.run("insert into storage.objects (bucket_id, name, owner) values ('proofs', %s, %s)", [path, user_id])
     found = local_db.as_person(user_id, "select public.request_access(%s, %s, %s, %s) as id", [space_id, kind, path, note])
     return str(found[0]["id"])
+
+
+def film(seconds: int = 12) -> tuple[bytes, dict[str, bytes]]:
+    """A short real film with a moving picture and a tone, for the walk-throughs that play video.
+
+    Returns it twice: as one file, the way a mentor uploads it, and cut into a playlist and
+    pieces (HLS), the way a video host serves it to a phone.
+    """
+    if not shutil.which("ffmpeg"):
+        sys.exit("ffmpeg is not installed. It makes the short film this walk-through plays.")
+    folder = pathlib.Path(tempfile.mkdtemp())
+    source = [
+        "-f", "lavfi", "-i", f"testsrc=size=640x360:rate=15:duration={seconds}",
+        "-f", "lavfi", "-i", f"sine=frequency=440:duration={seconds}",
+        "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "veryfast", "-g", "30", "-c:a", "aac",
+    ]
+    subprocess.run(["ffmpeg", "-loglevel", "error", "-y", *source, "-movflags", "+faststart", str(folder / "film.mp4")], check=True)
+    pieces = folder / "pieces"
+    pieces.mkdir()
+    subprocess.run(
+        ["ffmpeg", "-loglevel", "error", "-y", *source, "-f", "hls", "-hls_time", "4", "-hls_playlist_type", "vod",
+         "-hls_segment_filename", str(pieces / "seg%d.ts"), str(pieces / "playlist.m3u8")],
+        check=True,
+    )
+    return (folder / "film.mp4").read_bytes(), {file.name: file.read_bytes() for file in pieces.iterdir()}

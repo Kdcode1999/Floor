@@ -4,8 +4,11 @@ phone-sized Chrome, and the pass/fail bookkeeping."""
 import http.server
 import os
 import pathlib
+import subprocess
 import sys
 import threading
+import time
+import urllib.request
 
 from playwright.sync_api import Locator, Playwright, expect
 
@@ -45,6 +48,26 @@ def check_gone(what: str, locator: Locator) -> None:
     check_count(what, locator, 0)
 
 
+def check_ticked(what: str, locator: Locator, ticked: bool = True) -> None:
+    """Passes once a checkbox is ticked (or, with ticked=False, not ticked)."""
+    try:
+        expect(locator).to_have_attribute("aria-checked", "true" if ticked else "false", timeout=4000)
+        check(what, True)
+    except AssertionError:
+        check(what, False)
+
+
+def check_soon(what: str, test, seconds: float = 5) -> None:
+    """Passes once `test()` is true. For things that settle a moment after the screen changes,
+    such as a row the app has just asked the database to change."""
+    end = time.time() + seconds
+    while time.time() < end:
+        if test():
+            return check(what, True)
+        time.sleep(0.2)
+    check(what, bool(test()))
+
+
 def finish(problems: list[str]) -> None:
     """Reports browser errors, then ends the run with a pass or a fail."""
     check("the browser reported no errors or warnings", not problems)
@@ -78,14 +101,18 @@ def serve(dist: pathlib.Path, port: int) -> http.server.ThreadingHTTPServer:
     return server
 
 
-def open_phone(p: Playwright, problems: list[str], ignore: tuple[str, ...] = ()):
-    """Opens Chrome at phone size. Browser errors and warnings are collected into `problems`."""
+def open_phone(p: Playwright, problems: list[str], ignore: tuple[str, ...] = (), laptop: bool = False):
+    """Opens Chrome at phone size, or at laptop size for the pages a mentor uses on one.
+    Browser errors and warnings are collected into `problems`."""
     # Chrome refuses to start as root without this. It only happens on build machines.
     args = ["--no-sandbox"] if hasattr(os, "geteuid") and os.geteuid() == 0 else []
     browser = p.chromium.launch(channel="chrome", args=args)
-    page = browser.new_context(
-        viewport={"width": 390, "height": 844}, device_scale_factor=2, has_touch=True, is_mobile=True
-    ).new_page()
+    if laptop:
+        page = browser.new_context(viewport={"width": 1280, "height": 800}).new_page()
+    else:
+        page = browser.new_context(
+            viewport={"width": 390, "height": 844}, device_scale_factor=2, has_touch=True, is_mobile=True
+        ).new_page()
 
     def on_console(message):
         if message.type in ("error", "warning") and not any(text in message.text for text in ignore):
@@ -144,3 +171,39 @@ class Phone:
 
     def close(self) -> None:
         self.browser.close()
+
+
+def start_web(port: int, settings: dict[str, str] | None = None) -> subprocess.Popen:
+    """Starts the web app's production build, with the server's own settings for this run.
+
+    The build has to exist already: the top of each script says how to make it. The settings
+    whose names start with NEXT_PUBLIC_ are fixed when it is built. The rest are read here.
+    """
+    if not (WEB / ".next" / "BUILD_ID").is_file():
+        sys.exit("No web build. See the top of this script for the command that makes it.")
+
+    def answering() -> bool:
+        try:
+            urllib.request.urlopen(f"http://127.0.0.1:{port}/", timeout=1)
+            return True
+        except Exception:
+            return False
+
+    if answering():
+        sys.exit(f"Something is already answering on port {port}. Stop it first: it may be an older build.")
+    # Started with node itself, so stopping it stops the server and not just a wrapper around it.
+    web = subprocess.Popen(
+        ["node", "node_modules/next/dist/bin/next", "start", "-p", str(port)],
+        cwd=WEB, env={**os.environ, **(settings or {})}, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT,
+    )
+    for _ in range(60):
+        if answering():
+            return web
+        time.sleep(0.5)
+    web.terminate()
+    sys.exit("The web app did not start.")
+
+
+def stop_web(web: subprocess.Popen) -> None:
+    web.terminate()
+    web.wait()

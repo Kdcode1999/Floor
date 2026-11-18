@@ -16,7 +16,7 @@ export function TextLink({ label, onPress, disabled = false }: TextLinkProps) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ disabled }}
+      aria-disabled={disabled}
       disabled={disabled}
       onPress={onPress}
       hitSlop={6}

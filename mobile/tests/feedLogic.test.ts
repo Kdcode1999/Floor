@@ -129,6 +129,7 @@ describe("what the cards say", () => {
     expect(lockedTitle({ kind: "setup", title: null, pair: "EURUSD" })).toBe("EURUSD setup");
     expect(lockedTitle({ kind: "post", title: "Why I skipped gold", pair: null })).toBe("Why I skipped gold");
     expect(lockedTitle({ kind: "post", title: null, pair: null })).toBe("A post for VIP members");
+    expect(lockedTitle({ kind: "lesson", title: "Reading a chart", pair: null })).toBe("New lesson: Reading a chart");
   });
 
   it("numbers targets only when there are several", () => {

@@ -8,7 +8,7 @@ proof of payment, approval, a declined proof, the mentor's own view, and a banne
 Needs Python with Playwright and Google Chrome. From `web/` (bash shown):
 
     NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:8095 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=stand-in \\
-      NEXT_PUBLIC_SITE_URL=https://floor.example npx next build
+      NEXT_PUBLIC_SITE_URL=http://127.0.0.1:8096 npx next build
     python ../checks/web_join.py
 
 Pictures land in `checks/out/`, named `web-*`. The script exits with an error if a check fails.
@@ -199,7 +199,7 @@ def main() -> None:
             print("The mentor's own view")
             world["memberships"][0]["role"] = "mentor"
             page.goto(BASE + "/kings-fx", wait_until="networkidle")
-            check_visible("the mentor sees their link to share", page.get_by_text("https://floor.example/kings-fx"))
+            check_visible("the mentor sees their link to share", page.get_by_text("http://127.0.0.1:8096/kings-fx"))
             shot("8-mentor")
 
             print("A banned member")

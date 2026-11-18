@@ -8,8 +8,11 @@ export type Side = "buy" | "sell";
  */
 export interface FeedPost {
   id: string;
-  /** "post" is words and maybe a picture. "setup" is a trade idea. "offer" is a pinned deal. */
-  kind: "post" | "setup" | "offer";
+  /**
+   * "post" is words and maybe a picture. "setup" is a trade idea. "offer" is a pinned deal.
+   * "lesson" is a note that a lesson was added to Learn: its id is the lesson's, its title the lesson's.
+   */
+  kind: "post" | "setup" | "offer" | "lesson";
   audience: "everyone" | "vip";
   locked: boolean;
   title: string | null;

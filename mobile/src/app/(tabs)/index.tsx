@@ -109,6 +109,14 @@ function FeedCard({ post, staff }: { post: FeedPost; staff: boolean }) {
   // Only the mentor and admins need telling who a post is for. Members see what they can open.
   const audience = staff ? (post.audience === "vip" ? "VIP" : "Everyone") : undefined;
 
+  if (post.kind === "lesson") {
+    return (
+      <LessonCard
+        item={{ id: post.id, title: post.title ?? "Lesson", when }}
+        onPress={() => router.push({ pathname: "/lesson", params: { id: post.id } })}
+      />
+    );
+  }
   if (post.kind === "offer") return <OfferCard post={post} onManage={onManage} />;
   if (post.kind === "setup") {
     return (

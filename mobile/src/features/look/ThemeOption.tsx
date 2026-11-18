@@ -23,7 +23,7 @@ export function ThemeOption({ option, selected, onSelect }: ThemeOptionProps) {
     <Pressable
       accessibilityRole="radio"
       accessibilityLabel={`${option.label}. ${option.description}`}
-      accessibilityState={{ selected, checked: selected }}
+      aria-checked={selected}
       onPress={onSelect}
       style={({ pressed }) => [
         styles.row,

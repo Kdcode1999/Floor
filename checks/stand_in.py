@@ -261,7 +261,11 @@ class StandIn(http.server.BaseHTTPRequestHandler):
             for row in world["memberships"]:
                 found = world["spaces"].get(row["space_id"])
                 if row["status"] == "active" and found:
-                    rows.append({**{key: found[key] for key in ("id", "slug", "name", "theme", "logo_path", "status")}, "role": row["role"], "vip_until": row["vip_until"]})
+                    rows.append({
+                        **{key: found[key] for key in ("id", "slug", "name", "theme", "logo_path", "status")},
+                        "role": row["role"], "vip_until": row["vip_until"],
+                        "block_capture": True, "watermark": True, "display_name": world["display_name"],
+                    })
             return self._reply(200, rows)
 
         # A space in these walk-throughs has an empty Feed and nobody in the mentor's queue.

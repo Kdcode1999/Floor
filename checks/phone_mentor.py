@@ -8,7 +8,7 @@ Needs Python with Playwright, psycopg and Pillow, Google Chrome, and PostgreSQL 
 From `mobile/` (bash shown; the values only matter while building):
 
     EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:8095 EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=stand-in \\
-      EXPO_PUBLIC_SITE_URL=https://floor.example npx expo export --platform web --output-dir dist-stand-in
+      EXPO_PUBLIC_SITE_URL=http://127.0.0.1:8096 npx expo export --platform web --output-dir dist-stand-in
     python ../checks/phone_mentor.py
 
 Pictures land in `checks/out/`, named `mentor-*`. The script exits with an error if a check fails.
@@ -120,7 +120,7 @@ def main() -> None:
         print("Price and payment")
         phone.button("Price and payment", exact=False).click()
         check("the form opens", phone.at("/manage/setup"))
-        check_visible("the join link is built from the web address", phone.text("https://floor.example/gold-desk"))
+        check_visible("the join link is built from the web address", phone.text("http://127.0.0.1:8096/gold-desk"))
         check_visible("with no price yet, the page says none is shown", phone.text("No price is shown on your join page."))
         phone.field("Price").fill("abc")
         phone.field("Payment link").fill("paystack.com/pay/gold")

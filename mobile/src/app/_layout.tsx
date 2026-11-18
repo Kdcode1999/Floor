@@ -13,6 +13,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { AuthProvider, useAuth } from "@/auth/AuthContext";
 import { holdFor, stageFor } from "@/auth/stage";
+import { CaptureGuard } from "@/components/CaptureGuard";
 import { missingSettings } from "@/lib/env";
 import { SpaceProvider, useSpace } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
@@ -41,6 +42,7 @@ export default function RootLayout() {
       <KeyboardProvider>
         <AuthProvider>
           <SpaceProvider>
+            <CaptureGuard />
             <GuardedStack />
           </SpaceProvider>
         </AuthProvider>
@@ -90,6 +92,7 @@ function GuardedStack() {
           <Stack.Screen name="compose" />
           <Stack.Screen name="post" />
           <Stack.Screen name="picture" options={{ animation: "fade" }} />
+          <Stack.Screen name="lesson" />
         </Stack.Protected>
         <Stack.Protected guard={stage === "sign-in"}>
           <Stack.Screen name="sign-in" />

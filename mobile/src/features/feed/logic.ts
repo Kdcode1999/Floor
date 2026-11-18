@@ -156,6 +156,7 @@ export function offerProblems(form: OfferForm): OfferProblems {
 /** The few words that name a locked post to someone without VIP. */
 export function lockedTitle(post: Pick<FeedPost, "kind" | "title" | "pair">): string {
   if (post.kind === "setup") return post.pair ? `${post.pair} setup` : "Trade setup";
+  if (post.kind === "lesson") return post.title ? `New lesson: ${post.title}` : "New lesson";
   return post.title ?? "A post for VIP members";
 }
 

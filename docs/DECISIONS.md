@@ -168,10 +168,46 @@ Newest at the bottom. Each entry says what was decided and why, so nobody has to
 - **The join page previews the space's newest posts**: free posts with their opening words, VIP
   posts locked. It is what a free member would see, so nothing new is made public.
 
+- **Lesson video is hosted on Bunny Stream.** Checked in November 2026: Bunny charges 1 cent per GB
+  stored and 6 cents per GB delivered in Africa, with free encoding. Cloudflare Stream charges 5
+  dollars per 1,000 minutes stored and 1 dollar per 1,000 minutes delivered. At the sizes phones
+  play (360p to 480p) an hour watched costs about 2 to 3 cents on Bunny and 6 cents on Cloudflare,
+  and storage is many times cheaper. On Bunny the data saver also lowers Floor's own bill, so
+  what is good for a member on mobile data is good for Floor. The database keeps the host's name
+  with every video, and everything Floor asks of the host is in one file (`web/src/server/bunny.ts`),
+  so another host can replace it.
+- **Lessons are VIP only.** Hosted video costs money for every minute watched, and Floor's fee does
+  not count free members. Free teaching goes out as a YouTube embed in a free post, which costs
+  nothing. A free member sees the course outline, locked: what VIP holds.
+- **A video goes straight from the mentor's phone or laptop to the video host, in pieces.** It never
+  passes through Floor's server, and a dropped connection only costs the piece that was on its way.
+  Floor's server hands out a ticket good for that one video for a day.
+- **A video plays only at an address Floor's server has signed**, for that video alone, for six
+  hours. The server signs only after the database has said this person may watch: VIP that has not
+  run out and the account's one login, or staff. Video cannot be sent to a TV or kept in a floating
+  window, both of which would take it outside the app's protection.
+- **Replacing a lesson's video takes it back to a draft** until the new one is ready, so members
+  never open a lesson to nothing. A lesson cannot be published before its video is ready.
+- **A lesson counts as watched at 92 percent.** Nobody sits through the last seconds. Progress is
+  saved every ten seconds, and finishing is kept: watching again does not un-finish a lesson.
+- **Data saver is a switch on the lesson screen**, remembered on the phone. It holds video to 360p.
+- **Protection.** Always on: one login at a time, one phone per account. The mentor's switches, on
+  by default: no screenshots or screen recording for members, and the viewer's name and email
+  faintly over paid video, moving every 20 seconds so it cannot be cropped out. The mentor and
+  admins are exempt from both. The app says plainly that a second phone can still film the screen.
+- **Floor's server is a handful of routes in the web app** (`web/src/app/api`). Each one does a job
+  that needs a secret key and nothing else. It passes the person's login to the database, and the
+  database decides. The server uses the secret key only to record what the video host reported and
+  to take jobs from the queue.
+- **The apps nudge the server whenever they queue a job**, so alerts go out at once. A daily timer
+  on Vercel sweeps up anything left behind. Nothing depends on a paid plan.
+- **The laptop page (`/mentor`) does what a laptop is better at**: adding lessons and uploading
+  video. Renaming, sorting and deleting stay in the app. It never takes the account's one login
+  from the phone.
+
 ## Open
 
 - Card processors for the automatic path. Starting point: Paystack and Flutterwave, Stripe after.
-- Video host for lessons and the service behind the live room. To be chosen when Learn is built, on
-  current prices.
+- The service behind the live room. To be chosen when Live is built, on current prices.
 - How a mentor pays Floor its monthly fee. Nothing in the build order covers it yet. It has to happen on
   the web, not inside the iPhone app.

@@ -69,3 +69,53 @@ To check it: open the app, type your email, and a code should arrive within a fe
 
 With your own sender Supabase allows 30 sign-in emails an hour to start with. Raise it before
 launch under Authentication, then Rate Limits.
+
+## 4. Put the web app on Vercel
+
+The web app is the join page, the mentor's laptop page, and Floor's own server: the few jobs that
+need a secret key, such as signing a video's address. The phone app calls that server, so the web
+app has to be online before video works on a phone.
+
+1. In Vercel: Add New, then Project, and pick the `Kdcode1999/Floor` repo.
+2. Set **Root Directory** to `web`. Leave the rest as Vercel suggests.
+3. Under Environment Variables, add the values from `web/.env.example`:
+   - the three `NEXT_PUBLIC_` values from step 2, with `NEXT_PUBLIC_SITE_URL` set to the address Vercel
+     gives the project (or your own domain), with no slash at the end
+   - `SUPABASE_SECRET_KEY`: Supabase dashboard, Project Settings, API Keys, the **secret** key. It passes
+     every access rule, so it goes here and nowhere else
+   - `CRON_SECRET`: a long random word of your own. Any password generator will do
+4. Deploy. Then put the same address in `mobile/.env` as `EXPO_PUBLIC_SITE_URL`.
+
+Vercel calls the server once a day to sweep up any job that was left behind (an alert that could not
+be sent, a video that could not be removed). The apps also nudge it every time they queue a job, so
+nothing waits for the sweep in normal use. On Vercel's Pro plan the sweep can run more often: change
+the schedule in `web/vercel.json` to `*/5 * * * *`.
+
+## 5. The video host for lessons
+
+Lesson videos are stored and played by Bunny Stream. `docs/DECISIONS.md` says why. It has a 14-day
+trial, then a 1 dollar monthly minimum and pay for what is used.
+
+1. Open an account at bunny.net. Go to Stream and add a video library. Pick a main storage region
+   near your members: Johannesburg or a European one for West Africa.
+2. In the library, find these four values and put them in Vercel's Environment Variables:
+   - `BUNNY_STREAM_LIBRARY_ID`: the library's ID, a number
+   - `BUNNY_STREAM_API_KEY`: the library's own API key (not your account's API key)
+   - `BUNNY_STREAM_CDN_HOST`: the library's CDN hostname, such as `vz-1a2b3c4d-5e6.b-cdn.net`
+   - `BUNNY_STREAM_TOKEN_KEY`: on the library's Security page, switch on token authentication for
+     direct access to the video files, and copy its key. This is what stops a video's address from
+     working for anyone Floor has not signed it for
+3. On the same Security page, switch on blocking of direct file access if it is offered. Nobody
+   should be able to open a video without a signed address.
+4. Under Encoding, keep 240p, 360p, 480p and 720p switched on. The low ones are what data saver
+   plays. 1080p is optional and costs more storage.
+5. Webhook: make up a long random word and add it to Vercel as `BUNNY_STREAM_WEBHOOK_KEY`. In the
+   library's webhook setting, enter `https://YOUR-SITE/api/video/webhook?key=THAT-WORD`. Bunny then
+   tells Floor the moment a video is ready. Without it Floor still finds out, the next time a mentor
+   or admin opens the lesson.
+6. Redeploy on Vercel so it picks up the new values.
+
+To check it: in the app, as the mentor, add a lesson and upload a short video. It should say "Video
+is being prepared", then "Video ready". Publish it and play it as a VIP member. **If it does not
+play, tell Claude what you see**: the playback address is signed to Bunny's published rules, and this
+is the first time it meets the real service.

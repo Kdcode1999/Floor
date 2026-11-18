@@ -20,7 +20,7 @@ import { useLoad } from "@/lib/useLoad";
 import { useSpace } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
 
-const TITLES: Record<FeedPost["kind"], string> = { post: "Post", setup: "Trade setup", offer: "Offer" };
+const TITLES: Record<FeedPost["kind"], string> = { post: "Post", setup: "Trade setup", offer: "Offer", lesson: "Lesson" };
 
 /** Where the mentor or an admin changes or removes something they posted. */
 export default function PostScreen() {

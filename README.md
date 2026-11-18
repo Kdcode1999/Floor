@@ -29,8 +29,8 @@ npm install
 
 ## Connect it to Supabase
 
-`docs/SETUP.md` has every step that needs your accounts: the database, the phone app's two settings, and
-the email sender that sign-in needs. The database commands are repeated here.
+`docs/SETUP.md` has every step that needs your accounts: the database, the apps' settings, the email
+sender that sign-in needs, Vercel, and the video host. The database commands are repeated here.
 
 Once, from the `web` folder. `link` asks for the database password: type it there, never into a chat.
 
@@ -78,5 +78,4 @@ In `web`, `npm run test` applies the migrations to an in-memory Postgres and che
 tests the web app's own logic. It needs no Supabase project and no network.
 
 The scripts in `checks/` walk both apps in Chrome and save a picture of every screen to `checks/out/`.
-They need Python with Playwright, Google Chrome and, for the ones that run on a real database,
-PostgreSQL. Each script says at its top how to run it. `docs/ARCHITECTURE.md` explains how they work.
+`checks/README.md` lists them and says how to run them.

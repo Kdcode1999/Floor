@@ -86,7 +86,7 @@ export function NavItem({
       {...rest}
       accessibilityRole="tab"
       accessibilityLabel={label}
-      accessibilityState={{ selected: isFocused }}
+      aria-selected={isFocused}
       style={({ pressed }) => [
         styles.item,
         { gap: compact ? 5 : 8 },

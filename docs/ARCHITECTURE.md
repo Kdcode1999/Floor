@@ -57,10 +57,31 @@ With `mobile/.env` empty the app runs on a sample space, so screens can be looke
 | --- | --- |
 | `app/[slug]/` | A space's join page. The server reads only what anyone may know about the space |
 | `features/join/` | Sign-in, joining, paying with proof, invite codes, all in the visitor's browser |
+| `app/mentor/`, `features/mentor/` | The mentor's laptop page: the course and video upload |
+| `features/session/` | Sign-in by emailed code for the pages staff use |
+| `app/api/`, `server/` | Floor's server. See below |
 | `components/`, `theme/` | The same look as the phone app, as CSS |
 
-Files both apps need (the themes, the sign-in messages) are kept in both. A test in `web/` fails
-when the copies differ.
+Files both apps need (the themes, the sign-in messages, Learn's logic) are kept in both. A test in
+`web/` fails when the copies differ.
+
+### Floor's server (`web/src/app/api`, `web/src/server`)
+
+| Route | Who calls it | What it does |
+| --- | --- | --- |
+| `POST /api/video/upload` | staff | Makes a place for a lesson's video at the video host, answers with an upload ticket |
+| `POST /api/video/status` | staff | Asks the host how a video is doing and records it |
+| `POST /api/video/play` | someone who may watch | Answers with a signed address for the video |
+| `POST /api/video/webhook` | the video host | Hears that a video changed, then asks the host itself |
+| `POST /api/jobs/run` | any signed-in app, and Vercel's timer | Does the jobs waiting in the queue |
+
+Every route follows the same steps: take the person's login from the request, ask the database
+*as that person* whether they may (a function such as `lesson_playback`), and only then use a
+secret. `server/` cannot be imported from code that runs in a browser.
+
+The files in `server/`: `env.ts` (the secret settings), `supabase.ts` (the database as the person,
+or with the secret key), `http.ts` (reading requests, wording refusals), `bunny.ts` (everything
+asked of the video host), `jobs.ts` (the queue's handlers).
 
 ## Database (`web/supabase`)
 
@@ -82,6 +103,8 @@ when the copies differ.
 | Free posts, offers | yes | yes | yes |
 | VIP posts and setups | that they exist | yes | yes |
 | How to pay, broker link | yes | yes | yes |
+| The course outline | yes, locked | yes | yes |
+| Lessons and their video | no | yes | yes |
 | The queue, members, invite codes | no | no | yes |
 
 A member also needs the account's one claimed login (`private.has_access`). Staff do not: a
@@ -97,6 +120,8 @@ mentor uses the phone and a laptop at once.
 - `phone_*.py` and `web_*.py` walk the apps in Chrome at phone size, check each step on screen
   and in the database, and save a picture of every screen to `checks/out/`. Several people can be
   walked at once, each on their own phone.
+- `fake_video_host.py` stands in for the video host. It checks upload tickets and playback
+  addresses with its own copy of the host's rules, and serves a real short film in pieces.
 - `stand_in.py` is the older, scripted stand-in. It answers whatever a walk-through tells it to,
   for the cases a real database will not produce on demand: a failing server, a second phone
   taking over.

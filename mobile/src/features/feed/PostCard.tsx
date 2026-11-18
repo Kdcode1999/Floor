@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { AppText } from "@/components/AppText";
 import { Card } from "@/components/Card";
@@ -58,21 +58,28 @@ export function PostCard({ post, when, audience, onManage }: PostCardProps) {
   );
 }
 
-/** A note in the Feed that a new lesson is in Learn. */
-export function LessonCard({ item }: { item: LessonItem }) {
+/** A note in the Feed that a new lesson is in Learn. Tapping it opens the lesson. */
+export function LessonCard({ item, onPress }: { item: LessonItem; onPress?: () => void }) {
   const theme = useTheme();
   return (
-    <Card style={styles.lesson}>
-      <View style={[styles.play, { backgroundColor: theme.iconTile.background }]}>
-        <Icon name="play" size={16} color={theme.iconTile.foreground} />
-      </View>
-      <View style={styles.words}>
-        <Title>{item.title}</Title>
-        <AppText size={13} line={18} color={theme.text3}>
-          New lesson · {item.when}
-        </AppText>
-      </View>
-    </Card>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`New lesson: ${item.title}. ${item.when}`}
+      disabled={!onPress}
+      onPress={onPress}
+      style={({ pressed }) => pressed && styles.pressed}>
+      <Card style={styles.lesson}>
+        <View style={[styles.play, { backgroundColor: theme.iconTile.background }]}>
+          <Icon name="play" size={16} color={theme.iconTile.foreground} />
+        </View>
+        <View style={styles.words}>
+          <Title>{item.title}</Title>
+          <AppText size={13} line={18} color={theme.text3}>
+            New lesson · {item.when}
+          </AppText>
+        </View>
+      </Card>
+    </Pressable>
   );
 }
 
@@ -97,6 +104,7 @@ const styles = StyleSheet.create({
     paddingLeft: 14,
     paddingRight: 22,
   },
+  pressed: { opacity: 0.7 },
   play: {
     width: 42,
     height: 42,

@@ -25,7 +25,7 @@ export function Chips<T extends string | number>({ label, options, value, onChan
             key={String(option.value)}
             accessibilityRole="radio"
             accessibilityLabel={option.label}
-            accessibilityState={{ selected: on, checked: on }}
+            aria-checked={on}
             onPress={() => onChange(option.value)}
             style={({ pressed }) => [
               styles.chip,

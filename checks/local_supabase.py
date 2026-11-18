@@ -204,7 +204,12 @@ class Api(http.server.BaseHTTPRequestHandler):
     def _auth(self, url) -> None:
         path = url.path.removeprefix("/auth/v1")
         if path == "/otp":
-            codes_sent_to.append(self._json().get("email", ""))
+            body = self._json()
+            address = body.get("email", "")
+            known = local_db.value("select 1 from auth.users where email = %s", [address])
+            if body.get("create_user") is False and not known:
+                return self._reply(422, {"code": 422, "error_code": "otp_disabled", "msg": "Signups not allowed for otp"})
+            codes_sent_to.append(address)
             return self._reply(200, {})
         if path == "/verify":
             body = self._json()

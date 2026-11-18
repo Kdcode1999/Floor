@@ -61,7 +61,7 @@ export default function ManageScreen() {
       <View style={styles.tiles}>
         <ActionTile icon="plus" label="New post" onPress={() => router.push("/compose")} />
         <ActionTile icon="live" label="Go live" primary />
-        <ActionTile icon="lesson" label="Add lesson" />
+        <ActionTile icon="lesson" label="Add lesson" onPress={client ? () => router.push("/manage/learn") : undefined} />
       </View>
 
       <View style={styles.section}>
@@ -129,7 +129,14 @@ export default function ManageScreen() {
           onPress={client ? () => router.push("/manage/codes") : undefined}
         />
         <SettingsRow title="Groups" detail="Create groups and choose who gets in" divided />
-        {isMentor ? <SettingsRow title="Protection" detail="Logins, screenshots and paid video" divided /> : null}
+        {isMentor ? (
+          <SettingsRow
+            title="Protection"
+            detail="Logins, screenshots and paid video"
+            divided
+            onPress={() => router.push("/manage/protection")}
+          />
+        ) : null}
         <SettingsRow
           title="Members"
           detail="Who is VIP and who is expiring"
