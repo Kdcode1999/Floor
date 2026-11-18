@@ -2,8 +2,8 @@ import { StyleSheet } from "react-native";
 
 import { AppText } from "@/components/AppText";
 import { Card } from "@/components/Card";
+import { database } from "@/lib/database";
 import { SUPPORT_EMAIL } from "@/lib/env";
-import { supabase } from "@/lib/supabase";
 import { useLoad } from "@/lib/useLoad";
 import { useSpace } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
@@ -17,12 +17,11 @@ import { suspendedForStaff } from "./logic";
 export function SuspendedNote() {
   const theme = useTheme();
   const { space, isStaff } = useSpace();
-  const client = supabase;
-  const on = space.suspended && isStaff && client !== null;
+  const on = space.suspended && isStaff;
   const note = useLoad(
-    on && client
+    on
       ? async () => {
-          const { data } = await client.from("suspensions").select("note").eq("space_id", space.id).limit(1);
+          const { data } = await database.from("suspensions").select("note").eq("space_id", space.id).limit(1);
           return ((data ?? []) as { note: string }[])[0]?.note ?? null;
         }
       : null,

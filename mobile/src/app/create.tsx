@@ -22,7 +22,7 @@ import {
   slugProblem,
 } from "@/features/create/rules";
 import { ThemeOption } from "@/features/look/ThemeOption";
-import { supabase } from "@/lib/supabase";
+import { database } from "@/lib/database";
 import { useSpace } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
 import { DEFAULT_THEME, themeNames, themes, type ThemeName } from "@/theme/themes";
@@ -55,10 +55,9 @@ export default function CreateSpaceScreen() {
   // wherever they belong. This also moves a new mentor into their space once it is created.
   const ownsSpace = entries.some((entry) => entry.role === "mentor");
   const waiting = status === "loading" || status === "trouble";
-  if (!supabase || auth.status !== "ready" || ownsSpace || waiting) {
+  if (auth.status !== "ready" || ownsSpace || waiting) {
     return <Redirect href={stageFor(auth.status, status) === "app" ? "/" : "/hold"} />;
   }
-  const client = supabase;
 
   const typedName = (text: string) => {
     setName(text);
@@ -91,7 +90,7 @@ export default function CreateSpaceScreen() {
 
     setBusy(true);
     setProblems({});
-    const { data, error } = await client.rpc("create_space", {
+    const { data, error } = await database.rpc("create_space", {
       p_name: name.trim(),
       p_slug: slug,
       p_theme: choice,

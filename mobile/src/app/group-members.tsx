@@ -12,7 +12,7 @@ import { TextField } from "@/components/TextField";
 import { TextLink } from "@/components/TextLink";
 import { loadGroupMemberIds, setGroupMembers } from "@/features/chat/api";
 import { loadMembers } from "@/features/manage/api";
-import { supabase } from "@/lib/supabase";
+import { database } from "@/lib/database";
 import { useLoad } from "@/lib/useLoad";
 import { useSpace } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
@@ -24,7 +24,6 @@ export default function GroupMembersScreen() {
   const theme = useTheme();
   const { id, name } = useLocalSearchParams<{ id?: string; name?: string }>();
   const { space, isStaff } = useSpace();
-  const client = supabase;
 
   const [typed, setTyped] = useState("");
   const [search, setSearch] = useState("");
@@ -39,14 +38,14 @@ export default function GroupMembersScreen() {
     return () => clearTimeout(timer);
   }, [typed]);
 
-  const members = useLoad(client ? () => loadMembers(client, space.id, search, limit) : null, `members:${space.id}:${search}:${limit}`);
-  const inGroup = useLoad(client && id ? () => loadGroupMemberIds(client, id) : null, `group-members:${id}`);
+  const members = useLoad(() => loadMembers(database, space.id, search, limit), `members:${space.id}:${search}:${limit}`);
+  const inGroup = useLoad(id ? () => loadGroupMemberIds(database, id) : null, `group-members:${id}`);
 
   const header = (
     <BackHeader title={name ? `In ${name}` : "In this group"} backLabel="Back" fallback="/manage/groups" />
   );
   if (!isStaff) return <Redirect href="/" />;
-  if (!client || !id || inGroup.loading) return <Screen hasNav={false} header={header}><Loading /></Screen>;
+  if (!id || inGroup.loading) return <Screen hasNav={false} header={header}><Loading /></Screen>;
   if (inGroup.error) return <Screen hasNav={false} header={header}><Trouble detail={inGroup.error} onRetry={inGroup.reload} /></Screen>;
 
   const saved = new Set(inGroup.data ?? []);
@@ -59,7 +58,7 @@ export default function GroupMembersScreen() {
   const toggle = async (userId: string, next: boolean) => {
     setError(null);
     setChanged((current) => ({ ...current, [userId]: next }));
-    const refused = await setGroupMembers(client, id, next ? [userId] : [], next ? [] : [userId]);
+    const refused = await setGroupMembers(database, id, next ? [userId] : [], next ? [] : [userId]);
     if (refused) {
       // Put the tick back the way the database has it.
       setChanged((current) => ({ ...current, [userId]: !next }));

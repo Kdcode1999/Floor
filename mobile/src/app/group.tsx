@@ -31,8 +31,8 @@ import { MessageActions, type MessageAction } from "@/features/chat/MessageActio
 import { MessageBubble } from "@/features/chat/MessageBubble";
 import type { Message } from "@/features/chat/types";
 import { useConversation } from "@/features/chat/useConversation";
+import { database } from "@/lib/database";
 import { fittedJpeg, pictureBytes, type Picture } from "@/lib/pictures";
-import { supabase } from "@/lib/supabase";
 import { useLoad } from "@/lib/useLoad";
 import { useSpace } from "@/space/SpaceContext";
 import { CONTENT_MAX_WIDTH } from "@/theme/layout";
@@ -52,15 +52,14 @@ export default function GroupScreen() {
   const auth = useAuth();
   const { space, viewer, isStaff } = useSpace();
   const { id } = useLocalSearchParams<{ id?: string }>();
-  const client = auth.sample ? null : supabase;
   const userId = auth.user?.id ?? null;
 
   // The group as this person may use it: whether it opens for them and whether they may write.
-  const groups = useLoad(client && space.id ? () => loadGroups(client, space.id) : null, `groups:${space.id}`);
+  const groups = useLoad(space.id ? () => loadGroups(database, space.id) : null, `groups:${space.id}`);
   const group = groups.data?.find((each) => each.id === id) ?? null;
   const canOpen = group?.canOpen === true;
-  const mute = useLoad(client && userId && !isStaff ? () => loadMute(client, space.id, userId) : null, `mute:${space.id}:${userId}`);
-  const talk = useConversation(canOpen ? client : null, canOpen && id ? id : null);
+  const mute = useLoad(userId && !isStaff ? () => loadMute(database, space.id, userId) : null, `mute:${space.id}:${userId}`);
+  const talk = useConversation(canOpen ? database : null, canOpen && id ? id : null);
 
   const [picked, setPicked] = useState<Message | null>(null);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
@@ -95,20 +94,20 @@ export default function GroupScreen() {
   }, [notice]);
 
   const send = async (body: string, picture: Picture | null): Promise<string | null> => {
-    if (!client || !id) return "Sending needs the app to be connected.";
+    if (!id) return "This group is no longer here.";
     let sent: { path: string; width: number; height: number } | null = null;
     if (picture) {
       try {
         const ready = await fittedJpeg(picture, PICTURE_MAX);
-        const path = await uploadPicture(client, space.id, id, await pictureBytes(ready.uri), Crypto.randomUUID());
+        const path = await uploadPicture(database, space.id, id, await pictureBytes(ready.uri), Crypto.randomUUID());
         sent = { path, width: ready.width, height: ready.height };
       } catch {
         return "The picture couldn't be uploaded. Check your connection and try again.";
       }
     }
-    const refused = await sendMessage(client, id, body, replyingTo?.id ?? null, sent);
+    const refused = await sendMessage(database, id, body, replyingTo?.id ?? null, sent);
     if (refused) {
-      if (sent) removePicture(client, sent.path);
+      if (sent) removePicture(database, sent.path);
       // Something may have changed since the screen opened: a mute, or who may write here.
       reloadGroup();
       reloadMute();
@@ -123,7 +122,7 @@ export default function GroupScreen() {
   const act = async (action: MessageAction) => {
     const message = picked;
     setPicked(null);
-    if (!message || !client) return;
+    if (!message) return;
     if (action.kind === "reply") return setReplyingTo(message);
     if (action.kind === "reportSpace") return router.push("/report");
     if (action.kind === "member") return router.push({ pathname: "/member", params: { id: message.userId } });
@@ -132,23 +131,23 @@ export default function GroupScreen() {
       return setNotice("Copied.");
     }
     if (action.kind === "report") {
-      return setNotice((await reportMessage(client, message.id)) ?? "Reported. The mentor and admins will take a look.");
+      return setNotice((await reportMessage(database, message.id)) ?? "Reported. The mentor and admins will take a look.");
     }
     if (action.kind === "block") {
-      const refused = await blockMember(client, message.userId);
+      const refused = await blockMember(database, message.userId);
       if (refused) return setNotice(refused);
       talk.hide(message.userId);
       if (replyingTo?.userId === message.userId) setReplyingTo(null);
       return setNotice(`${message.name} is blocked. You won't see their messages.`);
     }
     if (action.kind === "delete") {
-      const refused = await deleteMessage(client, message.id, message.imagePath !== null);
+      const refused = await deleteMessage(database, message.id, message.imagePath !== null);
       if (refused) return setNotice(refused);
       if (replyingTo?.id === message.id) setReplyingTo(null);
       return talk.changed();
     }
     if (action.kind !== "mute") return;
-    const refused = await muteMember(client, space.id, message.userId, action.hours);
+    const refused = await muteMember(database, space.id, message.userId, action.hours);
     const length = MUTE_CHOICES.find((choice) => choice.hours === action.hours)?.label ?? `${action.hours} hours`;
     setNotice(refused ?? `${message.name} is muted for ${length}.`);
   };
@@ -172,8 +171,7 @@ export default function GroupScreen() {
   const blocked = group ? cannotWrite(group, isStaff, mute.data ?? null, now) : null;
 
   let body;
-  if (!client) body = <Note text="Groups open once the app is connected. This is the sample space." />;
-  else if (groups.loading) body = <Loading />;
+  if (groups.loading) body = <Loading />;
   else if (groups.error) body = <Padded><Trouble detail={groups.error} onRetry={groups.reload} /></Padded>;
   else if (!group) body = <Note text="This group is no longer here." />;
   else if (!group.canOpen) body = <Note text="This group is for VIP members. It opens here once you have VIP." />;

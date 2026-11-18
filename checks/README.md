@@ -27,7 +27,7 @@ From `mobile/` or `web/`, one at a time (they share ports):
 
 | Script | Walks | Runs on |
 | --- | --- | --- |
-| `phone_sample.py` | The sample space in all three themes | nothing: no backend |
+| `phone_sample.py` | The sample space: every screen built so far, seen as its mentor, a VIP member and someone who has not paid, and the three themes | nothing: the sample's own stand-in for the backend, inside the app |
 | `phone_sign_in.py` | Sign-in, starting a space, a second phone taking over | the scripted stand-in |
 | `web_join.py` | The join page: sign-in, joining, proof, invite codes | the scripted stand-in |
 | `phone_mentor.py` | The mentor's tools: queue, price, codes, members, logo | the real database |
@@ -60,6 +60,9 @@ A script exits with an error if any check fails.
 
 `local_services.py` starts the backend, the stand-ins and Floor's own server together, for the
 walk-throughs that need server routes. `quiet.py` is the web server they all run on.
+
+`make_sample_assets.py` is not a check. It makes the pictures and the short film the sample
+space shows, into `mobile/assets/sample/`.
 
 Nothing a check opens leaves this machine. A page from another site, such as YouTube's player in a
 post, is answered with an empty page, so no result depends on the network. To do that, every request

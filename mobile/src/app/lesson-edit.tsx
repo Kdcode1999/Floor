@@ -1,4 +1,4 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Redirect, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
@@ -24,7 +24,8 @@ import {
 import { lengthText, uploadPercent, VIDEO_WORDS } from "@/features/learn/logic";
 import type { Lesson, OutlineModule, VideoStatus } from "@/features/learn/types";
 import { pickVideo, uploadVideo, type UploadHandle } from "@/features/learn/upload";
-import { supabase } from "@/lib/supabase";
+import { SampleNote } from "@/features/sample/SampleNote";
+import { database } from "@/lib/database";
 import { useAction } from "@/lib/useAction";
 import { useGoBack } from "@/lib/useGoBack";
 import { useLoad } from "@/lib/useLoad";
@@ -37,23 +38,24 @@ import { useTheme } from "@/theme/ThemeContext";
  */
 export default function LessonEditScreen() {
   const { id, module } = useLocalSearchParams<{ id?: string; module?: string }>();
-  const { space } = useSpace();
-  const client = supabase;
-  const lesson = useLoad(client && id ? () => loadLesson(client, id) : null, `lesson-edit:${id}`);
-  const course = useLoad(client ? () => loadOutline(client, space.id) : null, `course:${space.id}`);
+  const { space, isStaff } = useSpace();
+  const lesson = useLoad(id ? () => loadLesson(database, id) : null, `lesson-edit:${id}`);
+  const course = useLoad(() => loadOutline(database, space.id), `course:${space.id}`);
 
-  const header = <BackHeader title={id ? "Lesson" : "New lesson"} backLabel="Back to the course" fallback="/manage/learn" />;
-  if (!client || course.loading || (id !== undefined && lesson.loading)) return <Screen header={header}><Loading /></Screen>;
+  const header = <BackHeader title={id ? "Lesson" : "New lesson"} backLabel="Back" fallback="/manage/learn" />;
+  // Only the mentor and admins have this screen. The database keeps what it does to them.
+  if (!isStaff) return <Redirect href="/" />;
+  if (course.loading || (id !== undefined && lesson.loading)) return <Screen hasNav={false} header={header}><Loading /></Screen>;
   if (course.error || lesson.error) {
     return (
-      <Screen header={header}>
+      <Screen hasNav={false} header={header}>
         <Trouble detail={course.error ?? lesson.error} onRetry={() => { course.reload(); lesson.reload(); }} />
       </Screen>
     );
   }
   if (id && !lesson.data) {
     return (
-      <Screen header={header}>
+      <Screen hasNav={false} header={header}>
         <Card style={styles.card}>
           <AppText size={15} line={22}>This lesson is no longer there.</AppText>
         </Card>
@@ -62,7 +64,7 @@ export default function LessonEditScreen() {
   }
 
   return (
-    <Screen header={header}>
+    <Screen hasNav={false} header={header}>
       <Editor
         // A lesson that has just been created reloads under its new id.
         key={lesson.data?.id ?? "new"}
@@ -87,7 +89,6 @@ function Editor({ lesson, moduleId, modules, onReload }: EditorProps) {
   const router = useRouter();
   const goBack = useGoBack("/manage/learn");
   const act = useAction();
-  const client = supabase;
 
   const [title, setTitle] = useState(lesson?.title ?? "");
   const [notes, setNotes] = useState(lesson?.description ?? "");
@@ -95,12 +96,11 @@ function Editor({ lesson, moduleId, modules, onReload }: EditorProps) {
   const [titleProblem, setTitleProblem] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
 
-  if (!client) return null;
 
   const save = (then: (id: string) => void) => {
     if (title.trim() === "") return setTitleProblem("Give the lesson a title.");
     return act.run("save", async () => {
-      const saved = await saveLesson(client, inModule, { title, description: notes }, lesson?.id ?? null);
+      const saved = await saveLesson(database, inModule, { title, description: notes }, lesson?.id ?? null);
       if ("problem" in saved) return saved.problem;
       then(saved.id);
       return null;
@@ -140,7 +140,7 @@ function Editor({ lesson, moduleId, modules, onReload }: EditorProps) {
           <Button
             label="Save and add the video"
             busy={act.busy === "save"}
-            onPress={() => save((id) => router.replace({ pathname: "/manage/lesson", params: { id } }))}
+            onPress={() => save((id) => router.replace({ pathname: "/lesson-edit", params: { id } }))}
           />
         ) : (
           <Button label="Save changes" kind={changed ? "primary" : "ghost"} disabled={!changed} busy={act.busy === "save"} onPress={() => save(onReload)} />
@@ -168,13 +168,13 @@ function Editor({ lesson, moduleId, modules, onReload }: EditorProps) {
                 label="Take back to a draft"
                 kind="ghost"
                 busy={act.busy === "publish"}
-                onPress={() => act.run("publish", () => publishLesson(client, lesson.id, false), onReload)}
+                onPress={() => act.run("publish", () => publishLesson(database, lesson.id, false), onReload)}
               />
             ) : (
               <Button
                 label="Publish"
                 busy={act.busy === "publish"}
-                onPress={() => act.run("publish", () => publishLesson(client, lesson.id, true), onReload)}
+                onPress={() => act.run("publish", () => publishLesson(database, lesson.id, true), onReload)}
               />
             )}
           </Card>
@@ -191,7 +191,7 @@ function Editor({ lesson, moduleId, modules, onReload }: EditorProps) {
                     size="medium"
                     style={styles.grow}
                     busy={act.busy === "delete"}
-                    onPress={() => act.run("delete", () => deleteLesson(client, lesson.id), goBack)}
+                    onPress={() => act.run("delete", () => deleteLesson(database, lesson.id), goBack)}
                   />
                   <Button label="Keep it" kind="ghost" size="medium" style={styles.grow} onPress={() => setConfirming(false)} />
                 </View>
@@ -338,6 +338,7 @@ function VideoCard({ lesson, onChanged }: { lesson: Lesson; onChanged: () => voi
           Replacing the video takes the lesson back to a draft until the new one is ready.
         </AppText>
       ) : null}
+      <SampleNote text="a video cannot be uploaded here. Every lesson that has one plays the same short film." />
       <ErrorLine text={error} />
     </Card>
   );

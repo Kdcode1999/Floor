@@ -40,5 +40,6 @@ export function deleteMessage(code: string | null | undefined): string {
   if (code === "signed_out") return "Sign in again, then delete your account.";
   if (code === "offline") return "Check your connection and try again.";
   if (code === "not_set_up") return "Accounts cannot be deleted from this copy of Floor yet.";
+  if (code === "sample") return "This is the sample space. There is no account here to delete.";
   return "Your account couldn't be deleted just now. Nothing is half done: try again.";
 }

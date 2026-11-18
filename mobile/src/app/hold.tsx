@@ -12,7 +12,8 @@ import { Icon } from "@/components/Icon";
 import { Screen } from "@/components/Screen";
 import { TextLink } from "@/components/TextLink";
 import { suspendedForMember } from "@/features/safety/logic";
-import { logoUrl, missingSettings, SUPPORT_EMAIL } from "@/lib/env";
+import { logoAddress } from "@/lib/database";
+import { missingSettings, SUPPORT_EMAIL } from "@/lib/env";
 import { canOpen } from "@/space/access";
 import { useSpace, type SpaceEntry } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
@@ -79,7 +80,8 @@ export default function HoldScreen() {
       setBusy(false);
     }
   };
-  const signOut = <Button label="Sign out" kind="ghost" onPress={auth.signOut} />;
+  // Nobody is signed in on the sample space, so there is nothing to sign out of.
+  const signOut = auth.sample ? null : <Button label="Sign out" kind="ghost" onPress={auth.signOut} />;
   // Anyone signed in can delete their account, whatever else is stopping them.
   const deleteAccount = (
     <View style={styles.quiet}>
@@ -196,7 +198,7 @@ function SpaceRow({ entry, onPress }: { entry: SpaceEntry; onPress?: () => void 
         !onPress && styles.closed,
         pressed && styles.pressed,
       ]}>
-      <Avatar name={entry.name} image={entry.logoPath ? logoUrl(entry.logoPath) : null} size={44} />
+      <Avatar name={entry.name} image={entry.logoPath ? logoAddress(entry.logoPath) : null} size={44} />
       <View style={styles.rowWords}>
         <AppText size={16} line={22} weight="semibold" numberOfLines={1}>
           {entry.name}

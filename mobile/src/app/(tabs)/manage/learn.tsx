@@ -14,8 +14,8 @@ import { TextLink } from "@/components/TextLink";
 import { deleteModule, loadOutline, reorderLessons, reorderModules, saveModule } from "@/features/learn/api";
 import { lessonLine, moved } from "@/features/learn/logic";
 import type { OutlineModule } from "@/features/learn/types";
+import { database } from "@/lib/database";
 import { SITE_URL } from "@/lib/env";
-import { supabase } from "@/lib/supabase";
 import { useAction } from "@/lib/useAction";
 import { useLoad } from "@/lib/useLoad";
 import { useSpace } from "@/space/SpaceContext";
@@ -25,8 +25,7 @@ import { useTheme } from "@/theme/ThemeContext";
 export default function CourseScreen() {
   const theme = useTheme();
   const { space } = useSpace();
-  const client = supabase;
-  const course = useLoad(client ? () => loadOutline(client, space.id) : null, `course:${space.id}`);
+  const course = useLoad(() => loadOutline(database, space.id), `course:${space.id}`);
   const { reload } = course;
   useFocusEffect(
     useCallback(() => {
@@ -40,23 +39,21 @@ export default function CourseScreen() {
   const modules = course.data ?? [];
 
   const addModule = () => {
-    if (!client) return;
     if (title.trim() === "") return;
-    void act.run("add", () => saveModule(client, space.id, title), () => {
+    void act.run("add", () => saveModule(database, space.id, title), () => {
       setTitle("");
       reload();
     });
   };
 
   const moveModule = (index: number, by: -1 | 1) => {
-    if (!client) return;
     const order = moved(modules, index, by).map((module) => module.id);
-    void act.run(`module:${modules[index].id}`, () => reorderModules(client, space.id, order), reload);
+    void act.run(`module:${modules[index].id}`, () => reorderModules(database, space.id, order), reload);
   };
 
   return (
     <Screen header={<BackHeader title="Course" backLabel="Back to Manage" fallback="/manage" />}>
-      {!client || course.loading ? (
+      {course.loading ? (
         <Loading />
       ) : course.error ? (
         <Trouble detail={course.error} onRetry={reload} />
@@ -121,12 +118,10 @@ function ModuleEditor({ module, first, last, busy, onMove, onChanged }: ModuleEd
   /** Null until Rename is pressed. Then the new title being typed. */
   const [renaming, setRenaming] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
-  const client = supabase;
-  if (!client) return null;
 
   const rename = () => {
     if (renaming === null || renaming.trim() === "") return;
-    void act.run("rename", () => saveModule(client, space.id, renaming, module.id), () => {
+    void act.run("rename", () => saveModule(database, space.id, renaming, module.id), () => {
       setRenaming(null);
       onChanged();
     });
@@ -134,7 +129,7 @@ function ModuleEditor({ module, first, last, busy, onMove, onChanged }: ModuleEd
 
   const moveLesson = (index: number, by: -1 | 1) => {
     const order = moved(module.lessons, index, by).map((lesson) => lesson.id);
-    void act.run(`lesson:${module.lessons[index].id}`, () => reorderLessons(client, module.id, order), onChanged);
+    void act.run(`lesson:${module.lessons[index].id}`, () => reorderLessons(database, module.id, order), onChanged);
   };
 
   return (
@@ -162,7 +157,7 @@ function ModuleEditor({ module, first, last, busy, onMove, onChanged }: ModuleEd
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`Edit ${lesson.title}`}
-            onPress={() => router.push({ pathname: "/manage/lesson", params: { id: lesson.id } })}
+            onPress={() => router.push({ pathname: "/lesson-edit", params: { id: lesson.id } })}
             style={({ pressed }) => [styles.grow, pressed && styles.pressed]}>
             <AppText size={15} line={20} weight="semibold" numberOfLines={2}>
               {lesson.title}
@@ -191,7 +186,7 @@ function ModuleEditor({ module, first, last, busy, onMove, onChanged }: ModuleEd
           label="Add a lesson"
           kind="ghost"
           size="medium"
-          onPress={() => router.push({ pathname: "/manage/lesson", params: { module: module.id } })}
+          onPress={() => router.push({ pathname: "/lesson-edit", params: { module: module.id } })}
         />
         {confirming ? (
           <View style={styles.confirm}>
@@ -206,7 +201,7 @@ function ModuleEditor({ module, first, last, busy, onMove, onChanged }: ModuleEd
                 size="medium"
                 style={styles.grow}
                 busy={act.busy === "delete"}
-                onPress={() => act.run("delete", () => deleteModule(client, module.id), onChanged)}
+                onPress={() => act.run("delete", () => deleteModule(database, module.id), onChanged)}
               />
               <Button label="Keep it" kind="ghost" size="medium" style={styles.grow} onPress={() => setConfirming(false)} />
             </View>

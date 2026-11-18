@@ -11,9 +11,10 @@ import { Screen } from "@/components/Screen";
 import { TextField } from "@/components/TextField";
 import { loadSetup, saveSetup, type Setup } from "@/features/manage/api";
 import { cardLine, CURRENCIES, DAY_CHOICES, parseAmount, parseDays, setupProblems, type SetupForm, type SetupProblems } from "@/features/manage/logic";
+import { SampleNote } from "@/features/sample/SampleNote";
+import { database } from "@/lib/database";
 import { joinLink, SITE_URL } from "@/lib/env";
 import { days, formatPrice } from "@/lib/format";
-import { supabase } from "@/lib/supabase";
 import { useGoBack } from "@/lib/useGoBack";
 import { useLoad } from "@/lib/useLoad";
 import { useSpace } from "@/space/SpaceContext";
@@ -22,12 +23,11 @@ import { useTheme } from "@/theme/ThemeContext";
 /** Price and payment: what VIP costs, how members pay the mentor, the broker offer, and the join link. */
 export default function SetupScreen() {
   const { space } = useSpace();
-  const client = supabase;
-  const setup = useLoad(client ? () => loadSetup(client, space.id) : null, `setup:${space.id}`);
+  const setup = useLoad(() => loadSetup(database, space.id), `setup:${space.id}`);
 
   return (
     <Screen header={<BackHeader title="Price and payment" backLabel="Back to Manage" fallback="/manage" />}>
-      {!client || setup.loading ? (
+      {setup.loading ? (
         <Loading />
       ) : setup.error || !setup.data ? (
         <Trouble detail={setup.error} onRetry={setup.reload} />
@@ -59,10 +59,9 @@ function SetupFormView({ spaceId, setup }: { spaceId: string; setup: Setup }) {
       setError("Check the boxes marked above.");
       return;
     }
-    if (!supabase) return;
     setSaving(true);
     setError(null);
-    const problem = await saveSetup(supabase, spaceId, form);
+    const problem = await saveSetup(database, spaceId, form);
     setSaving(false);
     if (problem) setError(problem);
     else goBack();
@@ -88,6 +87,7 @@ function SetupFormView({ spaceId, setup }: { spaceId: string; setup: Setup }) {
           {link}
         </AppText>
         <Button label="Share link" kind="ghost" size="medium" onPress={() => Share.share({ message: link })} />
+        <SampleNote text="this link is a stand-in. A real one opens your join page on the web, where people join and pay." />
         <TextField
           label="One line about your space"
           value={form.tagline}

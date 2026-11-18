@@ -12,8 +12,8 @@ import { Screen } from "@/components/Screen";
 import { TextField } from "@/components/TextField";
 import { createCode, loadCodes, revokeCode, type CodeItem } from "@/features/manage/api";
 import { codeStanding, DAY_CHOICES } from "@/features/manage/logic";
+import { database } from "@/lib/database";
 import { days } from "@/lib/format";
-import { supabase } from "@/lib/supabase";
 import { useAction } from "@/lib/useAction";
 import { useLoad } from "@/lib/useLoad";
 import { useSpace } from "@/space/SpaceContext";
@@ -23,8 +23,7 @@ import { useTheme } from "@/theme/ThemeContext";
 export default function CodesScreen() {
   const theme = useTheme();
   const { space } = useSpace();
-  const client = supabase;
-  const codes = useLoad(client ? () => loadCodes(client, space.id) : null, `codes:${space.id}`);
+  const codes = useLoad(() => loadCodes(database, space.id), `codes:${space.id}`);
   const [length, setLength] = useState(30);
   const [uses, setUses] = useState("");
   const [usesProblem, setUsesProblem] = useState<string | null>(null);
@@ -37,8 +36,7 @@ export default function CodesScreen() {
       setUsesProblem("Type a number, or leave it empty for no limit.");
       return;
     }
-    if (!client) return;
-    void making.run("make", () => createCode(client, space.id, length, limit), () => {
+    void making.run("make", () => createCode(database, space.id, length, limit), () => {
       setUses("");
       codes.reload();
     });
@@ -78,7 +76,7 @@ export default function CodesScreen() {
         <ErrorLine text={making.error} />
       </Card>
 
-      {!client || codes.loading ? (
+      {codes.loading ? (
         <Loading />
       ) : codes.error ? (
         <Trouble detail={codes.error} onRetry={codes.reload} />
@@ -124,7 +122,7 @@ function CodeCard({ code, now, onChanged }: { code: CodeItem; now: number; onCha
             size="medium"
             style={styles.action}
             busy={act.busy === "off"}
-            onPress={() => supabase && act.run("off", () => revokeCode(supabase!, code.id), onChanged)}
+            onPress={() => act.run("off", () => revokeCode(database, code.id), onChanged)}
           />
         </View>
       ) : null}

@@ -9,10 +9,9 @@ import { Card } from "@/components/Card";
 import { Screen } from "@/components/Screen";
 import { uploadLogo } from "@/features/look/logo";
 import { ThemeOption } from "@/features/look/ThemeOption";
+import { database } from "@/lib/database";
 import { pickPicture, type Picture } from "@/lib/pictures";
-import { supabase } from "@/lib/supabase";
 import { useGoBack } from "@/lib/useGoBack";
-import { useAuth } from "@/auth/AuthContext";
 import { useSpace, type LookChanges } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
 import { themeNames, themes, type ThemeName } from "@/theme/themes";
@@ -30,7 +29,6 @@ const NAME_MAX = 40;
 export default function LookScreen() {
   const theme = useTheme();
   const goBack = useGoBack("/manage");
-  const { sample } = useAuth();
   const { space, updateSpace, previewTheme } = useSpace();
 
   const [name, setName] = useState(space.name);
@@ -67,17 +65,12 @@ export default function LookScreen() {
     setError(null);
     const changes: LookChanges = { name: cleanName, theme: choice };
     if (picked) {
-      if (sample || !supabase) {
-        // The sample space keeps nothing: the picture is shown straight from this phone.
-        changes.logoPath = picked.uri;
-      } else {
-        try {
-          changes.logoPath = await uploadLogo(supabase, space.id, picked);
-        } catch {
-          setSaving(false);
-          setError("The logo couldn't be uploaded. Check your connection and try again.");
-          return;
-        }
+      try {
+        changes.logoPath = await uploadLogo(database, space.id, picked);
+      } catch {
+        setSaving(false);
+        setError("The logo couldn't be uploaded. Check your connection and try again.");
+        return;
       }
     }
     const problem = await updateSpace(changes);

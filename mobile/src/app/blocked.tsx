@@ -7,23 +7,20 @@ import { ErrorLine, Loading, Trouble } from "@/components/LoadState";
 import { Screen } from "@/components/Screen";
 import { TextLink } from "@/components/TextLink";
 import { loadBlocks, unblockMember } from "@/features/chat/api";
-import { supabase } from "@/lib/supabase";
+import { database } from "@/lib/database";
 import { useAction } from "@/lib/useAction";
 import { useLoad } from "@/lib/useLoad";
-import { useAuth } from "@/auth/AuthContext";
 import { useTheme } from "@/theme/ThemeContext";
 
 /** The people this person has blocked, and the way to unblock them. */
 export default function BlockedScreen() {
   const theme = useTheme();
-  const auth = useAuth();
-  const client = auth.sample ? null : supabase;
-  const loaded = useLoad(client ? () => loadBlocks(client) : null, "blocks");
+  const loaded = useLoad(() => loadBlocks(database), "blocks");
   const act = useAction();
 
   const header = <BackHeader title="Blocked people" backLabel="Back" fallback="/account" />;
-  if (client && loaded.loading) return <Screen hasNav={false} header={header}><Loading /></Screen>;
-  if (client && loaded.error) return <Screen hasNav={false} header={header}><Trouble detail={loaded.error} onRetry={loaded.reload} /></Screen>;
+  if (loaded.loading) return <Screen hasNav={false} header={header}><Loading /></Screen>;
+  if (loaded.error) return <Screen hasNav={false} header={header}><Trouble detail={loaded.error} onRetry={loaded.reload} /></Screen>;
 
   const blocked = loaded.data ?? [];
 
@@ -49,7 +46,7 @@ export default function BlockedScreen() {
                 <TextLink
                   label={act.busy === person.userId ? "Unblocking…" : "Unblock"}
                   disabled={act.busy !== null}
-                  onPress={() => client && act.run(person.userId, () => unblockMember(client, person.userId), loaded.reload)}
+                  onPress={() => act.run(person.userId, () => unblockMember(database, person.userId), loaded.reload)}
                 />
               </View>
             ))}

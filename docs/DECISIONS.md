@@ -360,6 +360,27 @@ Newest at the bottom. Each entry says what was decided and why, so nobody has to
   and goes out later.
 - **A Telegram chat serves one space.** If a second space connects the same chat, the first loses it.
 
+- **The sample space is the whole app, on a made-up community held in memory.** A copy of the app
+  with no settings used to show a few hand-made lists, and fell behind what was built: most screens
+  could not be opened in it. Now it talks to a stand-in for the backend that answers everything the
+  app asks, so every screen works with no setup, seen as the mentor, a VIP member or someone who has
+  not paid. Screens no longer know which backend they have, so there is one path through each.
+- **The sample follows the database's rules and guards nothing.** It is not a second copy of the
+  rules to rely on: those are the database's, and tested there. A test fails when the app asks for
+  something the sample cannot answer, so the two cannot drift apart unnoticed.
+- **Nothing in the sample is real, and it says so.** The people do not exist, the prices are not
+  market prices, the addresses end in example.com, and a payment proof is a blank stand-in, never
+  something that looks like a bank's. Nothing done in it is kept. Where it cannot do what the real
+  thing does, the screen says so: it takes no video, reaches no Telegram, and deletes no account.
+  Its Telegram channel connects by itself a few seconds after a code is shown, with a line saying so.
+- **The sample never ships.** A build with its settings leaves it out, files and all. A release
+  build made without settings still shows an error, not the sample.
+- **The lesson editor is a full screen of its own.** It opens from the course and from a lesson.
+  Inside the Manage tab, Back from it went to the Feed.
+- **A Manage screen opened from another tab gets Mentor home underneath.** "Edit the course" on
+  Learn and "Manage groups" on Chat open screens that live in Manage, and so does a tapped alert.
+  Back from them now goes to Mentor home, which is what the button says.
+
 ## Open
 
 - The service behind the live room. To be chosen when Live is built, on current prices.

@@ -12,7 +12,7 @@ import { TextField } from "@/components/TextField";
 import { TextLink } from "@/components/TextLink";
 import { loadMemberCounts, loadMembers, type MemberItem } from "@/features/manage/api";
 import { countsLine, standing } from "@/features/manage/logic";
-import { supabase } from "@/lib/supabase";
+import { database } from "@/lib/database";
 import { useLoad } from "@/lib/useLoad";
 import { useSpace } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
@@ -24,7 +24,6 @@ export default function MembersScreen() {
   const theme = useTheme();
   const router = useRouter();
   const { space } = useSpace();
-  const client = supabase;
   const [typed, setTyped] = useState("");
   const [search, setSearch] = useState("");
   const [limit, setLimit] = useState(PAGE);
@@ -37,10 +36,10 @@ export default function MembersScreen() {
   }, [typed]);
 
   const members = useLoad(
-    client ? () => loadMembers(client, space.id, search, limit) : null,
+    () => loadMembers(database, space.id, search, limit),
     `members:${space.id}:${search}:${limit}`,
   );
-  const counts = useLoad(client ? () => loadMemberCounts(client, space.id) : null, `counts:${space.id}`);
+  const counts = useLoad(() => loadMemberCounts(database, space.id), `counts:${space.id}`);
   const { reload } = members;
   const reloadCounts = counts.reload;
   useFocusEffect(
@@ -64,7 +63,7 @@ export default function MembersScreen() {
         </AppText>
       ) : null}
       <TextField label="Find someone" value={typed} onChangeText={setTyped} placeholder="Name" autoCorrect={false} returnKeyType="search" />
-      {!client || (members.loading && !members.data) ? (
+      {members.loading && !members.data ? (
         <Loading />
       ) : members.error ? (
         <Trouble detail={members.error} onRetry={reload} />

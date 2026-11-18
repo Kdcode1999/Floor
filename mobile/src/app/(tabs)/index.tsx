@@ -2,7 +2,6 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
-import { useAuth } from "@/auth/AuthContext";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorLine, Loading, Trouble } from "@/components/LoadState";
 import { Screen } from "@/components/Screen";
@@ -10,26 +9,23 @@ import { SpaceHeader } from "@/components/SpaceHeader";
 import { TextLink } from "@/components/TextLink";
 import { AlertsCard } from "@/features/alerts/AlertsCard";
 import { loadFeed, PAGE } from "@/features/feed/api";
-import { LiveCard } from "@/features/feed/LiveCard";
 import { LockedCard } from "@/features/feed/LockedCard";
 import { OfferCard } from "@/features/feed/OfferCard";
 import { LessonCard, PostCard } from "@/features/feed/PostCard";
-import { SuspendedNote } from "@/features/safety/SuspendedNote";
-import { sampleLesson, sampleLive, samplePosts } from "@/features/feed/sample";
 import { SetupCard } from "@/features/feed/SetupCard";
 import type { FeedPost } from "@/features/feed/types";
+import { SuspendedNote } from "@/features/safety/SuspendedNote";
+import { SampleStrip } from "@/features/sample/SampleStrip";
+import { database } from "@/lib/database";
 import { timeAgo } from "@/lib/format";
-import { supabase } from "@/lib/supabase";
 import { useLoad } from "@/lib/useLoad";
 import { useSpace } from "@/space/SpaceContext";
 
 /** The Feed: pinned offers, then what the mentor has shared, newest first. */
 export default function FeedScreen() {
-  const { sample } = useAuth();
   const { space, isStaff } = useSpace();
-  const client = sample ? null : supabase;
 
-  const first = useLoad(client && space.id ? () => loadFeed(client, space.id) : null, `feed:${space.id}`);
+  const first = useLoad(space.id ? () => loadFeed(database, space.id) : null, `feed:${space.id}`);
   /** Pages of older posts, loaded one at a time with "Show older posts". */
   const [older, setOlder] = useState<{ space: string; posts: FeedPost[]; end: boolean }>({ space: "", posts: [], end: false });
   const [loadingOlder, setLoadingOlder] = useState(false);
@@ -44,18 +40,6 @@ export default function FeedScreen() {
     }, []),
   );
 
-  if (!client) {
-    return (
-      <Screen header={<SpaceHeader />}>
-        <LiveCard item={sampleLive} />
-        <FeedCard post={samplePosts[0]} staff={false} />
-        <FeedCard post={samplePosts[1]} staff={false} />
-        <LessonCard item={sampleLesson} />
-        <FeedCard post={samplePosts[2]} staff={false} />
-      </Screen>
-    );
-  }
-
   const page = first.data ?? [];
   const extra = older.space === space.id ? older.posts.filter((post) => !page.some((each) => each.id === post.id)) : [];
   const posts = [...page, ...extra];
@@ -68,7 +52,7 @@ export default function FeedScreen() {
     setLoadingOlder(true);
     setOlderError(null);
     try {
-      const next = await loadFeed(client, space.id, last.createdAt);
+      const next = await loadFeed(database, space.id, last.createdAt);
       setOlder({ space: space.id, posts: [...extra, ...next], end: next.length < PAGE });
     } catch {
       setOlderError("Older posts couldn't be loaded. Try again.");
@@ -78,6 +62,7 @@ export default function FeedScreen() {
 
   return (
     <Screen header={<SpaceHeader />} onRefresh={reload} refreshing={first.refreshing}>
+      <SampleStrip />
       <SuspendedNote />
       <AlertsCard />
       {first.loading ? (

@@ -11,7 +11,7 @@ import { ErrorLine, Loading, Trouble } from "@/components/LoadState";
 import { Screen } from "@/components/Screen";
 import { loadGroups, reorderGroups } from "@/features/chat/api";
 import { groupSummary, moved } from "@/features/chat/logic";
-import { supabase } from "@/lib/supabase";
+import { database } from "@/lib/database";
 import { useAction } from "@/lib/useAction";
 import { useLoad } from "@/lib/useLoad";
 import { useSpace } from "@/space/SpaceContext";
@@ -25,8 +25,7 @@ export default function GroupsScreen() {
   const theme = useTheme();
   const router = useRouter();
   const { space } = useSpace();
-  const client = supabase;
-  const loaded = useLoad(client ? () => loadGroups(client, space.id) : null, `groups:${space.id}`);
+  const loaded = useLoad(() => loadGroups(database, space.id), `groups:${space.id}`);
   const act = useAction();
 
   const { reload } = loaded;
@@ -38,13 +37,13 @@ export default function GroupsScreen() {
   );
 
   const header = <BackHeader title="Groups" backLabel="Back to Manage" fallback="/manage" />;
-  if (!client || loaded.loading) return <Screen header={header}><Loading /></Screen>;
+  if (loaded.loading) return <Screen header={header}><Loading /></Screen>;
   if (loaded.error) return <Screen header={header}><Trouble detail={loaded.error} onRetry={reload} /></Screen>;
 
   const groups = loaded.data ?? [];
   const move = (index: number, by: -1 | 1) => {
     const order = moved(groups, index, by).map((group) => group.id);
-    act.run(`move:${groups[index].id}`, () => reorderGroups(client, space.id, order), reload);
+    act.run(`move:${groups[index].id}`, () => reorderGroups(database, space.id, order), reload);
   };
 
   return (

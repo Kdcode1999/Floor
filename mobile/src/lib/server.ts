@@ -2,6 +2,7 @@
 // address. The server lives with the web app. Every call carries the person's login, and the
 // database decides what that person may do.
 
+import { sampleServer } from "@/lib/database";
 import { SITE_URL } from "@/lib/env";
 import { supabase } from "@/lib/supabase";
 
@@ -16,6 +17,12 @@ export class ServerError extends Error {
 export const serverConfigured = SITE_URL !== "";
 
 export async function callServer<T>(path: string, body: Record<string, unknown> = {}): Promise<T> {
+  // The sample space has its own stand-in for the server, which answers from memory.
+  if (sampleServer) {
+    const answer = await sampleServer(path, body);
+    if (!answer.ok) throw new ServerError(answer.code);
+    return answer.data as T;
+  }
   if (!supabase || !serverConfigured) throw new ServerError("not_set_up");
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;

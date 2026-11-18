@@ -27,8 +27,8 @@ export interface RequestItem {
   note: string | null;
   /** How many days of VIP approving it gives. */
   days: number;
-  /** Where the proof file is kept. Null only for sample requests. */
-  proofPath: string | null;
+  /** Where the proof file is kept. */
+  proofPath: string;
   createdAt: string;
 }
 

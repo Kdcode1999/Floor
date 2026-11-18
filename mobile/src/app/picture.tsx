@@ -9,7 +9,7 @@ import { Icon } from "@/components/Icon";
 import { Loading, Trouble } from "@/components/LoadState";
 import { pictureUrl as chatPictureUrl } from "@/features/chat/api";
 import { pictureUrl } from "@/features/feed/api";
-import { supabase } from "@/lib/supabase";
+import { database } from "@/lib/database";
 import { useGoBack } from "@/lib/useGoBack";
 import { useLoad } from "@/lib/useLoad";
 
@@ -24,10 +24,9 @@ export default function PictureScreen() {
   const goBack = useGoBack("/");
   const insets = useSafeAreaInsets();
   const display = useWindowDimensions();
-  const client = supabase;
   // A picture is in the store for posts or the one for groups. Each has its own rule for who may see it.
   const url = useLoad(
-    client && path ? () => (store === "chat" ? chatPictureUrl(client, path) : pictureUrl(client, path)) : null,
+    path ? () => (store === "chat" ? chatPictureUrl(database, path) : pictureUrl(database, path)) : null,
     `picture:${store}:${path}`,
   );
 

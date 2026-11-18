@@ -13,7 +13,7 @@ import { TextField } from "@/components/TextField";
 import { deleteGroup, loadGroups, saveGroup } from "@/features/chat/api";
 import { AUDIENCE_WORDS, groupProblems, POSTING_WORDS, type GroupProblems } from "@/features/chat/logic";
 import type { Audience, Group, GroupForm, Posting } from "@/features/chat/types";
-import { supabase } from "@/lib/supabase";
+import { database } from "@/lib/database";
 import { useAction } from "@/lib/useAction";
 import { useGoBack } from "@/lib/useGoBack";
 import { useLoad } from "@/lib/useLoad";
@@ -32,14 +32,13 @@ const NEW_GROUP: GroupForm = { name: "", about: "", audience: "everyone", postin
 export default function GroupSettingsScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { space, isStaff } = useSpace();
-  const client = supabase;
-  const loaded = useLoad(client && id ? () => loadGroups(client, space.id) : null, `groups:${space.id}`);
+  const loaded = useLoad(id ? () => loadGroups(database, space.id) : null, `groups:${space.id}`);
 
   const header = <BackHeader title={id ? "Group settings" : "New group"} backLabel="Back" fallback="/manage/groups" />;
   // Only the mentor and admins run groups. The database keeps the same rule.
   if (!isStaff) return <Redirect href="/" />;
   if (!id) return <Screen hasNav={false} header={header}><GroupFormCard group={null} /></Screen>;
-  if (!client || loaded.loading) return <Screen hasNav={false} header={header}><Loading /></Screen>;
+  if (loaded.loading) return <Screen hasNav={false} header={header}><Loading /></Screen>;
   if (loaded.error) return <Screen hasNav={false} header={header}><Trouble detail={loaded.error} onRetry={loaded.reload} /></Screen>;
 
   const group = loaded.data?.find((each) => each.id === id) ?? null;
@@ -63,7 +62,6 @@ function GroupFormCard({ group }: { group: Group | null }) {
   const router = useRouter();
   const goBack = useGoBack("/manage/groups");
   const { space, isMentor } = useSpace();
-  const client = supabase;
   const act = useAction();
 
   const [form, setForm] = useState<GroupForm>(
@@ -81,9 +79,9 @@ function GroupFormCard({ group }: { group: Group | null }) {
   const save = () => {
     const found = groupProblems(form);
     setWrong(found);
-    if (!client || Object.keys(found).length > 0) return;
+    if (Object.keys(found).length > 0) return;
     act.run("save", async () => {
-      const saved = await saveGroup(client, space.id, form, group?.id ?? null);
+      const saved = await saveGroup(database, space.id, form, group?.id ?? null);
       if (saved.problem !== null) return saved.problem;
       // A new group by invitation has nobody in it yet, so choosing them comes next.
       if (!group && form.audience === "invited") {
@@ -153,7 +151,7 @@ function GroupFormCard({ group }: { group: Group | null }) {
         <ErrorLine text={act.error} />
       </View>
 
-      {group && isMentor && client ? (
+      {group && isMentor ? (
         <Card style={styles.card}>
           {confirming ? (
             <>
@@ -166,7 +164,7 @@ function GroupFormCard({ group }: { group: Group | null }) {
                   size="medium"
                   style={styles.half}
                   busy={act.busy === "delete"}
-                  onPress={() => act.run("delete", () => deleteGroup(client, group.id), goBack)}
+                  onPress={() => act.run("delete", () => deleteGroup(database, group.id), goBack)}
                 />
                 <Button label="Keep it" kind="ghost" size="medium" style={styles.half} onPress={() => setConfirming(false)} />
               </View>

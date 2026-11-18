@@ -8,9 +8,9 @@ import { Loading, Trouble } from "@/components/LoadState";
 import { Screen } from "@/components/Screen";
 import { loadCardTrouble, loadPayments } from "@/features/manage/api";
 import { cardProblem, mentorPage, paymentLine } from "@/features/manage/logic";
+import { database } from "@/lib/database";
 import { SITE_URL } from "@/lib/env";
 import { formatPrice } from "@/lib/format";
-import { supabase } from "@/lib/supabase";
 import { useLoad } from "@/lib/useLoad";
 import { useSpace } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
@@ -22,9 +22,8 @@ import { useTheme } from "@/theme/ThemeContext";
 export default function PaymentsScreen() {
   const theme = useTheme();
   const { space, isMentor } = useSpace();
-  const client = supabase;
-  const payments = useLoad(client ? () => loadPayments(client, space.id) : null, `payments:${space.id}`);
-  const trouble = useLoad(client && isMentor ? () => loadCardTrouble(client, space.id) : null, `card-trouble:${space.id}`);
+  const payments = useLoad(() => loadPayments(database, space.id), `payments:${space.id}`);
+  const trouble = useLoad(isMentor ? () => loadCardTrouble(database, space.id) : null, `card-trouble:${space.id}`);
   const [now] = useState(() => Date.now());
   const problem = trouble.data ? cardProblem(trouble.data.problem, trouble.data.provider, SITE_URL) : null;
 
@@ -46,7 +45,7 @@ export default function PaymentsScreen() {
           </AppText>
         </Card>
       ) : null}
-      {!client || payments.loading ? (
+      {payments.loading ? (
         <Loading />
       ) : payments.error ? (
         <Trouble detail={payments.error} onRetry={payments.reload} />

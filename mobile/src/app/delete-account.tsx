@@ -10,8 +10,9 @@ import { ErrorLine, Loading, Trouble } from "@/components/LoadState";
 import { Screen } from "@/components/Screen";
 import { TextField } from "@/components/TextField";
 import { deleteMessage, nameMatches, whatGoes, type AccountSummary } from "@/features/account/logic";
+import { SampleNote } from "@/features/sample/SampleNote";
+import { database } from "@/lib/database";
 import { callServer, ServerError } from "@/lib/server";
-import { supabase } from "@/lib/supabase";
 import { useGoBack } from "@/lib/useGoBack";
 import { useLoad } from "@/lib/useLoad";
 import { useTheme } from "@/theme/ThemeContext";
@@ -22,11 +23,10 @@ import { useTheme } from "@/theme/ThemeContext";
  * database has said who is asking.
  */
 export default function DeleteAccountScreen() {
-  const client = supabase;
   const summary = useLoad(
-    client
+    database
       ? async () => {
-          const { data, error } = await client.rpc("account_summary");
+          const { data, error } = await database.rpc("account_summary");
           if (error) throw new Error(error.message);
           const found = ((data ?? []) as AccountSummary[])[0];
           if (!found) throw new Error("Your account could not be read.");
@@ -38,12 +38,15 @@ export default function DeleteAccountScreen() {
 
   return (
     <Screen hasNav={false} header={<BackHeader title="Delete account" backLabel="Back" fallback="/" />}>
-      {!client || summary.loading ? (
+      {summary.loading ? (
         <Loading />
       ) : summary.error || !summary.data ? (
         <Trouble detail={summary.error} onRetry={summary.reload} />
       ) : (
-        <DeleteForm summary={summary.data} />
+        <>
+          <SampleNote text="nothing is deleted here. This is what a person is told before their account goes." />
+          <DeleteForm summary={summary.data} />
+        </>
       )}
     </Screen>
   );

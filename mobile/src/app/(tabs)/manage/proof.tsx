@@ -9,7 +9,7 @@ import { Card } from "@/components/Card";
 import { Loading, Trouble } from "@/components/LoadState";
 import { Screen } from "@/components/Screen";
 import { proofUrl } from "@/features/manage/api";
-import { supabase } from "@/lib/supabase";
+import { database } from "@/lib/database";
 import { useLoad } from "@/lib/useLoad";
 import { useTheme } from "@/theme/ThemeContext";
 
@@ -17,9 +17,8 @@ import { useTheme } from "@/theme/ThemeContext";
 export default function ProofScreen() {
   const theme = useTheme();
   const { path, name } = useLocalSearchParams<{ path?: string; name?: string }>();
-  const client = supabase;
   // The address only works for a few minutes and only for the member and the space's staff.
-  const file = useLoad(client && path ? () => proofUrl(client, path) : null, `proof:${path}`);
+  const file = useLoad(path ? () => proofUrl(database, path) : null, `proof:${path}`);
   const pdf = (path ?? "").toLowerCase().endsWith(".pdf");
 
   return (

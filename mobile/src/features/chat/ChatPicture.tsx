@@ -2,7 +2,7 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet } from "react-native";
 
-import { supabase } from "@/lib/supabase";
+import { database } from "@/lib/database";
 import { useLoad } from "@/lib/useLoad";
 import { useTheme } from "@/theme/ThemeContext";
 
@@ -19,9 +19,8 @@ interface ChatPictureProps {
 export function ChatPicture({ path, width, height }: ChatPictureProps) {
   const theme = useTheme();
   const router = useRouter();
-  const client = supabase;
   // The address is short-lived and only given to someone who can open the group.
-  const url = useLoad(client ? () => pictureUrl(client, path) : null, `chat-picture:${path}`);
+  const url = useLoad(() => pictureUrl(database, path), `chat-picture:${path}`);
   const shape = Math.min(Math.max(width / height, 0.75), 2);
 
   return (

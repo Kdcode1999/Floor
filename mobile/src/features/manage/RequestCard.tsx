@@ -20,12 +20,12 @@ const KIND_LABEL: Record<RequestItem["kind"], string> = {
 interface RequestCardProps {
   request: RequestItem;
   /** When it was sent, in words: "2 hours ago". */
-  sent?: string;
+  sent: string;
   /** Each resolves with a message to show if it failed, or null. */
   onApprove: () => Promise<string | null>;
   onDecline: (reason: string) => Promise<string | null>;
-  /** Opens the proof the member sent. Left out for sample requests. */
-  onProof?: () => void;
+  /** Opens the proof the member sent. */
+  onProof: () => void;
 }
 
 /** One request for VIP in the mentor's queue: who, what they sent, and Approve or Decline. */
@@ -64,15 +64,13 @@ export function RequestCard({ request, sent, onApprove, onDecline, onProof }: Re
           </AppText>
         ) : null}
         <AppText size={12} line={16} color={theme.text3}>
-          {sent ? `${sent} · ` : ""}Approving gives {days(request.days)} of VIP
+          {sent} · Approving gives {days(request.days)} of VIP
         </AppText>
       </View>
 
-      {onProof ? (
-        <View style={styles.proof}>
-          <TextLink label="See what they sent" onPress={onProof} />
-        </View>
-      ) : null}
+      <View style={styles.proof}>
+        <TextLink label="See what they sent" onPress={onProof} />
+      </View>
 
       {reason === null ? (
         <View style={styles.actions}>

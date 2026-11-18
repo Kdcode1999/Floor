@@ -5,6 +5,7 @@ import { AppState } from "react-native";
 import { forgetAddress } from "@/features/alerts/push";
 import { getDeviceId } from "@/lib/deviceId";
 import { supabase } from "@/lib/supabase";
+import { sampleSession } from "@/sample/session";
 
 import { ApiError, type AccessApi } from "./access";
 import { createAuthStore, type AuthSnapshot } from "./authStore";
@@ -33,10 +34,18 @@ const store = supabase
   ? createAuthStore({ auth: supabase.auth, api: accessApi(supabase), deviceId: getDeviceId })
   : null;
 
-// Without a backend the app shows its sample space, with nobody signed in.
-const SAMPLE: AuthSnapshot = { status: "ready", user: null, detail: null };
-const subscribeToNothing = () => () => {};
-const getSample = () => SAMPLE;
+// Without a backend the app shows its sample space, as one of the sample's own people. There
+// is no sign-in: the Account screen chooses whose eyes to look through.
+const samples = new Map<string, AuthSnapshot>();
+function getSample(): AuthSnapshot {
+  const person = sampleSession.person();
+  let snapshot = samples.get(person.id);
+  if (!snapshot) {
+    snapshot = { status: "ready", user: { id: person.id, email: person.email }, detail: null };
+    samples.set(person.id, snapshot);
+  }
+  return snapshot;
+}
 
 interface AuthContextValue extends AuthSnapshot {
   /** True when the app runs on sample content because mobile/.env is not filled in. */
@@ -58,7 +67,7 @@ const notAvailable = async () => "Sign-in isn't set up in this build.";
 /** Knows whether someone is signed in and whether this phone holds their one login. */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const snapshot = useSyncExternalStore(
-    store ? store.subscribe : subscribeToNothing,
+    store ? store.subscribe : sampleSession.subscribe,
     store ? store.getSnapshot : getSample,
     store ? store.getSnapshot : getSample,
   );

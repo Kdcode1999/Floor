@@ -23,8 +23,10 @@ npx expo start --go
 Expo Go does not carry everything the app uses. It gets no alerts, and the app says so there
 instead of loading that part.
 
-With no `.env` file the app opens on a sample space, seen as its mentor, with no sign-in. Once `.env`
-is filled in it opens on sign-in and shows the person's real space. `../docs/SETUP.md` has the steps.
+With no `.env` file the app opens on a sample space: a made-up community in which every screen
+works, with no sign-in and nothing to set up. Tap the badge at the top right to look at it as the
+mentor, as a VIP member or as someone who has not paid. Nothing done there is kept. Once `.env` is
+filled in the app opens on sign-in and shows the person's real space. `../docs/SETUP.md` has the steps.
 
 `../docs/STATUS.md` says which parts work today.
 
@@ -38,7 +40,7 @@ npm run typecheck
 npm run lint
 ```
 
-`npm test` runs the tests of the app's plain logic in `tests/`.
+`npm test` runs the tests of the app's plain logic in `tests/`, and of the sample space.
 
 The scripts in `../checks/` walk the app in Chrome at phone size, check each step and save a picture of
 every screen. `../checks/README.md` lists them. They need Python with Playwright, so they are run on the
@@ -54,7 +56,10 @@ build side, not on your computer.
   database, `logic.ts` is its wording and sums.
 - `src/auth/`: sign-in. `authStore.ts` and `access.ts` hold the rules for one login at a time.
 - `src/space/SpaceContext.tsx`: the space being shown and who is looking at it, loaded from the database.
-- `src/lib/`: the Supabase connection, secure storage, the phone's id.
+- `src/lib/`: the backend every screen talks to (`database.ts`), the Supabase connection, secure
+  storage, the phone's id.
+- `src/sample/`: the sample space. `seed.ts` is what it holds. `../docs/ARCHITECTURE.md` says how
+  it is put together and how it is kept in step with the real backend.
 - `src/theme/themes.ts`: the three looks a mentor can choose: Night, Dawn and Smoke. Every colour in the
   app comes from here.
 - `src/theme/layout.ts`: the few sizes shared by more than one component.

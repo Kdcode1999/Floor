@@ -38,7 +38,8 @@ function Taps({ notifications }: { notifications: NonNullable<typeof Notificatio
       return;
     }
     handled.current = id;
-    router.push(routeFor(data) as Href);
+    // A screen inside Manage opens with Mentor home underneath it, so Back has somewhere to go.
+    router.push(routeFor(data) as Href, { withAnchor: true });
   }, [response, status, space.id, entries, choose, router]);
 
   return null;

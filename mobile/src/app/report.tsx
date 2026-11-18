@@ -9,7 +9,7 @@ import { ErrorLine } from "@/components/LoadState";
 import { Screen } from "@/components/Screen";
 import { TextField } from "@/components/TextField";
 import { DETAILS_MAX, REPORT_REASONS, reportMessage, reportProblem, type ReportReason } from "@/features/safety/logic";
-import { supabase } from "@/lib/supabase";
+import { database } from "@/lib/database";
 import { useGoBack } from "@/lib/useGoBack";
 import { useSpace } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
@@ -31,10 +31,9 @@ export default function ReportScreen() {
   const send = async () => {
     const problem = reportProblem(reason, details);
     if (problem) return setError(problem);
-    if (!supabase) return setError("Reports cannot be sent from the sample space.");
     setBusy(true);
     setError(null);
-    const { error: failed } = await supabase.rpc("report_space", { p_space: space.id, p_reason: reason, p_details: details.trim() || null });
+    const { error: failed } = await database.rpc("report_space", { p_space: space.id, p_reason: reason, p_details: details.trim() || null });
     setBusy(false);
     if (failed) return setError(reportMessage(failed));
     setSent(true);

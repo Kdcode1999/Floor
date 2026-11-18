@@ -10,7 +10,7 @@ import { ErrorLine, Loading, Trouble } from "@/components/LoadState";
 import { Screen } from "@/components/Screen";
 import { stateLine, type AlertState } from "@/features/alerts/logic";
 import { alertState, turnOnAlerts } from "@/features/alerts/push";
-import { supabase } from "@/lib/supabase";
+import { database } from "@/lib/database";
 import { useLoad } from "@/lib/useLoad";
 import { useAuth } from "@/auth/AuthContext";
 import { useSpace } from "@/space/SpaceContext";
@@ -27,7 +27,6 @@ export default function AlertsScreen() {
   const theme = useTheme();
   const auth = useAuth();
   const { space } = useSpace();
-  const client = supabase;
   const userId = auth.user?.id;
 
   const [state, setState] = useState<AlertState | null>(null);
@@ -37,9 +36,9 @@ export default function AlertsScreen() {
   }, []);
 
   const loaded = useLoad(
-    client && userId && space.id
+    userId && space.id
       ? async (): Promise<Switches> => {
-          const { data, error } = await client
+          const { data, error } = await database
             .from("memberships")
             .select("alert_setups, alert_live, alert_lessons")
             .eq("space_id", space.id)
@@ -58,10 +57,9 @@ export default function AlertsScreen() {
   const switches = loaded.data ? { ...loaded.data, ...changed } : null;
 
   const set = async (which: keyof Switches, on: boolean) => {
-    if (!client) return;
     setError(null);
     setChanged((current) => ({ ...current, [which]: on }));
-    const { error: failed } = await client.rpc("set_alerts", {
+    const { error: failed } = await database.rpc("set_alerts", {
       p_space: space.id,
       p_setups: which === "setups" ? on : null,
       p_live: which === "live" ? on : null,
@@ -82,13 +80,13 @@ export default function AlertsScreen() {
         <AppText size={14} line={20} color={theme.text2}>
           {state ? stateLine(state) : "Checking…"}
         </AppText>
-        {state === "not_asked" && client ? (
+        {state === "not_asked" && !auth.sample ? (
           <Button
             label="Turn on alerts"
             busy={busy}
             onPress={async () => {
               setBusy(true);
-              setState(await turnOnAlerts(client));
+              setState(await turnOnAlerts(database));
               setBusy(false);
             }}
           />
@@ -97,7 +95,7 @@ export default function AlertsScreen() {
         ) : null}
       </Card>
 
-      {!client || loaded.loading ? (
+      {loaded.loading ? (
         <Loading />
       ) : loaded.error || !switches ? (
         <Trouble detail={loaded.error} onRetry={loaded.reload} />

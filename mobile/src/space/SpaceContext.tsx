@@ -3,9 +3,8 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 
 import { useAuth } from "@/auth/AuthContext";
 import { nameMessage } from "@/features/account/name";
-import { logoUrl } from "@/lib/env";
+import { database, logoAddress } from "@/lib/database";
 import { secureStore } from "@/lib/secureStorage";
-import { supabase } from "@/lib/supabase";
 import { ThemeProvider } from "@/theme/ThemeContext";
 import { DEFAULT_THEME, themeFor, type ThemeName } from "@/theme/themes";
 
@@ -52,7 +51,7 @@ export interface SpaceEntry {
   id: string;
   name: string;
   theme: ThemeName;
-  /** Where the logo is in the "logos" store. On the sample space, a picture on this phone. */
+  /** Where the logo is in the "logos" store. */
   logoPath: string | null;
   blockCapture: boolean;
   watermark: boolean;
@@ -110,21 +109,6 @@ interface SpaceContextValue {
 }
 
 const SpaceContext = createContext<SpaceContextValue | null>(null);
-
-// Shown when mobile/.env is not filled in, so the screens can be looked at before any setup.
-// Change the role to "member" to see the app the way a member does.
-const SAMPLE: SpaceEntry = {
-  id: "sample",
-  name: "Your Academy",
-  theme: DEFAULT_THEME,
-  logoPath: null,
-  blockCapture: false,
-  watermark: false,
-  suspended: false,
-  role: "mentor",
-  vipUntil: null,
-  displayName: "You",
-};
 
 // Stands in until a space is known: Floor's own name and look.
 const BLANK: SpaceEntry = {
@@ -190,7 +174,6 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
   const auth = useAuth();
   const userId = auth.status === "ready" ? (auth.user?.id ?? null) : null;
 
-  const [sample, setSample] = useState<SpaceEntry>(SAMPLE);
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [attempt, setAttempt] = useState(0);
   /** The space last opened on this phone. Undefined until it has been read from storage. */
@@ -212,9 +195,9 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!supabase || !userId) return;
+    if (!userId) return;
     let current = true;
-    loadEntries(supabase).then(
+    loadEntries(database).then(
       (entries) => current && setLoaded({ userId, entries, detail: null }),
       (error: Error) => current && setLoaded({ userId, entries: [], detail: error.message }),
     );
@@ -225,14 +208,11 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<SpaceContextValue>(() => {
     const mine = loaded && loaded.userId === userId ? loaded : null;
-    const entries = auth.sample ? [sample] : (mine?.entries ?? []);
+    const entries = mine?.entries ?? [];
 
     let status: SpaceStatus;
     let entry: SpaceEntry | null = null;
-    if (auth.sample) {
-      status = "ready";
-      entry = sample;
-    } else if (!userId) status = "idle";
+    if (!userId) status = "idle";
     else if (!mine || chosenId === undefined) status = "loading";
     else if (mine.detail) status = "trouble";
     else if (entries.length === 0) status = "none";
@@ -255,7 +235,7 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
         id: shown.id,
         name: shown.name,
         theme: shown.theme,
-        logo: shown.logoPath === null ? null : auth.sample ? shown.logoPath : logoUrl(shown.logoPath),
+        logo: shown.logoPath === null ? null : logoAddress(shown.logoPath),
         blockCapture: shown.blockCapture,
         watermark: shown.watermark,
         suspended: shown.suspended,
@@ -282,24 +262,20 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
 
       updateSpace: async (changes) => {
         if (!entry) return "There is no space to change.";
-        if (auth.sample || !supabase) {
-          setSample((current) => ({ ...current, ...changes }));
-          return null;
-        }
         // Asking for the row back shows whether anything was changed: the database quietly
         // changes nothing when the person is not this space's mentor.
         const row: Record<string, string> = {};
         if (changes.name !== undefined) row.name = changes.name;
         if (changes.theme !== undefined) row.theme = changes.theme;
         if (changes.logoPath !== undefined) row.logo_path = changes.logoPath;
-        const { data, error } = await supabase.from("spaces").update(row).eq("id", entry.id).select("id");
+        const { data, error } = await database.from("spaces").update(row).eq("id", entry.id).select("id");
         if (error) {
           return error.code === "23514" ? "That name can't be used. Try another." : "Couldn't save. Try again.";
         }
         if (!data || data.length === 0) return "Only the mentor can change the space's look.";
         // The old logo is no longer shown anywhere. Throw it away, and carry on if that fails.
         if (changes.logoPath !== undefined && entry.logoPath && entry.logoPath !== changes.logoPath) {
-          void supabase.storage.from("logos").remove([entry.logoPath]).then(undefined, () => {});
+          void database.storage.from("logos").remove([entry.logoPath]).then(undefined, () => {});
         }
         const id = entry.id;
         setLoaded((current) =>
@@ -313,11 +289,8 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
 
       rename: async (name) => {
         const displayName = name.trim().replace(/\s+/g, " ");
-        if (auth.sample || !supabase || !userId) {
-          setSample((current) => ({ ...current, displayName }));
-          return null;
-        }
-        const { error } = await supabase.from("profiles").update({ display_name: displayName }).eq("id", userId);
+        if (!userId) return "Sign in again, then choose your name.";
+        const { error } = await database.from("profiles").update({ display_name: displayName }).eq("id", userId);
         if (error) return nameMessage(error);
         // A person has one name, whichever space they are in.
         setLoaded((current) => current && { ...current, entries: current.entries.map((each) => ({ ...each, displayName })) });
@@ -326,14 +299,10 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
 
       setProtection: async (changes) => {
         if (!entry) return "There is no space to change.";
-        if (auth.sample || !supabase) {
-          setSample((current) => ({ ...current, ...changes }));
-          return null;
-        }
         const row: Record<string, boolean> = {};
         if (changes.blockCapture !== undefined) row.block_capture = changes.blockCapture;
         if (changes.watermark !== undefined) row.watermark = changes.watermark;
-        const { data, error } = await supabase.from("space_settings").update(row).eq("space_id", entry.id).select("space_id");
+        const { data, error } = await database.from("space_settings").update(row).eq("space_id", entry.id).select("space_id");
         if (error) return "Couldn't save. Try again.";
         if (!data || data.length === 0) return "Only the mentor can change this.";
         const id = entry.id;
@@ -348,7 +317,7 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
 
       previewTheme: setPreview,
     };
-  }, [auth.sample, userId, sample, loaded, chosenId, now]);
+  }, [userId, loaded, chosenId, now]);
 
   return (
     <SpaceContext.Provider value={value}>

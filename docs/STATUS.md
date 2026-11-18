@@ -57,11 +57,13 @@ Working today:
   staff, carry a link or a number, or copy the name of the space, its mentor or an admin. The
   mentor and admins carry a badge no name can fake.
 
-With `mobile/.env` empty the app still opens on the sample space, with no sign-in, so the screens can be
-looked at without any setup.
+- **The sample space**: with `mobile/.env` empty the app runs on a made-up community held in
+  memory. Every screen above works in it with nothing set up, seen as the mentor, as a VIP member
+  or as someone who has not paid. It is how the build is looked at in Expo Go today. See below.
 
-Checked: 199 database tests, 249 logic tests (163 phone, 86 web and server), and twelve walk-throughs
-in Chrome. Nine of them run against a real Postgres with Floor's migrations, with the mentor, a VIP
+Checked: 199 database tests, 249 logic tests (163 phone, 86 web and server), 41 tests of the sample
+space, and twelve walk-throughs in Chrome. One of them opens every screen of the sample space as
+each of its three viewers. Nine run against a real Postgres with Floor's migrations, with the mentor, a VIP
 member and a free member each on their own phone. The Community walk-through has four people in one
 group at once: what one writes shows on the others' phones, and a link, a number, a mute, a report and
 a block each do what they should on screen and in the database. The Learn walk-through uploads a real video through the
@@ -90,21 +92,45 @@ that copy has to be brought up to date first. In PowerShell, one line at a time:
 ```powershell
 cd $HOME\Projects\Floor
 git pull
-cd web
-npm install
-npx supabase db push
-cd ..\mobile
+cd mobile
 npm install
 npx expo start --go -c
 ```
 
-- `db push` asks for the database password. Type it there. It adds the tables for everything
-  built since the last push. Until it has run, the new screens show an error instead.
-- `--go` opens the app in Expo Go. Without it Expo now expects Floor's own build (SETUP step 6).
-- In Expo Go you can use the Feed, Learn, Chat and every Manage screen. Alerts need Floor's own
-  build. Video lessons, card payments and Telegram teasers also need their SETUP steps.
+`--go` opens the app in Expo Go. Without it Expo now expects Floor's own build (SETUP step 6).
+
+While `mobile/.env` is not filled in, the app opens on the **sample space**. Nothing needs setting
+up for it: no database, no keys, no sign-in.
+
+- It is one made-up mentor's community, "Your Academy", with members, posts and setups, a course,
+  groups with conversations in them, people waiting for VIP, card payments, invite codes and a
+  connected Telegram channel. Every screen built so far works in it.
+- It opens as the mentor. Tap the badge at the top right, then choose **VIP member** or **Free
+  member**, to see the same space through their eyes. The free member has just joined: they find
+  VIP posts locked, and are asked for a name before they can write in a group.
+- Nothing in it is real, and nothing you do in it is kept. Closing the app starts it again.
+- Where it cannot do what the real thing does, the screen says so: it takes no video for a lesson
+  (every lesson plays the same short film), reaches no Telegram (the channel connects by itself),
+  sends no alerts and deletes no account. The join page is part of the web app and is not in it.
 
 Do this again whenever you want to see what has been added since.
+
+### When you want the real thing
+
+The sample stops the moment `mobile/.env` is filled in (SETUP step 2). The app then opens on
+sign-in and talks to your Supabase project. Before that:
+
+```powershell
+cd $HOME\Projects\Floor\web
+npm install
+npx supabase db push
+```
+
+`db push` asks for the database password. Type it there. It adds the tables for everything built
+since the last push. Then SETUP step 3, so that sign-in emails carry a code.
+
+In Expo Go the real app has everything but alerts, which need Floor's own build. Video lessons,
+card payments and Telegram teasers also need their SETUP steps.
 
 ## Needed from Kingsley
 
@@ -161,6 +187,7 @@ Later, when the build reaches them: a live video service, the Apple and Google d
 - [x] Database, server, web and mobile: card payments that unlock VIP by themselves
 - [x] Report a space (mobile), suspend a space (Floor's own page at `/admin`)
 - [x] Delete an account, in the app and on the web
+- [x] Mobile: the sample space runs every screen, as the mentor, a VIP member or a free member
 
 ### 2. Community
 - [x] Groups and chat

@@ -13,8 +13,8 @@ import { loadMute, muteMember } from "@/features/chat/api";
 import { MUTE_CHOICES, muteLine } from "@/features/chat/logic";
 import { banMember, endVip, grantVip, loadMember, setRole, unbanMember } from "@/features/manage/api";
 import { DAY_CHOICES, standing } from "@/features/manage/logic";
+import { database } from "@/lib/database";
 import { days, formatDay } from "@/lib/format";
-import { supabase } from "@/lib/supabase";
 import { useAction } from "@/lib/useAction";
 import { useLoad } from "@/lib/useLoad";
 import { useSpace } from "@/space/SpaceContext";
@@ -29,9 +29,8 @@ export default function MemberScreen() {
   const theme = useTheme();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { space, isMentor, isStaff } = useSpace();
-  const client = supabase;
-  const loaded = useLoad(client && id ? () => loadMember(client, space.id, id) : null, `member:${space.id}:${id}`);
-  const muted = useLoad(client && id ? () => loadMute(client, space.id, id) : null, `mute:${space.id}:${id}`);
+  const loaded = useLoad(id ? () => loadMember(database, space.id, id) : null, `member:${space.id}:${id}`);
+  const muted = useLoad(id ? () => loadMute(database, space.id, id) : null, `mute:${space.id}:${id}`);
   const act = useAction();
   const [length, setLength] = useState(30);
   const [muteHours, setMuteHours] = useState(24);
@@ -43,7 +42,7 @@ export default function MemberScreen() {
   // Only the mentor and admins have this page. The database keeps what it does to them.
   if (!isStaff) return <Redirect href="/" />;
 
-  if (!client || loaded.loading) return <Screen hasNav={false} header={header}><Loading /></Screen>;
+  if (loaded.loading) return <Screen hasNav={false} header={header}><Loading /></Screen>;
   if (loaded.error) return <Screen hasNav={false} header={header}><Trouble detail={loaded.error} onRetry={loaded.reload} /></Screen>;
   if (!member) {
     return (
@@ -95,14 +94,14 @@ export default function MemberScreen() {
           <Button
             label={hasVip ? `Add ${days(length)}` : `Give ${days(length)} of VIP`}
             busy={act.busy === "grant"}
-            onPress={() => run("grant", () => grantVip(client, space.id, member.userId, length))}
+            onPress={() => run("grant", () => grantVip(database, space.id, member.userId, length))}
           />
           {hasVip ? (
             <Button
               label="End VIP now"
               kind="ghost"
               busy={act.busy === "end"}
-              onPress={() => run("end", () => endVip(client, space.id, member.userId))}
+              onPress={() => run("end", () => endVip(database, space.id, member.userId))}
             />
           ) : null}
         </Card>
@@ -123,14 +122,14 @@ export default function MemberScreen() {
             label={mutedNow ? "Change the mute" : "Mute"}
             kind="ghost"
             busy={act.busy === "mute"}
-            onPress={() => run("mute", () => muteMember(client, space.id, member.userId, muteHours))}
+            onPress={() => run("mute", () => muteMember(database, space.id, member.userId, muteHours))}
           />
           {mutedNow ? (
             <Button
               label="Unmute now"
               kind="ghost"
               busy={act.busy === "unmute"}
-              onPress={() => run("unmute", () => muteMember(client, space.id, member.userId, 0))}
+              onPress={() => run("unmute", () => muteMember(database, space.id, member.userId, 0))}
             />
           ) : null}
         </Card>
@@ -150,7 +149,7 @@ export default function MemberScreen() {
             label={member.role === "admin" ? "Remove as admin" : "Make admin"}
             kind="ghost"
             busy={act.busy === "role"}
-            onPress={() => run("role", () => setRole(client, space.id, member.userId, member.role === "admin" ? "member" : "admin"))}
+            onPress={() => run("role", () => setRole(database, space.id, member.userId, member.role === "admin" ? "member" : "admin"))}
           />
         </Card>
       ) : null}
@@ -166,7 +165,7 @@ export default function MemberScreen() {
             label={banned ? "Let them back in" : "Remove from the space"}
             kind="ghost"
             busy={act.busy === "ban"}
-            onPress={() => run("ban", () => (banned ? unbanMember(client, space.id, member.userId) : banMember(client, space.id, member.userId)))}
+            onPress={() => run("ban", () => (banned ? unbanMember(database, space.id, member.userId) : banMember(database, space.id, member.userId)))}
           />
         </Card>
       ) : null}

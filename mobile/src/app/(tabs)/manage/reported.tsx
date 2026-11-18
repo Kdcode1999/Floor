@@ -11,8 +11,8 @@ import { Screen } from "@/components/Screen";
 import { TextLink } from "@/components/TextLink";
 import { deleteMessage, dismissReports, loadReported, type Reported } from "@/features/chat/api";
 import { reportsLine, roleBadge } from "@/features/chat/logic";
+import { database } from "@/lib/database";
 import { timeAgo } from "@/lib/format";
-import { supabase } from "@/lib/supabase";
 import { useAction } from "@/lib/useAction";
 import { useLoad } from "@/lib/useLoad";
 import { useSpace } from "@/space/SpaceContext";
@@ -23,8 +23,7 @@ export default function ReportedScreen() {
   const theme = useTheme();
   const router = useRouter();
   const { space } = useSpace();
-  const client = supabase;
-  const loaded = useLoad(client ? () => loadReported(client, space.id) : null, `reported:${space.id}`);
+  const loaded = useLoad(() => loadReported(database, space.id), `reported:${space.id}`);
   const act = useAction();
   const [now] = useState(() => Date.now());
 
@@ -37,7 +36,7 @@ export default function ReportedScreen() {
   );
 
   const header = <BackHeader title="Reported messages" backLabel="Back to Manage" fallback="/manage" />;
-  if (!client || loaded.loading) return <Screen header={header}><Loading /></Screen>;
+  if (loaded.loading) return <Screen header={header}><Loading /></Screen>;
   if (loaded.error) return <Screen header={header}><Trouble detail={loaded.error} onRetry={reload} /></Screen>;
 
   const reported = loaded.data ?? [];
@@ -57,8 +56,8 @@ export default function ReportedScreen() {
             item={item}
             when={timeAgo(item.createdAt, now)}
             busy={act.busy === `delete:${item.messageId}` ? "delete" : act.busy === `keep:${item.messageId}` ? "keep" : null}
-            onDelete={() => act.run(`delete:${item.messageId}`, () => deleteMessage(client, item.messageId, item.hasImage), reload)}
-            onKeep={() => act.run(`keep:${item.messageId}`, () => dismissReports(client, item.messageId), reload)}
+            onDelete={() => act.run(`delete:${item.messageId}`, () => deleteMessage(database, item.messageId, item.hasImage), reload)}
+            onKeep={() => act.run(`keep:${item.messageId}`, () => dismissReports(database, item.messageId), reload)}
             onOpenGroup={() => router.push({ pathname: "/group", params: { id: item.groupId } })}
             onOpenMember={
               item.role === "member" ? () => router.push({ pathname: "/member", params: { id: item.userId } }) : undefined

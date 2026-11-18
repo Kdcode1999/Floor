@@ -2,7 +2,7 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet } from "react-native";
 
-import { supabase } from "@/lib/supabase";
+import { database } from "@/lib/database";
 import { useLoad } from "@/lib/useLoad";
 import { useTheme } from "@/theme/ThemeContext";
 
@@ -22,9 +22,8 @@ interface PostPictureProps {
 export function PostPicture({ path, width, height }: PostPictureProps) {
   const theme = useTheme();
   const router = useRouter();
-  const client = supabase;
   // The address is short-lived and only given to someone who may open the post.
-  const url = useLoad(client ? () => pictureUrl(client, path) : null, `picture:${path}`);
+  const url = useLoad(() => pictureUrl(database, path), `picture:${path}`);
   const shape = Math.min(Math.max(width / height, 0.8), 2.4);
 
   return (

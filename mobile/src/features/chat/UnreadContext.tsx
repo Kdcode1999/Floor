@@ -1,8 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { AppState } from "react-native";
 
-import { useAuth } from "@/auth/AuthContext";
-import { supabase } from "@/lib/supabase";
+import { database } from "@/lib/database";
 import { useSpace } from "@/space/SpaceContext";
 
 import { loadGroups } from "./api";
@@ -26,18 +25,16 @@ const UnreadContext = createContext<UnreadValue>({ unread: 0, report: () => {} }
  * the person is somewhere else. There are no alerts for chat, so the dot is how they find out.
  */
 export function UnreadProvider({ children }: { children: ReactNode }) {
-  const { sample } = useAuth();
   const { space } = useSpace();
-  const client = sample ? null : supabase;
   const [held, setHeld] = useState<{ space: string; count: number } | null>(null);
 
   useEffect(() => {
-    if (!client || !space.id) return;
+    if (!space.id) return;
     let current = true;
     const look = () => {
       // Nothing is asked while the app is in the background.
       if (AppState.currentState !== "active") return;
-      loadGroups(client, space.id).then(
+      loadGroups(database, space.id).then(
         (groups) => current && setHeld({ space: space.id, count: totalUnread(groups) }),
         () => {},
       );
@@ -52,7 +49,7 @@ export function UnreadProvider({ children }: { children: ReactNode }) {
       clearInterval(timer);
       listener.remove();
     };
-  }, [client, space.id]);
+  }, [space.id]);
 
   const value = useMemo<UnreadValue>(
     () => ({

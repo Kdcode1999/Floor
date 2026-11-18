@@ -7,8 +7,8 @@ import { Loading, Trouble } from "@/components/LoadState";
 import { Screen } from "@/components/Screen";
 import { approveRequest, declineRequest, loadRequests } from "@/features/manage/api";
 import { RequestCard } from "@/features/manage/RequestCard";
+import { database } from "@/lib/database";
 import { timeAgo } from "@/lib/format";
-import { supabase } from "@/lib/supabase";
 import { useLoad } from "@/lib/useLoad";
 import { useSpace } from "@/space/SpaceContext";
 
@@ -16,8 +16,7 @@ import { useSpace } from "@/space/SpaceContext";
 export default function RequestsScreen() {
   const router = useRouter();
   const { space } = useSpace();
-  const client = supabase;
-  const queue = useLoad(client ? () => loadRequests(client, space.id) : null, `requests:${space.id}`);
+  const queue = useLoad(() => loadRequests(database, space.id), `requests:${space.id}`);
   const [now] = useState(() => Date.now());
 
   const settle = async (action: () => Promise<string | null>) => {
@@ -28,7 +27,7 @@ export default function RequestsScreen() {
 
   return (
     <Screen header={<BackHeader title="Requests" backLabel="Back to Manage" fallback="/manage" />} gap={12}>
-      {!client || queue.loading ? (
+      {queue.loading ? (
         <Loading />
       ) : queue.error ? (
         <Trouble detail={queue.error} onRetry={queue.reload} />
@@ -40,13 +39,9 @@ export default function RequestsScreen() {
             key={request.id}
             request={request}
             sent={timeAgo(request.createdAt, now)}
-            onApprove={() => settle(() => approveRequest(client, request.id))}
-            onDecline={(reason) => settle(() => declineRequest(client, request.id, reason))}
-            onProof={
-              request.proofPath
-                ? () => router.push({ pathname: "/manage/proof", params: { path: request.proofPath ?? "", name: request.name } })
-                : undefined
-            }
+            onApprove={() => settle(() => approveRequest(database, request.id))}
+            onDecline={(reason) => settle(() => declineRequest(database, request.id, reason))}
+            onProof={() => router.push({ pathname: "/manage/proof", params: { path: request.proofPath, name: request.name } })}
           />
         ))
       )}

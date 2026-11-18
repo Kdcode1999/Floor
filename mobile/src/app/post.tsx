@@ -13,7 +13,7 @@ import { TextField } from "@/components/TextField";
 import { deletePost, editPost, loadPost, updateSetup } from "@/features/feed/api";
 import { offerProblems } from "@/features/feed/logic";
 import type { FeedPost } from "@/features/feed/types";
-import { supabase } from "@/lib/supabase";
+import { database } from "@/lib/database";
 import { useAction } from "@/lib/useAction";
 import { useGoBack } from "@/lib/useGoBack";
 import { useLoad } from "@/lib/useLoad";
@@ -27,15 +27,14 @@ export default function PostScreen() {
   const theme = useTheme();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { isStaff } = useSpace();
-  const client = supabase;
-  const loaded = useLoad(client && id ? () => loadPost(client, id) : null, `post:${id}`);
+  const loaded = useLoad(id ? () => loadPost(database, id) : null, `post:${id}`);
 
   if (!isStaff) return <Redirect href="/" />;
 
   const post = loaded.data;
   return (
     <Screen hasNav={false} header={<BackHeader title={post ? TITLES[post.kind] : "Post"} backLabel="Back" fallback="/" />}>
-      {!client || loaded.loading ? (
+      {loaded.loading ? (
         <Loading />
       ) : loaded.error ? (
         <Trouble detail={loaded.error} onRetry={loaded.reload} />
@@ -69,12 +68,10 @@ function Manage({ post }: { post: FeedPost }) {
   const [label, setLabel] = useState(post.linkLabel ?? "");
   const [wrong, setWrong] = useState<string | null>(null);
 
-  const client = supabase;
-  if (!client) return null;
 
   const save = () => {
     setWrong(null);
-    if (post.kind === "setup") return act.run("save", () => updateSetup(client, post.id, note, closed), goBack);
+    if (post.kind === "setup") return act.run("save", () => updateSetup(database, post.id, note, closed), goBack);
     if (post.kind === "offer") {
       const problems = offerProblems({ title, body, link, label });
       const first = problems.title ?? problems.link ?? problems.body ?? problems.label;
@@ -82,7 +79,7 @@ function Manage({ post }: { post: FeedPost }) {
     } else if (title.trim() === "" && body.trim() === "" && !post.imagePath && !post.embedUrl) {
       return setWrong("Write something, or delete the post.");
     }
-    return act.run("save", () => editPost(client, post.id, { title, body, link, label }), goBack);
+    return act.run("save", () => editPost(database, post.id, { title, body, link, label }), goBack);
   };
 
   return (
@@ -168,7 +165,7 @@ function Manage({ post }: { post: FeedPost }) {
                 size="medium"
                 style={styles.half}
                 busy={act.busy === "delete"}
-                onPress={() => act.run("delete", () => deletePost(client, post), goBack)}
+                onPress={() => act.run("delete", () => deletePost(database, post), goBack)}
               />
               <Button label="Keep it" kind="ghost" size="medium" style={styles.half} onPress={() => setConfirming(false)} />
             </View>

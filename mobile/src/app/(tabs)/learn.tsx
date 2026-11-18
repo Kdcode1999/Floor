@@ -2,7 +2,6 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback } from "react";
 import { StyleSheet, View } from "react-native";
 
-import { useAuth } from "@/auth/AuthContext";
 import { AppText } from "@/components/AppText";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
@@ -14,7 +13,7 @@ import { SpaceHeader } from "@/components/SpaceHeader";
 import { loadOutline } from "@/features/learn/api";
 import { doneShare, doneText } from "@/features/learn/logic";
 import { ModuleCard } from "@/features/learn/ModuleCard";
-import { supabase } from "@/lib/supabase";
+import { database } from "@/lib/database";
 import { useLoad } from "@/lib/useLoad";
 import { useSpace } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
@@ -23,11 +22,9 @@ import { useTheme } from "@/theme/ThemeContext";
 export default function LearnScreen() {
   const theme = useTheme();
   const router = useRouter();
-  const { sample } = useAuth();
   const { space, viewer, isStaff } = useSpace();
-  const client = sample ? null : supabase;
 
-  const course = useLoad(client && space.id ? () => loadOutline(client, space.id) : null, `learn:${space.id}`);
+  const course = useLoad(space.id ? () => loadOutline(database, space.id) : null, `learn:${space.id}`);
   const { reload } = course;
   useFocusEffect(
     useCallback(() => {
@@ -42,18 +39,12 @@ export default function LearnScreen() {
   const empty = lessons.length === 0 && !(isStaff && modules.length > 0);
 
   return (
-    <Screen header={<SpaceHeader />} onRefresh={client ? reload : undefined} refreshing={course.refreshing}>
-      {isStaff && client ? (
-        <Button label="Edit the course" kind="ghost" size="medium" onPress={() => router.push("/manage/learn")} />
+    <Screen header={<SpaceHeader />} onRefresh={reload} refreshing={course.refreshing}>
+      {isStaff ? (
+        <Button label="Edit the course" kind="ghost" size="medium" onPress={() => router.push("/manage/learn", { withAnchor: true })} />
       ) : null}
 
-      {!client ? (
-        <EmptyState
-          icon="learn"
-          title="No lessons yet"
-          detail={isStaff ? "Lessons you add will show up here." : "Lessons from your mentor will show up here."}
-        />
-      ) : course.loading ? (
+      {course.loading ? (
         <Loading />
       ) : course.error ? (
         <Trouble detail={course.error} onRetry={reload} />

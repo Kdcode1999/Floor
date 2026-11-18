@@ -22,8 +22,8 @@ import {
   type SetupProblems,
 } from "@/features/feed/logic";
 import type { Side } from "@/features/feed/types";
+import { database } from "@/lib/database";
 import { pickPicture, type Picture } from "@/lib/pictures";
-import { supabase } from "@/lib/supabase";
 import { useSpace } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
 
@@ -90,29 +90,27 @@ export default function ComposeScreen() {
   };
 
   const send = async () => {
-    const client = supabase;
     setError(null);
     let action: (() => Promise<string | null>) | null = null;
 
     if (kind === "post") {
       const found = postProblems({ title, body, embed, hasPicture: picture !== null, forEveryone });
       setPostWrong(found);
-      if (Object.keys(found).length === 0 && client) {
-        action = () => createPost(client, space.id, { title, body, embed: forEveryone ? embed : "", picture, forEveryone });
+      if (Object.keys(found).length === 0) {
+        action = () => createPost(database, space.id, { title, body, embed: forEveryone ? embed : "", picture, forEveryone });
       }
     } else if (kind === "setup") {
       const form = { pair, side, entry, stop, targets, note };
       const found = setupProblems(form);
       setSetupWrong(found);
-      if (Object.keys(found).length === 0 && client) action = () => createSetup(client, space.id, form, forEveryone);
+      if (Object.keys(found).length === 0) action = () => createSetup(database, space.id, form, forEveryone);
     } else {
       const form = { title: offerTitle, body: offerBody, link, label };
       const found = offerProblems(form);
       setOfferWrong(found);
-      if (Object.keys(found).length === 0 && client) action = () => createOffer(client, space.id, form);
+      if (Object.keys(found).length === 0) action = () => createOffer(database, space.id, form);
     }
 
-    if (!client) return setError("Posting needs the app to be connected. This is the sample space.");
     if (!action) return setError("Check the boxes marked above.");
     setSending(true);
     const problem = await action();

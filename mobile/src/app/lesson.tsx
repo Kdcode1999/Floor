@@ -15,8 +15,8 @@ import { TextLink } from "@/components/TextLink";
 import { loadLesson, loadOutline, requestPlayback, saveProgress, serverMessage } from "@/features/learn/api";
 import { LessonPlayer } from "@/features/learn/LessonPlayer";
 import { lengthText, nextLesson, resumeAt, VIDEO_WORDS } from "@/features/learn/logic";
+import { database } from "@/lib/database";
 import { secureStore } from "@/lib/secureStorage";
-import { supabase } from "@/lib/supabase";
 import { useLoad } from "@/lib/useLoad";
 import { useSpace } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
@@ -36,10 +36,9 @@ function LessonView({ id }: { id?: string }) {
   const router = useRouter();
   const auth = useAuth();
   const { space, viewer, isStaff } = useSpace();
-  const client = supabase;
 
-  const lesson = useLoad(client && id ? () => loadLesson(client, id) : null, `lesson:${id}`);
-  const course = useLoad(client && space.id ? () => loadOutline(client, space.id) : null, `learn:${space.id}`);
+  const lesson = useLoad(id ? () => loadLesson(database, id) : null, `lesson:${id}`);
+  const course = useLoad(space.id ? () => loadOutline(database, space.id) : null, `learn:${space.id}`);
   const hasVideo = lesson.data?.videoStatus === "ready";
   const video = useLoad(
     hasVideo && id ? () => requestPlayback(id).catch((error) => Promise.reject(new Error(serverMessage(error)))) : null,
@@ -77,7 +76,7 @@ function LessonView({ id }: { id?: string }) {
 
   const header = <BackHeader title={found?.title ?? "Lesson"} backLabel="Back" fallback="/learn" />;
 
-  if (!client || lesson.loading) return <Screen hasNav={false} header={header}><Loading /></Screen>;
+  if (lesson.loading) return <Screen hasNav={false} header={header}><Loading /></Screen>;
   if (lesson.error) return <Screen hasNav={false} header={header}><Trouble detail={lesson.error} onRetry={lesson.reload} /></Screen>;
   if (!found || !id) {
     return (
@@ -112,7 +111,7 @@ function LessonView({ id }: { id?: string }) {
               onProgress={(seconds, finished) => {
                 reached.current = seconds;
                 if (finished) setMarkedDone(true);
-                void saveProgress(client, id, seconds, finished).catch(() => {});
+                void saveProgress(database, id, seconds, finished).catch(() => {});
               }}
             />
             <Card style={styles.saver}>
@@ -150,7 +149,7 @@ function LessonView({ id }: { id?: string }) {
             size="medium"
             onPress={() => {
               setMarkedDone(true);
-              void saveProgress(client, id, 0, true).catch(() => {});
+              void saveProgress(database, id, 0, true).catch(() => {});
             }}
           />
         ) : null}
@@ -161,7 +160,7 @@ function LessonView({ id }: { id?: string }) {
       ) : null}
       {isStaff ? (
         <View style={styles.edit}>
-          <TextLink label="Edit this lesson" onPress={() => router.push({ pathname: "/manage/lesson", params: { id } })} />
+          <TextLink label="Edit this lesson" onPress={() => router.push({ pathname: "/lesson-edit", params: { id } })} />
         </View>
       ) : null}
     </Screen>

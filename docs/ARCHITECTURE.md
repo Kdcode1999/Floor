@@ -41,21 +41,60 @@ Supabase provides accounts, the Postgres database, file storage and live updates
 | `features/<name>/` | One folder per feature: `api.ts` (what it asks the database), `logic.ts` (wording and sums), its own components |
 | `components/` | The shared glass parts: `Screen`, `Card`, `Button`, `TextField`, `Chips`, `Avatar` |
 | `theme/` | The three themes as plain values |
-| `lib/` | Small helpers: Supabase client, secure storage, formatting, `useLoad`, `useAction` |
+| `lib/` | Small helpers: the backend every screen talks to (`database.ts`), secure storage, formatting, `useLoad`, `useAction` |
+| `sample/` | The sample space: a stand-in for the backend that answers from memory. See below |
 
 A screen loads with `useLoad(() => api.loadX(...), key)` and acts with `useAction()`. An action
 resolves with a sentence to show when it failed, or null.
 
 Screens inside a tab live under `app/(tabs)/`. Screens that take the whole phone (writing a post,
 a picture, a group's conversation, later a live session) are files directly in `app/` and open
-over the tabs. So is any screen that opens from more than one place, such as a member's page:
-Back then returns to wherever it was opened from.
+over the tabs. So is any screen that opens from more than one place, such as a member's page or
+the lesson editor: Back then returns to wherever it was opened from.
+
+A few screens inside the Manage tab are also opened from another tab: the course from Learn, the
+groups from Chat, and two from a tapped alert. Those links are pushed with `withAnchor`, which
+puts Mentor home underneath, so Back goes to Manage instead of nowhere in particular.
 
 An open group is kept current by `features/chat/useConversation.ts`. It asks the database what
 changed since the newest thing it holds, at once when another phone nudges (`live.ts`), and every
 few seconds otherwise. How long it waits is `waitFor` in `features/chat/logic.ts`.
 
-With `mobile/.env` empty the app runs on a sample space, so screens can be looked at with no setup.
+### The sample space (`mobile/src/sample`)
+
+With `mobile/.env` empty there is no backend to talk to, and the app runs on a sample space
+instead: one made-up mentor's community with members, posts, a course, groups and everything a
+mentor manages. Every screen works in it, and the Account screen switches whose eyes it is seen
+through: the mentor's, a VIP member's, or someone's who has not paid.
+
+Screens do not know the difference. They ask `database` from `lib/database.ts`, which is the
+Supabase client when the app is connected and the sample's stand-in when it is not. Calls to
+Floor's server go the same way, through `callServer`.
+
+| File | Holds |
+| --- | --- |
+| `world.ts` | The tables, shaped and named as the database's are |
+| `seed.ts`, `people.ts` | What the sample holds when the app starts, counted back from now |
+| `rules.ts` | Who may do what, following the database's `private.*` functions |
+| `functions/` | One function for each database function the app calls, under the same name |
+| `tables.ts`, `storage.ts` | The tables and file stores the app reads directly, each with its rule |
+| `server.ts` | Floor's server routes |
+| `backend.ts` | Puts those together behind the parts of the Supabase client the app uses |
+| `session.ts` | Whose eyes the sample is seen through |
+| `client.ts`, `assets.ts` | The one sample space the app runs on, and the pictures and film that come with it |
+
+Three things keep it honest:
+
+- **It guards nothing.** The rules that protect paid content are the database's, tested in
+  `web/supabase/tests`. The sample follows them so that it looks and behaves like the real thing.
+- **It cannot fall behind.** `tests/sampleBackend.test.ts` reads the app's source and fails when
+  a screen calls a database function, table, file store or server route the sample cannot
+  answer. A new one is added to the sample in the same change.
+- **It never ships.** A build that has its settings drops the sample and its files altogether,
+  and a release build made without settings shows an error instead of the sample.
+
+Where the sample cannot do what the real thing does (take a video, reach Telegram, delete an
+account), the screen says so in place, with `features/sample/SampleNote`.
 
 ## Web app (`web/src`)
 

@@ -2,7 +2,6 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
-import { useAuth } from "@/auth/AuthContext";
 import { AppText } from "@/components/AppText";
 import { Card } from "@/components/Card";
 import { Loading, Trouble } from "@/components/LoadState";
@@ -14,11 +13,10 @@ import { reportedLine } from "@/features/chat/logic";
 import { ActionTile } from "@/features/manage/ActionTile";
 import { approveRequest, declineRequest, loadRequests, type RequestItem } from "@/features/manage/api";
 import { RequestCard } from "@/features/manage/RequestCard";
-import { SuspendedNote } from "@/features/safety/SuspendedNote";
-import { sampleRequests } from "@/features/manage/sample";
 import { SettingsRow } from "@/features/manage/SettingsRow";
+import { SuspendedNote } from "@/features/safety/SuspendedNote";
+import { database } from "@/lib/database";
 import { timeAgo } from "@/lib/format";
-import { supabase } from "@/lib/supabase";
 import { useLoad } from "@/lib/useLoad";
 import { useSpace } from "@/space/SpaceContext";
 import { useTheme } from "@/theme/ThemeContext";
@@ -30,13 +28,10 @@ const SHOWN = 3;
 export default function ManageScreen() {
   const theme = useTheme();
   const router = useRouter();
-  const { sample } = useAuth();
   const { space, isMentor } = useSpace();
-  const client = sample ? null : supabase;
 
-  const queue = useLoad(client ? () => loadRequests(client, space.id) : null, `requests:${space.id}`);
-  const reported = useLoad(client ? () => loadReported(client, space.id) : null, `reported:${space.id}`);
-  const [samples, setSamples] = useState(sampleRequests);
+  const queue = useLoad(() => loadRequests(database, space.id), `requests:${space.id}`);
+  const reported = useLoad(() => loadReported(database, space.id), `reported:${space.id}`);
   const [now] = useState(() => Date.now());
 
   // Look again whenever the mentor comes back to this screen.
@@ -50,13 +45,8 @@ export default function ManageScreen() {
     }, []),
   );
 
-  const requests: RequestItem[] = client ? (queue.data ?? []) : samples;
-  const settle = async (id: string, action: (() => Promise<string | null>) | null) => {
-    if (!action) {
-      // The sample space: just take the request off the list.
-      setSamples((current) => current.filter((request) => request.id !== id));
-      return null;
-    }
+  const requests: RequestItem[] = queue.data ?? [];
+  const settle = async (action: () => Promise<string | null>) => {
     const problem = await action();
     if (!problem) reload();
     return problem;
@@ -68,7 +58,7 @@ export default function ManageScreen() {
       <View style={styles.tiles}>
         <ActionTile icon="plus" label="New post" onPress={() => router.push("/compose")} />
         <ActionTile icon="live" label="Go live" primary />
-        <ActionTile icon="lesson" label="Add lesson" onPress={client ? () => router.push("/manage/learn") : undefined} />
+        <ActionTile icon="lesson" label="Add lesson" onPress={() => router.push("/manage/learn")} />
       </View>
 
       <View style={styles.section}>
@@ -84,9 +74,9 @@ export default function ManageScreen() {
             </View>
           ) : null}
         </View>
-        {client && queue.loading ? (
+        {queue.loading ? (
           <Loading />
-        ) : client && queue.error ? (
+        ) : queue.error ? (
           <Trouble detail={queue.error} onRetry={reload} />
         ) : requests.length === 0 ? (
           <Card style={styles.none}>
@@ -99,14 +89,10 @@ export default function ManageScreen() {
             <RequestCard
               key={request.id}
               request={request}
-              sent={client ? timeAgo(request.createdAt, now) : undefined}
-              onApprove={() => settle(request.id, client ? () => approveRequest(client, request.id) : null)}
-              onDecline={(reason) => settle(request.id, client ? () => declineRequest(client, request.id, reason) : null)}
-              onProof={
-                client && request.proofPath
-                  ? () => router.push({ pathname: "/manage/proof", params: { path: request.proofPath ?? "", name: request.name } })
-                  : undefined
-              }
+              sent={timeAgo(request.createdAt, now)}
+              onApprove={() => settle(() => approveRequest(database, request.id))}
+              onDecline={(reason) => settle(() => declineRequest(database, request.id, reason))}
+              onProof={() => router.push({ pathname: "/manage/proof", params: { path: request.proofPath, name: request.name } })}
             />
           ))
         )}
@@ -126,32 +112,32 @@ export default function ManageScreen() {
             title="Price and payment"
             detail="What VIP costs and how members pay you"
             divided
-            onPress={client ? () => router.push("/manage/setup") : undefined}
+            onPress={() => router.push("/manage/setup")}
           />
         ) : null}
         <SettingsRow
           title="Card payments"
           detail="Who paid by card"
           divided={isMentor}
-          onPress={client ? () => router.push("/manage/payments") : undefined}
+          onPress={() => router.push("/manage/payments")}
         />
         <SettingsRow
           title="Invite codes"
           detail="Give VIP with a code"
           divided
-          onPress={client ? () => router.push("/manage/codes") : undefined}
+          onPress={() => router.push("/manage/codes")}
         />
         <SettingsRow
           title="Groups"
           detail="Create groups and choose who gets in"
           divided
-          onPress={client ? () => router.push("/manage/groups") : undefined}
+          onPress={() => router.push("/manage/groups")}
         />
         <SettingsRow
           title="Reported messages"
           detail={reportedLine(reported.data?.length ?? 0)}
           divided
-          onPress={client ? () => router.push("/manage/reported") : undefined}
+          onPress={() => router.push("/manage/reported")}
         />
         {isMentor ? (
           <SettingsRow
@@ -166,14 +152,14 @@ export default function ManageScreen() {
             title="Telegram teasers"
             detail="Announce what you post in your channel"
             divided
-            onPress={client ? () => router.push("/manage/telegram") : undefined}
+            onPress={() => router.push("/manage/telegram")}
           />
         ) : null}
         <SettingsRow
           title="Members"
           detail="Who is VIP and who is expiring"
           divided
-          onPress={client ? () => router.push("/manage/members") : undefined}
+          onPress={() => router.push("/manage/members")}
         />
       </Card>
     </Screen>
