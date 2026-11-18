@@ -16,13 +16,15 @@ interface LiveCardProps {
   /** What the button says. Members join, the mentor and admins open the room. */
   action: string;
   onJoin: () => void;
+  /** Opens Get VIP, for someone without it. */
+  onGetVip?: () => void;
 }
 
 /**
  * The large card shown while the mentor is live: at the top of the Feed and of the schedule.
  * Someone without VIP sees that the session is on and that it is for VIP members.
  */
-export function LiveCard({ session, now, action, onJoin }: LiveCardProps) {
+export function LiveCard({ session, now, action, onJoin, onGetVip }: LiveCardProps) {
   const theme = useTheme();
 
   return (
@@ -37,12 +39,15 @@ export function LiveCard({ session, now, action, onJoin }: LiveCardProps) {
         </AppText>
       </View>
       {session.locked ? (
-        <View style={styles.locked}>
-          <Icon name="lock" size={16} color={theme.text3} />
-          <AppText size={14} line={20} color={theme.text3}>
-            For VIP members
-          </AppText>
-        </View>
+        <>
+          <View style={styles.locked}>
+            <Icon name="lock" size={16} color={theme.text3} />
+            <AppText size={14} line={20} color={theme.text3}>
+              For VIP members
+            </AppText>
+          </View>
+          {onGetVip ? <Button label="Get VIP" kind="ghost" onPress={onGetVip} /> : null}
+        </>
       ) : (
         <Button label={action} onPress={onJoin} />
       )}

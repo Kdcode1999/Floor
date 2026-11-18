@@ -55,6 +55,7 @@ export default function ClassesScreen() {
               now={now}
               action={isStaff ? "Open the room" : "Join session"}
               onJoin={() => router.push({ pathname: "/live", params: { id: live.id } })}
+          onGetVip={() => router.push("/vip")}
             />
           ) : null}
           {coming.length === 0 ? (

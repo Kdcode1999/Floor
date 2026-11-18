@@ -707,3 +707,29 @@ describe("live", () => {
     expect((await as("kay").rpc("live_heartbeat", { p_session: id })).data).toBe("taken_over");
   });
 });
+
+// --- Getting VIP ----------------------------------------------------------------------------
+
+describe("getting VIP", () => {
+  it("takes a member's proof once, from their own folder", async () => {
+    const { as, world } = sample();
+    const path = `${SPACE}/${PEOPLE.newcomer}/1-payment.jpg`;
+    expect((await refusal(as("newcomer").rpc("request_access", { p_space: SPACE, p_kind: "payment", p_proof_path: `${SPACE}/${PEOPLE.vee}/x.jpg` })))?.message).toBe("bad_proof_path");
+    const { data: id } = await as("newcomer").rpc("request_access", { p_space: SPACE, p_kind: "payment", p_proof_path: path, p_note: "Transfer" });
+    expect(world.access_requests.find((each) => each.id === id)).toMatchObject({ status: "pending", days: 30, note: "Transfer" });
+    expect((await refusal(as("newcomer").rpc("request_access", { p_space: SPACE, p_kind: "payment", p_proof_path: path })))?.message).toBe("already_pending");
+    const mine = await rows(as("newcomer").from("access_requests").select("kind, status").eq("space_id", SPACE).eq("user_id", PEOPLE.newcomer));
+    expect(mine).toEqual([{ kind: "payment", status: "pending" }]);
+    // Nobody else's requests are readable.
+    expect(await rows(as("newcomer").from("access_requests").select("kind").eq("user_id", PEOPLE.sam))).toEqual([]);
+  });
+
+  it("turns VIP on with an invite code, once per person", async () => {
+    const { as, world } = sample();
+    expect((await refusal(as("newcomer").rpc("redeem_invite", { p_code: "TRYVIP22", p_space: SPACE })))?.message).toBe("invite_invalid");
+    const { data } = await as("newcomer").rpc("redeem_invite", { p_code: "welcome7", p_space: SPACE });
+    expect((data as { vip_until: string }).vip_until).toBeTruthy();
+    expect(world.memberships.find((each) => each.user_id === PEOPLE.newcomer && each.space_id === SPACE)?.vip_until).toBe((data as { vip_until: string }).vip_until);
+    expect((await refusal(as("newcomer").rpc("redeem_invite", { p_code: "WELCOME7", p_space: SPACE })))?.message).toBe("invite_already_used");
+  });
+});

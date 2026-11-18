@@ -2,8 +2,8 @@
 // Each function follows the database's own of the same name: see
 // web/supabase/migrations/…_foundation.sql and …_mentor_tools.sql.
 
-import { DAY, isMentor, isStaff, membershipOf, nameOf, notAllowed, randomCode, Refusal, within, words, type Ctx } from "../rules";
-import { iso, newId, type CodeRow, type RequestRow } from "../world";
+import { DAY, isMentor, isStaff, membershipOf, nameOf, notAllowed, randomCode, Refusal, spaceIsActive, within, words, type Ctx } from "../rules";
+import { iso, membership, newId, type CodeRow, type RequestRow } from "../world";
 
 const staffOnly = (ctx: Ctx, space: string) => {
   if (!isStaff(ctx, space)) throw notAllowed();
@@ -30,7 +30,64 @@ function waitingRequest(ctx: Ctx, id: string): RequestRow {
   return request;
 }
 
+/** Makes someone a member of a space if they are not one yet, as joining by a link does. */
+function ensureMembership(ctx: Ctx, space: string): void {
+  const row = membershipOf(ctx, space);
+  if (row?.status === "banned") throw new Refusal("banned");
+  if (!spaceIsActive(ctx, space)) throw new Refusal("space_unavailable");
+  if (!row) ctx.world.memberships.push(membership(space, ctx.uid, ctx.now));
+}
+
 export const manageFunctions = {
+  // --- For members: getting VIP ---------------------------------------------------------------
+
+  /** A member sends proof of a payment or a broker account. It waits in the mentor's queue. */
+  request_access(ctx: Ctx, args: { p_space: string; p_kind: string; p_proof_path: string; p_note?: string | null }) {
+    ensureMembership(ctx, args.p_space);
+    let days: number;
+    if (args.p_kind === "payment") days = ctx.world.spaces.find((each) => each.id === args.p_space)?.vip_days ?? 30;
+    else if (args.p_kind === "broker") days = ctx.world.space_settings.find((each) => each.space_id === args.p_space)?.broker_vip_days ?? 30;
+    else throw new Refusal("bad_kind");
+    if (!args.p_proof_path?.startsWith(`${args.p_space}/${ctx.uid}/`)) throw new Refusal("bad_proof_path");
+    const kind = args.p_kind;
+    if (ctx.world.access_requests.some((each) => each.space_id === args.p_space && each.user_id === ctx.uid && each.kind === kind && each.status === "pending")) {
+      throw new Refusal("already_pending");
+    }
+    const made: RequestRow = {
+      id: newId(),
+      space_id: args.p_space,
+      user_id: ctx.uid,
+      kind,
+      proof_path: args.p_proof_path,
+      note: words(args.p_note),
+      days,
+      status: "pending",
+      decline_reason: null,
+      created_at: iso(ctx.now),
+    };
+    ctx.world.access_requests.push(made);
+    return made.id;
+  },
+
+  /** Uses an invite code: VIP starts at once. */
+  redeem_invite(ctx: Ctx, args: { p_code: string; p_space?: string | null }) {
+    const code = ctx.world.invite_codes.find((each) => each.code === (args.p_code ?? "").trim().toUpperCase());
+    if (
+      !code ||
+      (args.p_space != null && code.space_id !== args.p_space) ||
+      code.revoked ||
+      (code.expires_at !== null && Date.parse(code.expires_at) <= ctx.now) ||
+      (code.max_uses !== null && code.used_count >= code.max_uses)
+    ) {
+      throw new Refusal("invite_invalid");
+    }
+    ensureMembership(ctx, code.space_id);
+    if (ctx.world.invite_redemptions.some((each) => each.code_id === code.id && each.user_id === ctx.uid)) throw new Refusal("invite_already_used");
+    ctx.world.invite_redemptions.push({ code_id: code.id, user_id: ctx.uid });
+    code.used_count += 1;
+    return { space_id: code.space_id, vip_until: extendVip(ctx, code.space_id, ctx.uid, code.days) };
+  },
+
   // --- Requests ------------------------------------------------------------------------------
 
   /** Everyone waiting for VIP, oldest first. */

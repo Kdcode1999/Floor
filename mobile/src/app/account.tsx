@@ -51,6 +51,9 @@ export default function AccountScreen() {
 
       <View style={styles.actions}>
         <Button label={viewer.name === UNNAMED ? "Choose your name" : "Change your name"} kind="ghost" onPress={() => router.push("/name")} />
+        {viewer.role === "member" ? (
+          <Button label={viewer.vip ? "Add more VIP time" : "Get VIP"} onPress={() => router.push("/vip")} />
+        ) : null}
         <Button label="Alerts" kind="ghost" onPress={() => router.push("/alerts")} />
         {entries.length > 1 ? <Button label="Switch space" kind="ghost" onPress={switchSpace} /> : null}
         {ownsSpace ? null : (

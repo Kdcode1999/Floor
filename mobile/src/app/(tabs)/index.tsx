@@ -89,6 +89,7 @@ export default function FeedScreen() {
           now={now}
           action={isStaff ? "Open the room" : "Join session"}
           onJoin={() => router.push({ pathname: "/live", params: { id: live.id } })}
+          onGetVip={() => router.push("/vip")}
         />
       ) : next ? (
         <ClassCard item={next} now={now} label="Next class" onPress={() => router.push("/classes")} />

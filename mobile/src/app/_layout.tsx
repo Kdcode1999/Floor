@@ -103,6 +103,7 @@ function GuardedStack() {
           <Stack.Screen name="live" />
           <Stack.Screen name="classes" />
           <Stack.Screen name="class-edit" />
+          <Stack.Screen name="vip" />
           <Stack.Screen name="alerts" />
           <Stack.Screen name="report" />
           <Stack.Screen name="group" />

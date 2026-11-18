@@ -421,6 +421,11 @@ Kingsley's calls. These replace the earlier entries they contradict, which stay 
   video runs on LiveKit's open-source server on a machine Floor rents, not on LiveKit Cloud. Lesson
   video moves off Bunny to Floor's own storage and encoding. Supabase, Vercel and Expo's
   notification service stay on their free tiers for as long as they last.
+- **Members get VIP inside the app.** With no store rules in the way, a free member reaches "Get
+  VIP" from a locked post, the Learn note, a locked live session and the Account screen. It
+  shows the mentor's price and how to pay them, takes a screenshot as proof for the mentor's
+  queue, and takes an invite code. This replaces the earlier rule that the app had no upgrade
+  button. The join page keeps the same ways in, for people who start on the web.
 - **The mentor pays Floor a flat $50 a month.** It is the only money Floor takes. How it is
   collected is decided when that piece is built.
 

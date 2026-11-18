@@ -40,6 +40,10 @@ const TABLES: Record<string, Table> = {
     rows: (world) => world.memberships,
     read: (ctx, row: World["memberships"][number]) => row.user_id === ctx.uid || isStaff(ctx, row.space_id),
   },
+  access_requests: {
+    rows: (world) => world.access_requests,
+    read: (ctx, row: World["access_requests"][number]) => row.user_id === ctx.uid || isStaff(ctx, row.space_id),
+  },
   invite_codes: {
     rows: (world) => world.invite_codes,
     read: (ctx, row: World["invite_codes"][number]) => isStaff(ctx, row.space_id),

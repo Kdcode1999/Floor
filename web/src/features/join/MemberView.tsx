@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Button, Card, Field } from "@/components/ui";
 import { APP_STORE_URL, PLAY_STORE_URL, SITE_URL } from "@/lib/env";
 
-import { days, formatDay, isVip, latestRequests, type AccessRequest, type PublicSpace, type RequestKind } from "./logic";
+import { days, declinedLine, formatDay, isVip, latestRequests, type AccessRequest, type PublicSpace, type RequestKind } from "./logic";
 import type { Join } from "./useJoin";
 
 interface MemberViewProps {
@@ -216,7 +216,7 @@ function ProofForm({ kind, latest, spaceName, join, fileLabel, noteLabel, notePl
       }}>
       {latest?.status === "declined" ? (
         <p className="error" role="status">
-          Your last one was not accepted{latest.decline_reason ? `: ${latest.decline_reason}` : "."} You can send another.
+          {declinedLine(latest)}
         </p>
       ) : null}
       <div className="field">

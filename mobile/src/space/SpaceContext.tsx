@@ -91,6 +91,8 @@ interface SpaceContextValue {
   isMentor: boolean;
   /** Loads the person's spaces again. */
   reload: () => void;
+  /** Reads the person's spaces again without leaving the screen, after VIP has changed. */
+  refresh: () => void;
   /** Opens one of the person's spaces. */
   choose: (id: string) => void;
   /** Goes back to the list of spaces. */
@@ -248,6 +250,8 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
         setLoaded(null);
         setAttempt((count) => count + 1);
       },
+
+      refresh: () => setAttempt((count) => count + 1),
 
       choose: (id) => {
         setChosenId(id);

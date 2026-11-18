@@ -28,6 +28,7 @@ From `mobile/` or `web/`, one at a time (they share ports):
 | Script | Walks | Runs on |
 | --- | --- | --- |
 | `phone_sample.py` | The sample space: every screen built so far, seen as its mentor, a VIP member and someone who has not paid, and the three themes. Also the live room, the schedule and a class added and a session ended | nothing: the sample's own stand-in for the backend, inside the app |
+| `phone_vip.py` | Getting VIP in the app: the price and how to pay, a screenshot sent as proof, a turned-down proof explained, a wrong and a right invite code | the real database |
 | `web_live.py` | Live with real video: the mentor broadcasts from the laptop with camera, microphone and screen, a VIP member watches and chats on the phone and switches to sound only, a free member is kept out, the session ends; a finished recording becomes a draft lesson; then the mentor broadcasts from the phone | LiveKit's open-source server, run here (`live_server.py` says how to build it), and the local backend |
 | `phone_sign_in.py` | Sign-in, starting a space, a second phone taking over | the scripted stand-in |
 | `web_join.py` | The join page: sign-in, joining, proof, invite codes | the scripted stand-in |

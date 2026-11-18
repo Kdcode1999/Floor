@@ -71,12 +71,17 @@ Working today:
   files of 50 MB at most, so recordings of any length need the Pro plan until video moves to
   Floor's own storage.
 
+- **Getting VIP in the app**: a free member opens "Get VIP" from a locked post, the Learn note, a
+  locked live session or the Account screen. It shows the mentor's price and how to pay them by
+  transfer or USDT, sends a screenshot as proof to the mentor's queue, says when one is waiting
+  or was turned down and why, and takes an invite code, which turns VIP on at once.
+
 - **The sample space**: with `mobile/.env` empty the app runs on a made-up community held in
   memory. Every screen above works in it with nothing set up, seen as the mentor, as a VIP member
   or as someone who has not paid. It is how the build is looked at in Expo Go today. See below.
 
-Checked: 202 database tests, 239 logic tests (172 phone, 67 web and server), 46 tests of the sample
-space, and twelve walk-throughs in Chrome. One of them runs a live session with real video through LiveKit. One opens every screen of the sample space as
+Checked: 202 database tests, 240 logic tests (172 phone, 68 web and server), 48 tests of the sample
+space, and thirteen walk-throughs in Chrome. One of them runs a live session with real video through LiveKit. One opens every screen of the sample space as
 each of its three viewers. Nine run against a real Postgres with Floor's migrations, with the mentor, a VIP
 member and a free member each on their own phone. The Community walk-through has four people in one
 group at once: what one writes shows on the others' phones, and a link, a number, a mute, a report and
@@ -216,7 +221,7 @@ Later, when the build reaches them: storage for lesson video on Floor's own serv
 ### 4. Plan change of 18 Nov: no stores, no cards, low running costs
 - [x] Take card payments out: the mentor's Paystack and Flutterwave, the card checkout, the
       payments list. Transfer, USDT, broker link and invite code stay
-- [ ] Now that no store rules apply: the app shows the way to VIP and takes invite codes
+- [x] Now that no store rules apply: the app shows the way to VIP and takes invite codes
 - [ ] iPhone: Floor as a web app on the home screen, with alerts
 - [ ] Android: the app as a download from Floor's own site, updating itself
 - [ ] Live video and lesson video on Floor's own servers, recordings with them (no 50 MB limit)

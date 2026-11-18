@@ -264,6 +264,8 @@ export interface World {
   memberships: MembershipRow[];
   access_requests: RequestRow[];
   invite_codes: CodeRow[];
+  /** Who has used which invite code. Each person uses a code once. */
+  invite_redemptions: { code_id: string; user_id: string }[];
   reports: ReportRow[];
   posts: PostRow[];
   modules: ModuleRow[];
@@ -291,6 +293,7 @@ export function emptyWorld(): World {
     memberships: [],
     access_requests: [],
     invite_codes: [],
+    invite_redemptions: [],
     reports: [],
     posts: [],
     modules: [],

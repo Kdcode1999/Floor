@@ -592,6 +592,18 @@ def main() -> None:
         scroll(900)
         shot("free-02-feed-lower")
 
+        print("Free member: the way to VIP")
+        scroll(0)
+        page.get_by_role("button", name=re.compile(r"^Weekly plan: what I am watching\. For VIP members")).click()
+        check("a locked post opens Get VIP", at("/vip"))
+        check_visible("with the mentor's price", text("₦30,000 for 30 days"))
+        check_visible("how to pay", text("Pay Kings FX Academy", exact=True))
+        check_visible("the broker offer", text("Free VIP with a broker account"))
+        check_visible("and the invite code", text("Have an invite code?"))
+        shot("free-03-get-vip")
+        button("Back").click()
+        at("/")
+
         print("Free member: Learn")
         tab("Learn")
         check_visible("Learn says lessons are for VIP members", text("Lessons are for VIP members"))

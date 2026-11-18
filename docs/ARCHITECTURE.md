@@ -110,7 +110,7 @@ account), the screen says so in place, with `features/sample/SampleNote`.
 | `components/`, `theme/` | The same look as the phone app, as CSS |
 
 Files both apps need (the themes, the sign-in messages, Learn's logic, the wording for deleting
-an account) are kept in both. A test in `web/` fails when the copies differ.
+an account, and getting VIP: proof files and invite codes) are kept in both. A test in `web/` fails when the copies differ.
 
 ### Floor's server (`web/src/app/api`, `web/src/server`)
 

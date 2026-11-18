@@ -64,6 +64,7 @@ export default function LearnScreen() {
               <AppText size={13} line={18} color={theme.text2}>
                 This is what the course holds. Each lesson opens once you are VIP.
               </AppText>
+              <Button label="Get VIP" size="medium" onPress={() => router.push("/vip")} />
             </Card>
           ) : open.length > 1 && !isStaff ? (
             <Card style={styles.note}>
