@@ -10,6 +10,7 @@ import http.server
 import json
 import threading
 import uuid
+from quiet import QuietServer
 
 # Every message the server sent: {"to", "title", "body", "data", ...}
 sent: list[dict] = []
@@ -62,6 +63,6 @@ class Service(http.server.BaseHTTPRequestHandler):
 
 def start(port: int) -> http.server.ThreadingHTTPServer:
     reset()
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", port), Service)
+    server = QuietServer(("127.0.0.1", port), Service)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     return server

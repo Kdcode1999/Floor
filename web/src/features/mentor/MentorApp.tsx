@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { themeFor, themes } from "@/theme/themes";
 import { themeVars } from "@/theme/vars";
 
+import { CardPayments } from "./CardPayments";
 import { Course } from "./Course";
 
 /** A space the signed-in person helps run. */
@@ -22,13 +23,17 @@ export interface StaffSpace {
   role: "mentor" | "admin" | "member";
 }
 
+type Tool = "course" | "payments";
+
 /**
  * The mentor's laptop page: the jobs that are easier with a big screen and a fast connection.
- * Today that is building the course and uploading lesson videos.
+ * Building the course and uploading lesson videos, and connecting a card processor, which
+ * means copying a key out of that processor's own website.
  */
 export function MentorApp() {
   const tools = useSession();
   const { session, userId } = tools;
+  const [tool, setTool] = useState<Tool>("course");
   /** The spaces this person runs. Undefined while they are being loaded. */
   const [spaces, setSpaces] = useState<{ user: string; list: StaffSpace[]; trouble: string | null } | undefined>(undefined);
   const [chosen, setChosen] = useState<string | null>(null);
@@ -107,7 +112,25 @@ export function MentorApp() {
             </div>
           </Card>
         ) : (
-          <Course space={space} />
+          <>
+            {/* Only the mentor connects a processor: whoever holds it receives every card payment. */}
+            {space.role === "mentor" ? (
+              <div className="choices" role="tablist" aria-label="Tools">
+                {(["course", "payments"] as const).map((each) => (
+                  <button
+                    key={each}
+                    type="button"
+                    role="tab"
+                    aria-selected={tool === each}
+                    className={tool === each ? "choice chosen" : "choice"}
+                    onClick={() => setTool(each)}>
+                    {each === "course" ? "Course" : "Card payments"}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            {space.role === "mentor" && tool === "payments" ? <CardPayments space={space} /> : <Course space={space} />}
+          </>
         )}
       </div>
     </main>

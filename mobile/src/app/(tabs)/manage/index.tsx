@@ -123,9 +123,15 @@ export default function ManageScreen() {
           />
         ) : null}
         <SettingsRow
+          title="Card payments"
+          detail="Who paid by card"
+          divided={isMentor}
+          onPress={client ? () => router.push("/manage/payments") : undefined}
+        />
+        <SettingsRow
           title="Invite codes"
           detail="Give VIP with a code"
-          divided={isMentor}
+          divided
           onPress={client ? () => router.push("/manage/codes") : undefined}
         />
         <SettingsRow title="Groups" detail="Create groups and choose who gets in" divided />

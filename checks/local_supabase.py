@@ -34,6 +34,7 @@ from psycopg import sql
 from psycopg.rows import dict_row
 
 import local_db
+from quiet import QuietServer
 
 THE_CODE = "123456"
 SERVICE_KEY = "local-secret-key"
@@ -525,7 +526,7 @@ def start(port: int) -> http.server.ThreadingHTTPServer:
     logins.clear()
     signed.clear()
     codes_sent_to.clear()
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", port), Api)
+    server = QuietServer(("127.0.0.1", port), Api)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     return server
 

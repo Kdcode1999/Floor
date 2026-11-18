@@ -35,6 +35,7 @@ From `mobile/` or `web/`, one at a time (they share ports):
 | `phone_learn.py` | Learn and Protection: upload, watch, progress | the real database, server routes, video host stand-in |
 | `web_mentor.py` | The mentor's laptop page: course and video upload | the real database, server routes, video host stand-in |
 | `phone_alerts.py` | Alerts: who is told when a setup is posted, a member's switches, signing out | the real database, server routes, notification stand-in |
+| `web_pay.py` | Card payments: the mentor connects, members pay, and what happens when it goes wrong | the real database, server routes, processor stand-ins, and the phone app at the end |
 
 ```bash
 python ../checks/phone_feed.py
@@ -50,10 +51,11 @@ A script exits with an error if any check fails.
 | `local_supabase.py` | Supabase's sign-in, table API, functions and file storage | Requests run as the signed-in person under the real rules. Sign-in takes any email and the code `123456` |
 | `fake_video_host.py` | The video host | Checks upload tickets and playback addresses with its own copy of the host's rules, and serves a real short film in pieces |
 | `fake_push.py` | The notification service | Keeps every alert it is sent. Answers "this phone no longer has the app" for addresses with `gone` in them. A browser cannot get a phone's address, so walk-throughs put addresses in the database directly |
+| `fake_processors.py` | Paystack and Flutterwave | Every API call needs the mentor's key. A page to pay on with Pay and Cancel, which sends the member back the way the real pages do. Webhooks signed the way each processor signs, genuine or forged on request |
 | `stand_in.py` | Supabase, scripted | Answers whatever a walk-through tells it to. For cases a real database will not produce on demand |
 
 `local_services.py` starts the backend, the stand-ins and Floor's own server together, for the
-walk-throughs that need server routes.
+walk-throughs that need server routes. `quiet.py` is the web server they all run on.
 
 Nothing a check opens leaves this machine. A page from another site, such as YouTube's player in a
 post, is answered with an empty page, so no result depends on the network.

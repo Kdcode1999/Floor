@@ -9,6 +9,7 @@ import { logoUrl } from "@/lib/env";
 
 import { stepFor, type PreviewItem, type PublicSpace } from "./logic";
 import { MemberView } from "./MemberView";
+import { PaidNotice } from "./PaidNotice";
 import { useJoin, type Join } from "./useJoin";
 
 interface JoinFlowProps {
@@ -40,6 +41,8 @@ export function JoinFlow({ space, price, preview }: JoinFlowProps) {
           {space.tagline ? <p className="body">{space.tagline}</p> : null}
         </div>
       </header>
+
+      <PaidNotice spaceName={space.name} onPaid={join.reload} />
 
       {join.trouble ? (
         <Card>

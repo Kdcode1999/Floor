@@ -2,9 +2,13 @@ import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from "react
 
 import { initials } from "@/lib/initials";
 
-/** The glass card. */
-export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`card ${className}`}>{children}</section>;
+/** The glass card. `role="status"` makes a screen reader say what is in it when it appears. */
+export function Card({ children, className = "", role }: { children: ReactNode; className?: string; role?: "status" }) {
+  return (
+    <section className={`card ${className}`} role={role}>
+      {children}
+    </section>
+  );
 }
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

@@ -2,6 +2,7 @@ import "server-only";
 
 import { deleteVideo } from "./bunny";
 import { videoConfigured } from "./env";
+import { confirmPayment, REFERENCE, vaultReady } from "./pay";
 import { checkReceipts, sendAlert } from "./push";
 import { asServer } from "./supabase";
 
@@ -24,6 +25,20 @@ const handlers: Record<string, Handler> = {
   /** Half an hour after an alert: learn which phones no longer have the app. */
   push_receipts: checkReceipts,
 
+  /**
+   * A member started a card payment a while ago. If they paid and never came back to the
+   * page, and no webhook arrived, this is what gives them their VIP.
+   */
+  payment_check: async (job) => {
+    const reference = job.payload.reference;
+    if (!vaultReady || typeof reference !== "string" || !REFERENCE.test(reference)) return;
+    const confirmed = await confirmPayment(reference);
+    if (confirmed.state === "paid" || confirmed.state === "unknown" || confirmed.state === "mismatch") return;
+    // Still open at the processor: the member may yet pay. Look again later, for a while.
+    const age = confirmed.createdAt ? Date.now() - Date.parse(confirmed.createdAt) : Infinity;
+    if (age < STILL_OPEN_MS) throw new Error("The payment has not gone through yet");
+  },
+
   /** A lesson was deleted, so its video is removed from the video host. */
   video_delete: async (job) => {
     if (!videoConfigured) throw new Error("The video host is not set up");
@@ -31,6 +46,9 @@ const handlers: Record<string, Handler> = {
     if (typeof videoId === "string" && job.payload.provider === "bunny") await deleteVideo(videoId);
   },
 };
+
+/** How long after it was started a card payment is still worth asking about. */
+const STILL_OPEN_MS = 2 * 60 * 60_000;
 
 /** How long one run may keep taking jobs before it hands over to the next run. */
 const BUDGET_MS = 8000;

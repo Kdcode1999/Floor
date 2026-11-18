@@ -33,6 +33,23 @@ export const PUSH = {
 };
 
 /**
+ * A long random secret of our own, 32 characters or more. Mentors' card processor keys are
+ * encrypted with it before they are stored. If it is ever changed, every mentor has to
+ * connect their processor again.
+ */
+export const PAYMENT_KEYS_SECRET = process.env.PAYMENT_KEYS_SECRET ?? "";
+
+/**
+ * Test keys take pretend cards, so a space connected with one gives VIP away. Refused unless
+ * this is "true", which is for trying payments out before launch.
+ */
+export const PAYMENTS_ALLOW_TEST_KEYS = process.env.PAYMENTS_ALLOW_TEST_KEYS === "true";
+
+/** Where the card processors' APIs live. Only the walk-throughs point these somewhere else. */
+export const PAYSTACK_API = (process.env.PAYSTACK_API_URL ?? "https://api.paystack.co").replace(/\/+$/, "");
+export const FLUTTERWAVE_API = (process.env.FLUTTERWAVE_API_URL ?? "https://api.flutterwave.com").replace(/\/+$/, "");
+
+/**
  * A long random word of our own. Vercel sends it with every run of the timer that sweeps the
  * job queue, which is how the route knows the call is Vercel's.
  */

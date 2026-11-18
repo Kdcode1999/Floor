@@ -20,6 +20,7 @@ export interface AlertData {
 
 export type AlertRoute =
   | { pathname: "/" }
+  | { pathname: "/manage/payments" }
   | { pathname: "/lesson"; params: { id: string } }
   | { pathname: "/live"; params: { id: string } };
 
@@ -28,6 +29,8 @@ export function routeFor(data: AlertData | null | undefined): AlertRoute {
   const id = typeof data?.id === "string" ? data.id : "";
   if (data?.type === "lesson" && id) return { pathname: "/lesson", params: { id } };
   if ((data?.type === "live" || data?.type === "class") && id) return { pathname: "/live", params: { id } };
+  // Only the mentor is ever sent this one.
+  if (data?.type === "payment" || data?.type === "payment_problem") return { pathname: "/manage/payments" };
   return { pathname: "/" };
 }
 

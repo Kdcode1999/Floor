@@ -23,6 +23,7 @@ import threading
 import time
 import urllib.parse
 import uuid
+from quiet import QuietServer
 
 LIBRARY = "12345"
 API_KEY = "local-video-key"
@@ -177,6 +178,6 @@ def start(port: int, pieces: dict[str, bytes], still_bytes: bytes) -> http.serve
     stream.clear()
     stream.update(pieces)
     still = still_bytes
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", port), Host)
+    server = QuietServer(("127.0.0.1", port), Host)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     return server

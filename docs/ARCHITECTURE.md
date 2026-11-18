@@ -57,7 +57,8 @@ With `mobile/.env` empty the app runs on a sample space, so screens can be looke
 | --- | --- |
 | `app/[slug]/` | A space's join page. The server reads only what anyone may know about the space |
 | `features/join/` | Sign-in, joining, paying with proof, invite codes, all in the visitor's browser |
-| `app/mentor/`, `features/mentor/` | The mentor's laptop page: the course and video upload |
+| `app/mentor/`, `features/mentor/` | The mentor's laptop page: the course and video upload, and connecting a card processor |
+| `features/pay/` | Card payments' plain logic, shared by the pages and the server |
 | `features/session/` | Sign-in by emailed code for the pages staff use |
 | `app/api/`, `server/` | Floor's server. See below |
 | `components/`, `theme/` | The same look as the phone app, as CSS |
@@ -74,6 +75,10 @@ Files both apps need (the themes, the sign-in messages, Learn's logic) are kept 
 | `POST /api/video/play` | someone who may watch | Answers with a signed address for the video |
 | `POST /api/video/webhook` | the video host | Hears that a video changed, then asks the host itself |
 | `POST /api/jobs/run` | any signed-in app, and Vercel's timer | Does the jobs waiting in the queue |
+| `POST /api/pay/connect` | the mentor | Tries their processor key, encrypts it and stores it |
+| `POST /api/pay/start` | a member | Starts a card payment and answers with the processor's page for it |
+| `POST /api/pay/confirm` | the page a member returns to, no login | Asks the processor what became of a payment, and adds the VIP days if it went through |
+| `POST /api/pay/hook/<processor>/<space>` | the mentor's processor | Checks the webhook's signature with that mentor's key, then does the same as confirm |
 
 Every route follows the same steps: take the person's login from the request, ask the database
 *as that person* whether they may (a function such as `lesson_playback`), and only then use a
@@ -84,13 +89,21 @@ or with the secret key), `http.ts` (reading requests, wording refusals), `bunny.
 asked of the video host), `jobs.ts` (the queue's handlers), `push.ts` (everything asked of the
 notification service), `alertWords.ts` (what an alert says and who may get it).
 
+Card payments are in `server/pay/`: `processor.ts` (what Floor asks of any card processor),
+`paystack.ts` and `flutterwave.ts` (one file each, and the only places that know either
+processor), `vault.ts` (encrypting a mentor's key) and `index.ts` (`confirmPayment`, which the
+return, the webhook and the later check all go through). What both the pages and the server
+need to know about processors, such as which currencies each charges, is in
+`features/pay/logic.ts`.
+
 ### Jobs the server does from the queue
 
 | Job | Queued by | What happens |
 | --- | --- | --- |
-| `alert` | `create_post` for a setup, `publish_lesson` | The server words the alert, asks the database who gets it (`alert_recipients`) and sends it |
+| `alert` | `create_post` for a setup, `publish_lesson`, `settle_payment`, `note_payment_problem` | The server words the alert, asks the database who gets it (`alert_recipients`) and sends it |
 | `push_receipts` | the server, 30 minutes after an alert | Asks which phones took the alert and forgets the ones that are gone |
 | `video_delete` | `delete_lesson` | Removes the video from the video host |
+| `payment_check` | `start_payment`, for ten minutes later | Asks the processor about a payment nobody has confirmed yet |
 
 Every job carries `actor`: who caused it. An alert leaves that person out.
 
@@ -106,6 +119,10 @@ Every job carries `actor`: who caused it. An alert leaves that person out.
 - `private.outbox` is the queue of jobs for Floor's server (alerts, Telegram, clean-up). Functions
   add to it with `private.enqueue`. The server takes jobs with `claim_outbox` and reports back with
   `finish_outbox`, both open to the secret key only.
+- `payments` is one row per try at paying by card. A member reads their own, staff read their
+  space's. Only `start_payment` (as the member) and `settle_payment` (secret key) write to it.
+- `private.payment_accounts` holds each mentor's processor key, encrypted by the server. No app
+  can reach the table. The mentor sees the key's last four characters through `payment_account`.
 - `push_tokens` holds each account's one address for alerts. Nothing reads it but functions: the
   app saves and removes its own (`save_push_token`, `remove_push_token`), the server asks who to
   alert (`alert_recipients`). A member's switches are three columns on their membership.
@@ -120,6 +137,8 @@ Every job carries `actor`: who caused it. An alert leaves that person out.
 | The course outline | yes, locked | yes | yes |
 | Lessons and their video | no | yes | yes |
 | The queue, members, invite codes | no | no | yes |
+| Card payments | their own | their own | the space's |
+| The card processor's key | no | no | no: only Floor's server, encrypted |
 
 A member also needs the account's one claimed login (`private.has_access`). Staff do not: a
 mentor uses the phone and a laptop at once.
@@ -138,7 +157,9 @@ mentor uses the phone and a laptop at once.
   addresses with its own copy of the host's rules, and serves a real short film in pieces.
 - `fake_push.py` stands in for the notification service. It keeps every alert it is sent, and
   treats some addresses as phones that no longer have the app.
-- `local_services.py` starts all of it together: the backend, both stand-ins and Floor's server.
+- `fake_processors.py` stands in for Paystack and Flutterwave: the API calls Floor makes, a page
+  to pay on, and webhooks signed the way each one signs.
+- `local_services.py` starts all of it together: the backend, the stand-ins and Floor's server.
 - Nothing a check opens leaves the machine. A page from another site is answered with an empty one.
 - `stand_in.py` is the older, scripted stand-in. It answers whatever a walk-through tells it to,
   for the cases a real database will not produce on demand: a failing server, a second phone

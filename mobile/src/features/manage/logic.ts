@@ -1,7 +1,7 @@
 // The mentor tools' plain logic: reading what was typed into the setup form, and wording where
 // a member, a request or an invite code stands. No phone code in here. Tested in tests/.
 
-import { days, daysUntil, formatDay } from "@/lib/format";
+import { days, daysUntil, formatDay, timeAgo } from "@/lib/format";
 
 /** The currencies offered as one-tap choices. The database accepts any 3 to 5 capital letters. */
 export const CURRENCIES = ["NGN", "USD", "USDT", "GHS", "KES", "ZAR", "GBP", "EUR"];
@@ -142,6 +142,62 @@ export function codeStanding(code: CodeRow, now: number): { live: boolean; label
   if (code.expires_at !== null && Date.parse(code.expires_at) <= now) return { live: false, label: `Ran out of time · ${used}` };
   if (code.max_uses !== null && code.used_count >= code.max_uses) return { live: false, label: `All used · ${gives}` };
   return { live: true, label: `${gives} · ${used.replace("Used 0 times", "Not used yet")}` };
+}
+
+/** The card processors a mentor can connect, by the name the database keeps. */
+export const CARD_PROCESSORS: Record<string, string> = { paystack: "Paystack", flutterwave: "Flutterwave" };
+
+/** The mentor's page on the web, where a card processor is connected. */
+export function mentorPage(siteUrl: string): string {
+  return `${siteUrl || "https://your-floor-address"}/mentor`;
+}
+
+/** What the price screen says about card payments. */
+export function cardLine(provider: string | null, siteUrl: string): { on: boolean; title: string; detail: string } {
+  const name = provider ? CARD_PROCESSORS[provider] : undefined;
+  if (name) {
+    return {
+      on: true,
+      title: `Card payments are on, through ${name}`,
+      detail: `A member who pays by card on your join page gets VIP at once, with nothing for you to approve. To change or disconnect it, open ${mentorPage(siteUrl)} in a browser.`,
+    };
+  }
+  return {
+    on: false,
+    title: "Card payments are off",
+    detail: `To let members pay by card and get VIP at once, connect your own Paystack or Flutterwave account. Open ${mentorPage(siteUrl)} in a browser, on a phone or a laptop.`,
+  };
+}
+
+/**
+ * What the mentor reads on the phone when a member could not start a card payment. `problem`
+ * is what Floor's server kept: "key_refused", or the processor's own words.
+ */
+export function cardProblem(problem: string | null | undefined, provider: string | null, siteUrl: string): { title: string; detail: string } | null {
+  if (!problem) return null;
+  const name = (provider && CARD_PROCESSORS[provider]) || "Your processor";
+  const where = `Open ${mentorPage(siteUrl)} in a browser to fix it.`;
+  if (problem === "key_refused") {
+    return { title: "Card payments are not working", detail: `${name} no longer accepts your key, so members cannot pay by card. ${where}` };
+  }
+  return { title: "A member could not pay by card", detail: `${name} said: “${problem}” ${where}` };
+}
+
+/** One card payment, as the database lists it. */
+export interface PaymentRow {
+  name: string;
+  amount_cents: number;
+  currency: string;
+  days: number;
+  paid_at: string;
+  vip_until: string | null;
+}
+
+/** The second line under a card payment: when, and what it gave. */
+export function paymentLine(payment: PaymentRow, now: number, locale?: string): string {
+  const when = timeAgo(payment.paid_at, now, locale);
+  if (!payment.vip_until) return `${when} · No VIP given: they had been removed. You may owe a refund.`;
+  return `${when} · ${days(payment.days)} of VIP, until ${formatDay(payment.vip_until, locale)}`;
 }
 
 export interface Failure {

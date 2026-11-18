@@ -12,6 +12,7 @@ import urllib.parse
 import urllib.request
 
 from playwright.sync_api import Locator, Playwright, expect
+from quiet import QuietServer
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 MOBILE = ROOT / "mobile"
@@ -97,7 +98,7 @@ def serve(dist: pathlib.Path, port: int) -> http.server.ThreadingHTTPServer:
 
     if not (dist / "index.html").is_file():
         sys.exit(f"No web build in {dist.name}/. See the top of this script for the command that makes it.")
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", port), SinglePage)
+    server = QuietServer(("127.0.0.1", port), SinglePage)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     return server
 
@@ -112,6 +113,9 @@ def open_phone(p: Playwright, problems: list[str], ignore: tuple[str, ...] = (),
     Browser errors and warnings are collected into `problems`."""
     # Chrome refuses to start as root without this. It only happens on build machines.
     args = ["--no-sandbox"] if hasattr(os, "geteuid") and os.geteuid() == 0 else []
+    # Chrome's own chatter with Google (updates, sync, its messaging service) is switched off:
+    # a check is about Floor, and stays on this machine.
+    args += ["--disable-background-networking", "--disable-component-update", "--disable-sync", "--no-first-run"]
     browser = p.chromium.launch(channel="chrome", args=args)
     if laptop:
         context = browser.new_context(viewport={"width": 1280, "height": 800})

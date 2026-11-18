@@ -34,20 +34,27 @@ Working today:
 - **Alerts**: a notification on the phone for a new setup and a new lesson, sent only to people
   who can open it. Each member switches each kind on or off, per space. The person who posted is
   not alerted.
+- **Card payments**: the mentor connects their own Paystack or Flutterwave account on the web at
+  `/mentor`. A member pays by card on the join page and is VIP at once, with nothing to approve.
+  The mentor is alerted and sees who paid in the app. Floor never holds the money.
 
 With `mobile/.env` empty the app still opens on the sample space, with no sign-in, so the screens can be
 looked at without any setup.
 
-Checked: 126 database tests, 147 logic tests (110 phone, 37 web and server), and eight walk-throughs in
-Chrome. Five of them run against a real Postgres with Floor's migrations, with the mentor, a VIP member
+Checked: 144 database tests, 172 logic tests (114 phone, 58 web and server), and nine walk-throughs in
+Chrome. Six of them run against a real Postgres with Floor's migrations, with the mentor, a VIP member
 and a free member each on their own phone. The Learn walk-through uploads a real video through the
 server to a stand-in for the video host, which checks every signature the way the real host does, and
 plays it back. The Alerts walk-through posts a setup in the app and checks who the server tells,
-through a stand-in for the notification service. The phone app builds for Android and iPhone and the
-web app builds for production.
+through a stand-in for the notification service. The card payments walk-through connects a processor,
+pays on its page, and tries a wrong key, a forged webhook and an underpayment, against stand-ins for
+Paystack and Flutterwave. The phone app builds for Android and iPhone and the web app builds for
+production.
 
 Not yet checked anywhere: anything on a real phone since the first look, and anything against the
-real Supabase project, the real video host or a real notification. Those need `docs/SETUP.md`.
+real Supabase project, the real video host, a real notification or a real card processor. Those need
+`docs/SETUP.md`. The first real card payment should be a test one (SETUP step 8): it is the first
+time Floor's reading of Paystack's and Flutterwave's rules meets the real services.
 
 ## Needed from Kingsley
 
@@ -68,9 +75,10 @@ Each step is written out in `docs/SETUP.md`.
       `mobile` first: the app has new parts. Expo Go still opens the app for a look at the screens
       (`npx expo start --go`), without alerts on Android
 - [ ] A Firebase project, so Android phones can get alerts (SETUP step 7)
+- [ ] Card payments: one secret in Vercel, then try a test payment (SETUP step 8)
 
-Later, when the build reaches them: a live video service, the card processors, a Telegram bot token,
-the Apple and Google developer accounts.
+Later, when the build reaches them: a live video service, a Telegram bot token, the Apple and Google
+developer accounts.
 
 ## Build order
 
@@ -99,7 +107,7 @@ the Apple and Google developer accounts.
 - [x] Floor's server: routes for video, and the job queue
 - [x] Database, server and mobile: Alerts (push)
 - [x] Mobile: the app's store id, build profiles, permission wording
-- [ ] Card payments that unlock VIP by themselves
+- [x] Database, server, web and mobile: card payments that unlock VIP by themselves
 - [ ] Report a space (mobile), suspend a space (Floor's own admin page)
 
 ### 2. Community

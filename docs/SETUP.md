@@ -223,3 +223,58 @@ setup" within a few seconds. The person who posts is never alerted themselves.
 2. Then switch on **Enhanced Security for Push Notifications** on the same page.
 
 In that order. With the switch on, only a server holding your token can send alerts as Floor.
+
+## 8. Card payments
+
+Each mentor connects their own Paystack or Flutterwave account, on the web at `/mentor`. Members
+then pay by card on the join page and get VIP at once. The money goes from the member to the
+mentor. Floor starts the payment and checks that it went through, and never holds it.
+
+What Floor needs from you is one secret. A mentor's processor key can move money, so Floor
+encrypts it before storing it, with a key that lives only in Vercel.
+
+1. Make a long random secret. In PowerShell:
+
+   ```powershell
+   $b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b)
+   ```
+
+2. Add it to Vercel's Environment Variables as `PAYMENT_KEYS_SECRET`, and redeploy.
+3. **Keep a copy in your password manager.** If this secret is lost or changed, the stored keys can
+   no longer be read and every mentor has to connect their processor again. Nobody loses money.
+   Card payments just stop until they do.
+
+Until this is set, the Card payments tool on `/mentor` says card payments are not switched on.
+
+**Trying it before launch, with no real money.** Floor refuses test keys, because a space connected
+with one gives VIP to anyone with a pretend card. To try the whole thing yourself:
+
+1. Add `PAYMENTS_ALLOW_TEST_KEYS` = `true` in Vercel and redeploy.
+2. In your own Paystack dashboard, switch to Test Mode. Under Settings, API Keys & Webhooks, copy
+   the **test secret key** (it starts with `sk_test_`).
+3. In the Floor app, set a price for your space in NGN. Then open `https://YOUR-SITE/mentor`, sign
+   in, choose Card payments, paste the key and connect. The page shows a webhook address: paste it
+   into the same Paystack page as the Test Webhook URL.
+4. With another email, open your join page, join, and press Pay. On Paystack's page use its test
+   card: `4084 0840 8408 4081`, any future expiry date, CVV `408`.
+5. You should land back on the join page as VIP, and your phone should get "paid by card".
+6. **Remove `PAYMENTS_ALLOW_TEST_KEYS` and redeploy before launch.** Then disconnect, and connect
+   again with your live secret key.
+
+**What a mentor does**, for when you write their help page:
+
+1. Set a VIP price in the app, in a currency their processor charges: NGN, GHS, KES, ZAR or USD on
+   Paystack, and also GBP or EUR on Flutterwave. A price in USDT cannot go on a card.
+2. Open `/mentor` in a browser, choose Card payments, paste their live secret key, connect.
+3. Paste the webhook address the page shows into their processor's dashboard. On Flutterwave they
+   also set a "secret hash" of their own there, and give Floor the same word when connecting.
+
+The webhook is what gives VIP to a member who pays and closes the page before coming back. Without
+it Floor still asks the processor itself a little later, so nobody is left out, only kept waiting.
+
+Things worth knowing:
+
+- A refund made in the processor's dashboard does not end VIP. The mentor ends it under Members.
+- If a member cannot start a payment (the mentor changed their key, say), the mentor gets an alert
+  and `/mentor` says why, in the processor's own words.
+- Stripe is not connected yet. `docs/DECISIONS.md` says why and what it would take.

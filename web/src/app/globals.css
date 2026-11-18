@@ -366,3 +366,28 @@ textarea.input {
   outline: 2px solid var(--accent, #b8c6ff);
   outline-offset: 2px;
 }
+
+/* A row of choices where one is picked: the tools on the mentor's page, which processor. */
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.choice {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--chip-border);
+  border-radius: 99px;
+  background: var(--chip-bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.choice.chosen {
+  border-color: transparent;
+  background: var(--primary-bg);
+  color: var(--primary-fg);
+  font-weight: 600;
+}

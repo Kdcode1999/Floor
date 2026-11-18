@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  cardLine,
+  cardProblem,
+  mentorPage,
+  paymentLine,
   amountText,
   codeStanding,
   countsLine,
@@ -136,6 +140,36 @@ describe("where an invite code stands", () => {
     expect(codeStanding({ ...code, revoked: true }, NOW).live).toBe(false);
     expect(codeStanding({ ...code, expires_at: at(-1) }, NOW).live).toBe(false);
     expect(codeStanding({ ...code, max_uses: 1, used_count: 1 }, NOW).live).toBe(false);
+  });
+});
+
+describe("card payments", () => {
+  it("says on the price screen whether members can pay by card, and where that is set up", () => {
+    expect(cardLine("paystack", "https://floor.example")).toMatchObject({ on: true, title: "Card payments are on, through Paystack" });
+    expect(cardLine("flutterwave", "https://floor.example").title).toBe("Card payments are on, through Flutterwave");
+    const off = cardLine(null, "https://floor.example");
+    expect(off).toMatchObject({ on: false, title: "Card payments are off" });
+    expect(off.detail).toContain("https://floor.example/mentor");
+    // A processor this copy of the app does not know is treated as none.
+    expect(cardLine("stripe", "").on).toBe(false);
+    expect(mentorPage("")).toBe("https://your-floor-address/mentor");
+  });
+
+  it("tells the mentor when a member could not pay, and where to fix it", () => {
+    expect(cardProblem(null, "paystack", "https://floor.example")).toBeNull();
+    expect(cardProblem("key_refused", "paystack", "https://floor.example")).toEqual({
+      title: "Card payments are not working",
+      detail: "Paystack no longer accepts your key, so members cannot pay by card. Open https://floor.example/mentor in a browser to fix it.",
+    });
+    expect(cardProblem("Currency not supported by merchant", "flutterwave", "https://floor.example")?.detail).toBe(
+      "Flutterwave said: “Currency not supported by merchant” Open https://floor.example/mentor in a browser to fix it.",
+    );
+  });
+
+  it("says under each payment when it came in and what it gave", () => {
+    const payment = { name: "Ada O.", amount_cents: 2_500_000, currency: "NGN", days: 30, paid_at: at(-0.1), vip_until: "2026-12-18T12:00:00Z" };
+    expect(paymentLine(payment, NOW, "en-GB")).toBe("2 hours ago · 30 days of VIP, until 18 Dec 2026");
+    expect(paymentLine({ ...payment, vip_until: null }, NOW, "en-GB")).toBe("2 hours ago · No VIP given: they had been removed. You may owe a refund.");
   });
 });
 

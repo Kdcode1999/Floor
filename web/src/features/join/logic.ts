@@ -16,6 +16,10 @@ export interface PublicSpace {
   vip_currency: string | null;
   vip_days: number;
   broker_name: string | null;
+  /** The card processor members can pay through, or null. */
+  card_provider: string | null;
+  /** True while the mentor's key is a test key. */
+  card_test: boolean;
 }
 
 /** The visitor's place in the space. Mirrors their row in `memberships`. */

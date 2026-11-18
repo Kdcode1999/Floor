@@ -133,6 +133,27 @@ describe("what an alert says", () => {
     expect(alert?.kind).toBe("live");
   });
 
+  it("tells the mentor that a member paid by card, and whether VIP was given", () => {
+    expect(words.alertWords({ type: "payment", payment_id: "pay-1", name: "Ada O.", days: 30, vip: true }, space)).toEqual({
+      title: "Gold Desk",
+      body: "Ada O. paid by card. 30 days of VIP added.",
+      vipOnly: true,
+      kind: "payment",
+      data: { type: "payment", space: "space-1", id: "pay-1" },
+    });
+    expect(words.alertWords({ type: "payment", name: "Cee", days: 30, vip: false }, space)?.body).toBe(
+      "Cee paid by card, but is no longer in your space. No VIP was given.",
+    );
+  });
+
+  it("tells the mentor when card payments stop working", () => {
+    expect(words.alertWords({ type: "payment_problem" }, space)).toMatchObject({
+      body: "A member could not pay by card. Open your mentor page on the web to see why.",
+      kind: "payment",
+      data: { type: "payment_problem", space: "space-1" },
+    });
+  });
+
   it("stays silent about kinds it does not know", () => {
     expect(words.alertWords({ type: "something_else" }, space)).toBeNull();
     expect(words.alertWords({}, space)).toBeNull();

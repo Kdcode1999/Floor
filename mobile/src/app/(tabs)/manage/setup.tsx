@@ -10,8 +10,8 @@ import { ErrorLine, Loading, Trouble } from "@/components/LoadState";
 import { Screen } from "@/components/Screen";
 import { TextField } from "@/components/TextField";
 import { loadSetup, saveSetup, type Setup } from "@/features/manage/api";
-import { CURRENCIES, DAY_CHOICES, parseAmount, parseDays, setupProblems, type SetupForm, type SetupProblems } from "@/features/manage/logic";
-import { joinLink } from "@/lib/env";
+import { cardLine, CURRENCIES, DAY_CHOICES, parseAmount, parseDays, setupProblems, type SetupForm, type SetupProblems } from "@/features/manage/logic";
+import { joinLink, SITE_URL } from "@/lib/env";
 import { days, formatPrice } from "@/lib/format";
 import { supabase } from "@/lib/supabase";
 import { useGoBack } from "@/lib/useGoBack";
@@ -78,6 +78,7 @@ function SetupFormView({ spaceId, setup }: { spaceId: string; setup: Setup }) {
         ? `Your join page will say: ${formatPrice(cents, form.currency)} for ${days(length)}`
         : null;
   const link = joinLink(setup.slug);
+  const card = cardLine(setup.cardProvider, SITE_URL);
 
   return (
     <>
@@ -148,8 +149,15 @@ function SetupFormView({ spaceId, setup }: { spaceId: string; setup: Setup }) {
       </Card>
 
       <Card radius={28} style={styles.card}>
+        <Heading title={card.title} />
+        <AppText size={13} line={18} color={theme.text2} selectable>
+          {card.detail}
+        </AppText>
+      </Card>
+
+      <Card radius={28} style={styles.card}>
         <Heading
-          title="How members pay you"
+          title={card.on ? "Other ways members pay you" : "How members pay you"}
           detail="Members pay you directly and send proof. You approve it under Requests. Only people who have joined see these details."
         />
         <TextField

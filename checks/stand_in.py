@@ -16,6 +16,7 @@ import json
 import threading
 import time
 import urllib.parse
+from quiet import QuietServer
 
 THE_CODE = "123456"
 USER_ID = "00000000-0000-4000-8000-0000000000aa"
@@ -334,6 +335,6 @@ class StandIn(http.server.BaseHTTPRequestHandler):
 
 
 def start(port: int) -> http.server.ThreadingHTTPServer:
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", port), StandIn)
+    server = QuietServer(("127.0.0.1", port), StandIn)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     return server

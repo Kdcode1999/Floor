@@ -231,9 +231,46 @@ Newest at the bottom. Each entry says what was decided and why, so nobody has to
   post) is answered with an empty page, so a result cannot depend on the network or on another
   site's messages.
 
+- **Card payments run through the mentor's own Paystack or Flutterwave account.** Those are the two
+  processors a Nigerian mentor can open today. The money goes from the member to the mentor's
+  account, so "Floor never holds a member's money" stays true with cards as well. Stripe is left
+  for later: checked in November 2026, it still opens no accounts for businesses registered in
+  Nigeria. Everything Floor asks of a processor is one file per processor
+  (`web/src/server/pay/`), so adding it for mentors elsewhere is one more file.
+- **The member pays on the processor's own page.** Card numbers never touch Floor, in a browser or
+  on the server. Floor starts the payment and sends the member there.
+- **Floor has to hold the mentor's secret key, so it is held carefully.** Neither processor offers
+  a way to act for a merchant without their key. The key is tried once, encrypted on the server
+  with a secret that lives only in Vercel, and stored in a table no app can reach. It is never
+  sent back, not even to the mentor. A copy of the database holds nothing that can move money.
+  Disconnecting deletes it.
+- **A payment counts only when the processor itself says so.** Whatever brings the news (the
+  member's return, a webhook, the later check), the server asks the processor about that payment
+  by Floor's own name for it. Less than the price, another currency, or an answer about some other
+  payment gives no VIP. The days are added once, however many times the news arrives.
+- **Three roads to the same place.** The member's return is the fast one. The processor's webhook
+  covers a member who closes the page. A check the server queues for ten minutes later covers a
+  mentor who set up no webhook. Any one of them is enough.
+- **The return needs no login.** A payment's name is long, random and known only to whoever started
+  it, and the only thing it can do is give that person what they paid for. So a member who paid in
+  another browser is not stuck. The database limits how often one payment can make the server ask
+  the processor.
+- **The price and the days are fixed when the member presses Pay.** A mentor changing the price
+  cannot alter a payment that is under way.
+- **Test keys are refused.** A space connected with one would give VIP to anyone with a pretend
+  card. A setting switches them on for trying payments before launch (SETUP step 8).
+- **Only the mentor connects a processor**, on the web at `/mentor`, not in the phone app: the key
+  is copied out of the processor's own website. Admins see who paid.
+- **Card payments need no approval, so the mentor is told.** An alert when a member pays, and a
+  list of card payments in the app. If a member cannot start a payment, the mentor is alerted and
+  shown the processor's own reason: a sale lost in silence is what Floor is for preventing.
+- **Someone removed after they started paying gets no VIP.** The payment is still listed, marked,
+  so the mentor can refund it.
+- **A refund does not end VIP by itself.** Refunds happen in the processor's dashboard, between the
+  mentor and the member. The mentor ends VIP under Members.
+
 ## Open
 
-- Card processors for the automatic path. Starting point: Paystack and Flutterwave, Stripe after.
 - The service behind the live room. To be chosen when Live is built, on current prices.
 - How a mentor pays Floor its monthly fee. Nothing in the build order covers it yet. It has to happen on
   the web, not inside the iPhone app.
